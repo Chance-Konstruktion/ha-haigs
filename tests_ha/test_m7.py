@@ -194,7 +194,7 @@ async def test_panel_ist_ohne_yaml_angemeldet(
     assert "#FC6D26" in koerper
     assert "hl-fuss" in koerper
     assert "fuss_zeile" in koerper
-    assert "single point of failure" in koerper
+    assert "your forge, your rules" in koerper
     assert "hl-fuchs-tanz" in koerper  # der Fuchs tanzt bei Streicheln
 
     # Das Iconset wird neben der Panel-Datei eigenen Weg geliefert.
