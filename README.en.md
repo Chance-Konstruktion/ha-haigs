@@ -28,102 +28,50 @@ downloads the version archive, and installs it safely.
 
 ## Installation
 
-HACS cannot deliver HACS*lab — it only knows GitHub — so the honest way is
-by hand. It takes about two minutes.
+**Via HACS (recommended)**
 
-**Requirements**
+1. HACS → ⋮ → *Custom repositories* →
+   `https://github.com/Chance-Konstruktion/ha-hacs-lab`, type *Integration*.
+2. Download **HACS\*lab** and restart Home Assistant.
+3. *Settings → Devices & services → Add integration* → **HACS\*lab**. Enter
+   your instance's host (gitlab.com, codeberg.org, gitea.com or self-hosted)
+   and optionally a read token. Leave the provider on **auto** – HACS\*lab
+   detects whether GitLab, Forgejo or Gitea answers.
+4. **HACS\*lab** appears in the sidebar. Add more instances the same way – as
+   many as you like, in any mix.
 
-- Home Assistant 2025.2 or newer (the test lane runs against 2026.2)
-- A GitLab, Gitea, or Forgejo (Codeberg) instance you can reach from your
-  Home Assistant host
-- Optional: a read token — for private repositories or to be gentler on
-  rate limits (GitLab `read_api` scope; a Gitea/Forgejo token with read
-  access)
+From then on HACS\*lab can keep itself up to date: add this repository to
+its own list and every new release shows up as an update.
 
-**Steps**
+**Manually:** unpack `hacs-lab-vX.Y.Z.zip` from the
+[releases page](https://github.com/Chance-Konstruktion/ha-hacs-lab/releases)
+into your configuration directory (it contains exactly
+`custom_components/hacs_lab/`), restart, continue with step 3. Every release
+note carries the SHA-256; the build is deterministic.
 
-1. Download the release archive `hacs-lab-vX.Y.Z.zip` from the
-   [releases page](https://github.com/Chance-Konstruktion/ha-hacs-lab/releases).
-   The SHA-256 of the archive is part of every release description — verify
-   it if you like.
-2. Extract the archive **into your Home Assistant configuration directory**
-   (the one that contains `configuration.yaml`). The archive contains a
-   single folder, `custom_components/hacs_lab/` — core library included.
-   One folder to copy, nothing else to set up; the integration finds its
-   core through relative imports, so it never touches your Python path.
-3. Restart Home Assistant.
-4. Add the integration: *Settings → Devices & Services → Add Integration*,
-   search for **HACS*lab**. Enter the host of your instance (a pasted
-   project link is shortened to its host) and, optionally, your read token.
-   The provider stays on **auto** for most cases — HACS*lab asks the
-   instance itself which API it speaks (works for gitlab.com, codeberg.org,
-   gitea.com, and self-hosted servers alike); pick GitLab, Forgejo, or Gitea
-   by hand only if auto-detection cannot decide. The dialog checks the
-   connection and tells you plainly when it fails.
-   Several instances sit side by side — one per host, each with its own
-   provider, token, and entries.
-5. After setup you get a sidebar panel — no YAML anywhere. The sidebar
-   entry wears the GitLab tanuki, served by the integration itself
-   (`frontend/iconset.js`, registered on every frontend page).
+**Requirements:** Home Assistant 2025.2 or newer (tested up to 2026.9). A read
+token is only needed for private repositories (GitLab scope `read_api`, a
+read-only token on Gitea/Forgejo).
 
-> The setup dialog and the panel speak German and English — Home
-> Assistant picks the language, the integration ships both
-> (`translations/de.json`, `translations/en.json`).
-
-> **This is a 0.x release.** It has been proven on a real Home Assistant
-> stage (2026.2.3, cold start, two live servers, third-party integrations
-> installed and running) and every lane is green, but the version number is
-> honest: interfaces may still move. Bug reports are what the project wants
-> most right now — please open them
-> [on GitHub](https://github.com/Chance-Konstruktion/ha-hacs-lab/issues).
-
-> **Upgrading from v0.2.0?** Extract the new archive over the old folder and
-> restart — same layout, nothing to clean up.
-
-> **Upgrading from v0.1.1?** Same: extract over the old folder and restart.
-> Since v0.2.0 a repository in the plain HACS layout
-> (`custom_components/<domain>/`, nested anywhere in its tag source archive)
-> installs **without a prebuilt attachment** — HACS*lab finds the storage
-> form itself (issue #15) — and HACS*lab accepts its own delivery form, so
-> it can keep itself up to date: add this repository to its own watch list
-> and the next release offers itself as an update.
-
-> **Upgrading from v0.1.0?** That archive shipped an import layout that
-> breaks the setup dialog with `No module named 'hacs_lab'` — the config
-> flow reached for a top-level package that Home Assistant never provides.
-> Remove **both** leftovers from your configuration directory first:
-> `custom_components/hacs_lab/` **and** the stray top-level `hacs_lab/`
-> folder the old archive dropped next to it. Then extract a current archive
-> (one folder, core included) and restart.
+> Setup and panel speak English and German.
 
 ## Using HACS*lab
 
-- **The panel:** one page, collapsible sections like the HACS store —
-  *Updatable*, *Installed*, *New* (search findings), *Downloadable* —
-  each header counting its cards. The top bar follows your GitLab:
-  tanuki mark, a "Search or go to …" field, refresh and add tools,
-  breadcrumbs in the detail view. That search field is the ONE search
-  (deliberately no second form under the sections): typing narrows
-  everything, **Enter** asks every configured instance directly — a
-  word with a slash is a group path, any other a keyword the provider
-  matches against name and description; the findings land in *New*,
-  and a word nobody knows simply yields an empty section instead of an
-  error. Cards carry their project's avatar (or a letter in GitLab's
-  pastel colours when a project has none). Names follow your theme's text
-  colour — white in dark mode, black in light mode. While the first stock
-  is still on its way, the panel shows a Home Assistant-style loading card
-  (spinner in your theme's primary colour) instead of an empty store. The
-  description in the detail view is a miniature renderer: Markdown as
-  usual, AND the HTML tables and emoji decoration of many HACS READMEs
-  arrive as real tables — behind a whitelist sanitiser (scripts, frames,
-  and `javascript:` addresses are dropped entirely; text inside the cells
-  may still be Markdown). Every repository appears in the store EXACTLY
-  ONCE: a finding that is already on the list stays with its entry —
-  *Installed/Updatable* or *Downloadable* or *New*, never twice. Scroll to
-  the very bottom and the tanuki signs off the page: *"Made for freedom —
-  no GitHub monopoly, because one platform is a single point of failure."*
-  — the one-line footer, in your language, with a fox that does a small
-  dance when the pointer strokes it.
+- **The panel – feels like HACS:** the same data table as the HACS store
+  (filters, search, grouping by status, sorting, column picker), the same
+  groups (*Pending update*, *Downloaded*, *New*, *Available for download*),
+  the same detail page with README, chips for owner, source, stars, issues
+  and version, and the *Download* button. Its own touch: GitLab orange as the
+  accent and a **Source** column (forge and host) where HACS counts
+  downloads. Every detail page has its own address – browser back and shared
+  links work. At the bottom the tanuki signs: *“Made for freedom — no GitHub
+  monopoly, because one platform is a single point of failure.”*
+- **Icons like Home Assistant:** since 2026 integrations ship their icon in
+  their own `brand/` folder. HACS\*lab shows it through Home Assistant's
+  brands proxy – in the store and on updates.
+- **Developer mode:** switch it on in an instance's options and HACS\*lab
+  installs the latest state of the default branch instead of releases
+  (`main@1a2b3c4`). Every push is testable right away, even without a release.
 - **Unlimited servers, any mix:** every instance is one config entry —
   set up as many as you like, each with its own provider (GitLab,
   Forgejo, Gitea), token, and interval. The store shows them all as
@@ -139,8 +87,8 @@ by hand. It takes about two minutes.
   interval you set for the heartbeat keeps the cache fresh —
   `hacs_lab_aktualisiert` events repaint the panel while it stays open.
   The refresh button still forces a run at any time.
-- **Add a custom repository:** open the panel, choose *Add*, paste the
-  project URL, pick a category. HACS*lab reads the metadata, the version,
+- **Add a custom repository:** panel → ⋮ → *Custom repositories* (like
+  in HACS), paste the project URL, pick a category. HACS*lab reads the metadata, the version,
   and offers the install.
 - **Discover:** repositories whose owner set the topic `hacs` on their
   GitLab, Gitea, or Forgejo project show up in the panel's *New* section
