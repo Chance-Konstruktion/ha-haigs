@@ -31,6 +31,7 @@ from .core.aktualisierungen import Fund
 from .installation import InstallationsFehler, installiere_version
 from .neustart import neustart_hinweis
 from .sichtbarkeit import lies_dialog_flag
+from .stand import integrations_domain
 
 if TYPE_CHECKING:
     from . import Laufzeit
@@ -144,10 +145,9 @@ class HaigsUpdateEntity(UpdateEntity):
         aus dem ``brand/``-Ordner.
         Alles andere zeigt das Projektbild der Schmiede, sonst HA-Standard.
         """
-        weg = self._staende.stand(self._eintrag.storage_key).pfad.strip("/")
-        teile = weg.split("/")
-        if len(teile) == 2 and teile[0] == "custom_components" and teile[1]:
-            return f"/api/brands/integration/{teile[1]}/icon.png"
+        domain = integrations_domain(self._staende.stand(self._eintrag.storage_key).pfad)
+        if domain:
+            return f"/api/brands/integration/{domain}/icon.png"
         if self._lager is not None:
             for zeile in self._lager.zeilen:
                 if zeile.get("storage_key") == self._eintrag.storage_key:
@@ -296,6 +296,7 @@ class HaigsUpdateEntity(UpdateEntity):
             fund.neueste,
             "installation",
             mit_dialog=mit_dialog,
+            pfad=str(pfad),
         )
         _LOGGER.info(
             "%s auf %s installiert",

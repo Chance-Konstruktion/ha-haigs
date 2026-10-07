@@ -46,6 +46,7 @@ from homeassistant.helpers.issue_registry import IssueSeverity
 
 from .aktualisierer import _kennung
 from .const import DOMAIN
+from .stand import integrations_domain
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -59,6 +60,7 @@ def neustart_hinweis(
     version: str,
     aktion: str,
     mit_dialog: bool | None = None,
+    pfad: str = "",
 ) -> None:
     """Stellt den Hinweis fuer eine Integration auf alle zwei Bretaer.
 
@@ -77,6 +79,7 @@ def neustart_hinweis(
         DOMAIN,
         "neustart_" + _kennung(eintrag.storage_key),
         is_fixable=False,
+        issue_domain=integrations_domain(pfad),
         severity=IssueSeverity.WARNING,
         translation_key="neustart_nach_installation",
         translation_placeholders={

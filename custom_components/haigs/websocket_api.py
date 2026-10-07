@@ -611,7 +611,9 @@ async def ws_deinstallieren(
         lager = getattr(laufzeit, "lager", None)
         if lager is not None:
             await lager.stand_geaendert(schluessel, installiert="", zielweg="")
-        neustart_hinweis(hass, eintrag, stand.installiert, "deinstallation")
+        neustart_hinweis(
+            hass, eintrag, stand.installiert, "deinstallation", pfad=stand.pfad
+        )
         _LOGGER.info(
             "Custom Repository ueber die Oberflaeche deinstalliert: %s",
             eintrag.anzeigename,

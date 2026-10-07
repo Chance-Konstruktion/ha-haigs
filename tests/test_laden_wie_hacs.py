@@ -106,5 +106,32 @@ def test_update_entities_tragen_das_icon_des_repositorys() -> None:
     """Nicht jedes Update mit dem HAIGS-Zeichen: die Domain waehlt das Icon."""
     text = (PANEL.parents[1] / "update.py").read_text(encoding="utf-8")
     assert "def entity_picture(self)" in text
-    assert 'f"/api/brands/integration/{teile[1]}/icon.png"' in text
+    assert 'f"/api/brands/integration/{domain}/icon.png"' in text
     assert "avatar_url" in text
+
+
+def test_reparaturen_zeigen_das_icon_des_repos() -> None:
+    """Reparaturen tragen die Domain des Repos als issue_domain (Icon).
+
+    Ohne sie malt Home Assistant jede Meldung mit dem HAIGS-Zeichen --
+    derselbe Fehler wie zuvor bei den Update-Entities.
+    """
+    wurzel = Path(__file__).resolve().parents[1] / "custom_components" / "haigs"
+    for datei in ("aktualisierer.py", "neustart.py"):
+        text = (wurzel / datei).read_text(encoding="utf-8")
+        assert "issue_domain=" in text, datei
+
+
+def test_integrations_domain_aus_dem_zielweg() -> None:
+    import importlib.util
+    import sys
+
+    pfad = PANEL.parents[1] / "stand.py"
+    spec = importlib.util.spec_from_file_location("haigs_stand_test", pfad)
+    modul = importlib.util.module_from_spec(spec)
+    sys.modules["haigs_stand_test"] = modul
+    spec.loader.exec_module(modul)
+    assert modul.integrations_domain("custom_components/powerline") == "powerline"
+    assert modul.integrations_domain("/custom_components/powerline/") == "powerline"
+    assert modul.integrations_domain("www/community/karte") is None
+    assert modul.integrations_domain("") is None

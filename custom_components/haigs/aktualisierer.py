@@ -43,7 +43,7 @@ from .const import (
 from .core.aktualisierungen import Fund, Pruefauftrag, lauf
 from .core.forge import ForgeFehler, RepositoryInfo
 from .eintraege import kategorie_aus_topics
-from .stand import Staende
+from .stand import Staende, integrations_domain
 
 if TYPE_CHECKING:
     from . import Laufzeit
@@ -235,6 +235,7 @@ class HaigsAktualisierer(DataUpdateCoordinator[dict[str, Fund]]):
                     DOMAIN,
                     meldung,
                     is_fixable=False,
+                    issue_domain=self._icon_domain(schluessel),
                     severity=IssueSeverity.WARNING,
                     translation_key="kategorie_gendert",
                     translation_placeholders={
@@ -287,6 +288,10 @@ class HaigsAktualisierer(DataUpdateCoordinator[dict[str, Fund]]):
             translation_placeholders={"host": self.forge.host},
         )
 
+    def _icon_domain(self, schluessel: str) -> str | None:
+        """Die Domain, deren Icon eine Reparatur zeigt (das Repo, nicht HAIGS)."""
+        return integrations_domain(self.staende.stand(schluessel).pfad)
+
     def _reparaturen_ableiten(self, funde: dict[str, Fund]) -> None:
         """Je Fund eine Reparatur-Spur: verschwunden, krank oder gesund.
 
@@ -312,6 +317,7 @@ class HaigsAktualisierer(DataUpdateCoordinator[dict[str, Fund]]):
                     DOMAIN,
                     verschwunden,
                     is_fixable=False,
+                    issue_domain=self._icon_domain(schluessel),
                     severity=IssueSeverity.WARNING,
                     translation_key="repo_verschwunden",
                     translation_placeholders={"name": schluessel, "grund": fund.fehler},
@@ -324,6 +330,7 @@ class HaigsAktualisierer(DataUpdateCoordinator[dict[str, Fund]]):
                     DOMAIN,
                     krank,
                     is_fixable=False,
+                    issue_domain=self._icon_domain(schluessel),
                     severity=IssueSeverity.WARNING,
                     translation_key="repo_krank",
                     translation_placeholders={"name": schluessel, "grund": fund.fehler},

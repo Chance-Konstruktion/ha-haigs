@@ -67,6 +67,20 @@ class Stand:
 LEER = Stand()
 
 
+def integrations_domain(pfad: str) -> str | None:
+    """Die Domain einer installierten Integration, sonst ``None``.
+
+    Eine Integration liegt unter ``custom_components/<domain>``; ueber
+    diese Domain findet Home Assistant ihr Icon (``brand/``-Ordner).
+    Update-Entities und Reparaturen zeigen damit das Zeichen des
+    Repositorys statt das von HAIGS.
+    """
+    teile = pfad.strip("/").split("/")
+    if len(teile) == 2 and teile[0] == "custom_components" and teile[1]:
+        return teile[1]
+    return None
+
+
 def _aus_dict(roh: object) -> Stand:
     if not isinstance(roh, dict):
         return Stand()
