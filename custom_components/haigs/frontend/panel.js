@@ -108,7 +108,7 @@ const TEXTE = {
     },
     scan_laeuft: "Suche läuft …",
     frisch_laeuft: "frischer Lauf …",
-    fuss_zeile: "Für die Freiheit gebaut — kein GitHub-Monopol-Scheiß.",
+    fuss_zeile: "Für die Freiheit gebaut — deine Forge, deine Regeln.",
     lade_titel: "Wird geladen …",
     lade_text: "Der Bestand kommt aus dem Lager — einen Augenblick.",
     detail_lade_text: "Stammdaten, Beschreibung und Releases werden geholt.",
@@ -205,8 +205,7 @@ const TEXTE = {
     },
     scan_laeuft: "Scanning …",
     frisch_laeuft: "fresh run …",
-    fuss_zeile:
-      "Made for freedom — no GitHub monopoly, because one platform is a single point of failure.",
+    fuss_zeile: "Made for freedom — your forge, your rules.",
     lade_titel: "Loading …",
     lade_text: "The stock is on its way from the store cache — one moment.",
     detail_lade_text: "Fetching metadata, description, and releases.",

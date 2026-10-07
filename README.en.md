@@ -66,8 +66,8 @@ read-only token on Gitea/Forgejo).
   and version, and the *Download* button. Its own touch: GitLab orange as the
   accent and a **Source** column (forge and host) where HACS counts
   downloads. Every detail page has its own address – browser back and shared
-  links work. At the bottom the tanuki signs: *“Made for freedom — no GitHub
-  monopoly, because one platform is a single point of failure.”*
+  links work. At the bottom the tanuki signs: *“Made for freedom — your forge,
+  your rules.”*
 - **Icons like Home Assistant:** since 2026 integrations ship their icon in
   their own `brand/` folder. HAIGS shows it through Home Assistant's
   brands proxy – in the store and on updates.
