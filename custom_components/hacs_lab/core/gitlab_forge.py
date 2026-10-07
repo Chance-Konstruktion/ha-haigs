@@ -139,7 +139,9 @@ class GitLabForge:
         )
         kopf = (roh or {}).get("commit") if isinstance(roh, dict) else None
         if not isinstance(kopf, dict) or not kopf.get("id"):
-            raise NichtGefunden("kein Zweig " + zweig + " in " + pfad + " auf " + self.host)
+            raise NichtGefunden(
+                "kein Zweig " + zweig + " in " + pfad + " auf " + self.host
+            )
         return Commit(
             sha=str(kopf["id"]),
             datum=str(kopf.get("committed_date") or kopf.get("created_at") or ""),

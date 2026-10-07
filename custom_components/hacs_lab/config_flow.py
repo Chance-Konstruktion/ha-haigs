@@ -37,9 +37,9 @@ from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import (
-    CONF_ENTWICKLERMODUS,
     ANBIETER_AUTO,
     CONF_ABSTAND_MINUTEN,
+    CONF_ENTWICKLERMODUS,
     CONF_HOST,
     CONF_PROVIDER,
     CONF_TOKEN,

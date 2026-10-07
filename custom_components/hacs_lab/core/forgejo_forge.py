@@ -172,7 +172,9 @@ class ForgejoForge:
         )
         kopf = (roh or {}).get("commit") if isinstance(roh, dict) else None
         if not isinstance(kopf, dict) or not kopf.get("id"):
-            raise NichtGefunden("kein Zweig " + zweig + " in " + pfad + " auf " + self.host)
+            raise NichtGefunden(
+                "kein Zweig " + zweig + " in " + pfad + " auf " + self.host
+            )
         nachricht = (str(kopf.get("message") or "").strip().splitlines() or [""])[0]
         return Commit(
             sha=str(kopf["id"]),
