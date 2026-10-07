@@ -76,7 +76,7 @@ Ein Lese-Token brauchst du nur für private Repositories (GitLab-Scope
   **Quelle** (Schmiede und Host), wo HACS die Downloads zählt. Jede
   Detailseite hat ihre eigene Adresse – Zurück im Browser und geteilte Links
   funktionieren. Unten unterschreibt der Tanuki: *„Für die Freiheit gebaut —
-  kein GitHub-Monopol-Scheiß.“*
+  deine Forge, deine Regeln.“*
 - **Icons wie in Home Assistant:** Integrationen bringen ihr Icon seit 2026 im
   eigenen `brand/`-Ordner mit. HAIGS zeigt es über den Marken-Proxy von
   Home Assistant – im Laden und bei den Updates.
