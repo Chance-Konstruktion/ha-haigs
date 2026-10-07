@@ -433,6 +433,12 @@ async def test_integration_installation_stellt_neustart_hinweis(
     await hass.async_block_till_done()
 
     assert neustart_issues(hass) == ["neustart_" + _kennung(STORAGE_KEY)]
+    # Das Icon der Reparatur ist das des Repos, nicht das von HAIGS.
+    meldung = issue_registry.async_get(hass).async_get_issue(
+        DOMAIN, "neustart_" + _kennung(STORAGE_KEY)
+    )
+    assert meldung is not None
+    assert meldung.issue_domain == "beispiel_integration"
 
 
 async def test_althinweis_verschwindet_beim_laden(
