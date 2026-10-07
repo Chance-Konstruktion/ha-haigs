@@ -567,6 +567,27 @@ function zeichen_farbe(name) {
 }
 
 
+const TANUKI_PFAD_KOERPER =
+  "m49.014 19-.067-.18-6.784-17.696a1.792 1.792 0 0 0-3.389.182l-4.579 14.02H15.651l-4.58-14.02a1.795 1.795 0 0 0-3.388-.182l-6.78 17.7-.071.175A12.595 12.595 0 0 0 5.01 33.556l.026.02.057.044 10.32 7.734 5.12 3.87 3.11 2.351a2.102 2.102 0 0 0 2.535 0l3.11-2.352 5.12-3.869 10.394-7.779.029-.022a12.595 12.595 0 0 0 4.182-14.554Z";
+const TANUKI_PFAD_WANGE_RECHTS =
+  "m49.014 19-.067-.18a22.88 22.88 0 0 0-9.12 4.103L24.931 34.187l9.485 7.167 10.393-7.779.03-.022a12.595 12.595 0 0 0 4.175-14.554Z";
+const TANUKI_PFAD_KINN =
+  "m15.414 41.354 5.12 3.87 3.11 2.351a2.102 2.102 0 0 0 2.535 0l3.11-2.352 5.12-3.869-9.484-7.167-9.51 7.167Z";
+const TANUKI_PFAD_WANGE_LINKS =
+  "M10.019 22.923a22.86 22.86 0 0 0-9.117-4.1L.832 19A12.595 12.595 0 0 0 5.01 33.556l.026.02.057.044 10.32 7.734 9.491-7.167L10.02 22.923Z";
+
+/** Der farbige Tanuki als fertiges SVG-Stueck (Groesse via CSS). */
+function tanuki_svg(klassenname) {
+  return (
+    `<svg class="${klassenname}" viewBox="0 0 50 48" aria-hidden="true" focusable="false">` +
+    `<path fill="#E24329" d="${TANUKI_PFAD_KOERPER}"/>` +
+    `<path fill="#FC6D26" d="${TANUKI_PFAD_WANGE_RECHTS}"/>` +
+    `<path fill="#FCA326" d="${TANUKI_PFAD_KINN}"/>` +
+    `<path fill="#FC6D26" d="${TANUKI_PFAD_WANGE_LINKS}"/>` +
+    `</svg>`
+  );
+}
+
 /* ------------------------------------------------------------------ *
  * Flug 2100 -- der Laden zieht die Kleider von HACS an.
  *
@@ -1501,9 +1522,22 @@ class HacsLabPanel extends HTMLElement {
 
     this._detailseite.replaceChildren(
       kopf,
-      knoten("div", { class: "hl-detail-inhalt" }, karte),
+      knoten("div", { class: "hl-detail-inhalt" }, karte, this._fusszeile()),
       fab || ""
     );
+  }
+
+  /**
+   * Die Fusszeile (Flug 2092, zurueck seit Flug 2100): Fuchs und
+   * Geluebde unter der Detailkarte. Der Fuchs tanzt, wenn man ihn
+   * streichelt (hover) -- sonst steht er still und wartet.
+   */
+  _fusszeile() {
+    const alt = TEXTE[sprache(this._hass)] || TEXTE.en;
+    const fuss = knoten("footer", { class: "hl-fuss", role: "contentinfo" });
+    fuss.innerHTML = tanuki_svg("hl-fuss-tanuki");
+    fuss.append(knoten("span", { class: "hl-fuss-wort" }, alt.fuss_zeile));
+    return fuss;
   }
 
   _zustand_hinweis(z) {
@@ -1581,7 +1615,8 @@ class HacsLabPanel extends HTMLElement {
 
   _ueber() {
     const t = this._t;
-    this._dialog_zeigen(t.ueber, t.ueber_text, "OK", async () => {});
+    const alt = TEXTE[sprache(this._hass)] || TEXTE.en;
+    this._dialog_zeigen(t.ueber, t.ueber_text + " " + alt.fuss_zeile, "OK", async () => {});
   }
 
   async _herunterladen(z) {
@@ -1710,6 +1745,20 @@ const LADEN_STIL = `
   .hl-readme { display: block; overflow-wrap: anywhere; }
   .hl-readme img { max-width: 100%; }
   .hl-leer { color: var(--secondary-text-color); padding: 16px 0; }
+
+  .hl-fuss {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 20px 16px 8px; color: var(--secondary-text-color);
+    font-size: 12px; text-align: center; transition: color .2s;
+  }
+  .hl-fuss-tanuki { height: 18px; width: auto; flex: 0 0 auto; }
+  .hl-fuss:hover { color: var(--primary-text-color); }
+  .hl-fuss:hover .hl-fuss-tanuki { animation: hl-fuchs-tanz .6s ease; }
+  @keyframes hl-fuchs-tanz {
+    25% { transform: rotate(-9deg); }
+    60% { transform: rotate(7deg); }
+    100% { transform: rotate(0); }
+  }
 
   .hl-fab {
     position: fixed;
