@@ -956,11 +956,36 @@ class HacsLabPanel extends HTMLElement {
   async _start() {
     this.shadowRoot.innerHTML = `<style>${LADEN_STIL}</style><div class="hl-warte"><ha-spinner></ha-spinner></div>`;
     await bausteine_laden();
+    await this._hole_marken_token();
     this._bereit = true;
     this._baue();
     this._folge_route();
     this._abonnieren();
     this._betrete();
+  }
+
+  /**
+   * Das Token fuer HAs Marken-Proxy (``/api/brands``). Ueber ihn zeigt
+   * Home Assistant die Icons aus dem ``brand/``-Ordner einer
+   * Integration -- genau die, die HACS 2.0 nicht kennt, weil es nur
+   * den zentralen brands-Server fragt. Fehlt der Befehl (aeltere HA),
+   * bleibt es beim Projektbild.
+   */
+  async _hole_marken_token() {
+    try {
+      const antwort = await this._hass.callWS({ type: "brands/access_token" });
+      this._marken_token = (antwort && antwort.token) || "";
+    } catch (fehler) {
+      this._marken_token = "";
+    }
+  }
+
+  /** Die Adresse des Marken-Icons einer installierten Integration. */
+  _marken_icon(z) {
+    const domain = z.integration && z.integration.domain;
+    if (!domain || !this._marken_token) return "";
+    const dunkel = this._hass && this._hass.themes && this._hass.themes.darkMode;
+    return `/api/brands/integration/${encodeURIComponent(domain)}/${dunkel ? "dark_" : ""}icon.png?token=${this._marken_token}`;
   }
 
   _kinder_hass() {
@@ -1115,19 +1140,27 @@ class HacsLabPanel extends HTMLElement {
     return (ANBIETER_NAMEN[a] || a || "Git") + " · " + host;
   }
 
+  /**
+   * Das Zeichen einer Zeile: erst das Marken-Icon der Integration (ihr
+   * ``brand/``-Ordner, ueber HAs Proxy), dann das Projektbild der
+   * Schmiede, zuletzt ein Buchstabe -- nie ein kaputtes Bild.
+   */
   _zeichen(z, gross) {
     const groesse = gross ? 40 : 32;
-    if (z.avatar_url) {
-      return knoten("img", {
-        class: "hl-zeichen",
-        src: z.avatar_url,
-        alt: "",
-        loading: "lazy",
-        style: `width:${groesse}px;height:${groesse}px`,
-        onerror: (ev) => ev.target.replaceWith(this._buchstabe(z, groesse)),
-      });
-    }
-    return this._buchstabe(z, groesse);
+    const quellen = [this._marken_icon(z), z.avatar_url].filter(Boolean);
+    if (!quellen.length) return this._buchstabe(z, groesse);
+    const bild = knoten("img", {
+      class: "hl-zeichen",
+      src: quellen.shift(),
+      alt: "",
+      style: `width:${groesse}px;height:${groesse}px`,
+    });
+    bild.addEventListener("error", () => {
+      const naechste = quellen.shift();
+      if (naechste) bild.src = naechste;
+      else bild.replaceWith(this._buchstabe(z, groesse));
+    });
+    return bild;
   }
 
   _buchstabe(z, groesse) {

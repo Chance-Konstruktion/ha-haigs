@@ -74,3 +74,17 @@ def test_relative_readme_adressen_zeigen_auf_die_schmiede() -> None:
     assert "/-/raw/${zweig}/" in text
     assert "/raw/branch/${zweig}/" in text
     assert "replace(/^\\uFEFF/" in text
+
+
+def test_icons_kommen_aus_dem_brand_ordner() -> None:
+    """HACS 2.0 fragt nur den zentralen brands-Server -- HACS*lab nimmt HAs Proxy.
+
+    Seit 2026 bringen Integrationen ihr Icon im eigenen ``brand/``-Ordner
+    mit; Home Assistant liefert es ueber ``/api/brands`` mit eigenem Token.
+    """
+    text = panel_text()
+    assert '"brands/access_token"' in text
+    assert "/api/brands/integration/" in text
+    marke = PANEL.parents[1] / "brand"
+    for datei in ("icon.png", "icon@2x.png", "logo.png", "logo@2x.png"):
+        assert (marke / datei).read_bytes()[:8] == b"\x89PNG\r\n\x1a\n", datei
