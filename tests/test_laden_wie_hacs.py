@@ -88,3 +88,15 @@ def test_icons_kommen_aus_dem_brand_ordner() -> None:
     marke = PANEL.parents[1] / "brand"
     for datei in ("icon.png", "icon@2x.png", "logo.png", "logo@2x.png"):
         assert (marke / datei).read_bytes()[:8] == b"\x89PNG\r\n\x1a\n", datei
+
+
+def test_benutzerdefinierte_repositories_wie_in_hacs() -> None:
+    """Hinzufuegen im Laden selbst, nicht ueber den Optionsfluss."""
+    text = panel_text()
+    assert 'benutzerdefiniert: "Benutzerdefinierte Repositories"' in text
+    assert 'benutzerdefiniert: "Custom repositories"' in text
+    assert "_benutzerdefiniert()" in text
+    assert 'type: "hacs_lab/hinzufuegen", host: ziel.host' in text
+    # Adressen aus der Adresszeile: /-/tree/main, /src/branch, .git fallen weg.
+    assert ".replace(/\/-\/.*$/" in text
+    assert "(src|tree|blob|releases|issues)" in text

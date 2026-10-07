@@ -674,6 +674,11 @@ const LADEN_TEXTE = {
     instanz_neu: "Quelle hinzufügen",
     instanzen: "Quellen",
     ueber: "Über HACS*lab",
+    benutzerdefiniert: "Benutzerdefinierte Repositories",
+    repository_adresse: "Repository",
+    hinzufuegen: "Hinzufügen",
+    adresse_ungueltig: "Das ist keine Repository-Adresse – erwartet wird https://host/gruppe/projekt.",
+    quelle_fehlt: (h) => `${h} ist noch keine Quelle – zuerst über „Quelle hinzufügen“ einrichten.`,
     abbrechen: "Abbrechen",
     version: "Version",
     dialog_download: (n) => `${n} herunterladen?`,
@@ -744,6 +749,11 @@ const LADEN_TEXTE = {
     instanz_neu: "Add source",
     instanzen: "Sources",
     ueber: "About HACS*lab",
+    benutzerdefiniert: "Custom repositories",
+    repository_adresse: "Repository",
+    hinzufuegen: "Add",
+    adresse_ungueltig: "That is not a repository address – expected https://host/group/project.",
+    quelle_fehlt: (h) => `${h} is not a source yet – set it up via “Add source” first.`,
     abbrechen: "Cancel",
     version: "Version",
     dialog_download: (n) => `Download ${n}?`,
@@ -1350,6 +1360,7 @@ class HacsLabPanel extends HTMLElement {
       "data-hass": true,
       ".items": [
         { path: PFADE.neuladen, label: t.liste_neu, action: () => { this._erneuert_am = 0; this._erneuern(); } },
+        { path: PFADE.repo, label: t.benutzerdefiniert, action: () => this._benutzerdefiniert() },
         { path: PFADE.plus, label: t.instanz_neu, action: () => this._gehe("/config/integrations/integration/hacs_lab") },
         { divider: true },
         { path: PFADE.info, label: t.ueber, action: () => this._ueber() },
@@ -1660,6 +1671,123 @@ class HacsLabPanel extends HTMLElement {
     this._dialog_zeigen(t.dialog_entfernen(name), t.dialog_entfernen_text, t.entfernen, () => this._deinstalliere(z), true);
   }
 
+  /**
+   * «Benutzerdefinierte Repositories» -- derselbe Dialog wie in HACS:
+   * Adresse und Typ eintragen, Hinzufuegen; darunter die Liste mit
+   * dem Muelleimer. Die Adresse nennt den Host, der Host waehlt die
+   * Quelle -- eine fremde Instanz muss erst als Quelle eingerichtet sein.
+   */
+  _benutzerdefiniert(fehler_text) {
+    const t = this._t;
+    const zu = () => this._dialogplatz.replaceChildren();
+    const feld = knoten("input", {
+      class: "hl-feld",
+      type: "url",
+      placeholder: "https://gitlab.example.com/gruppe/projekt",
+      "aria-label": t.repository_adresse,
+    });
+    const typ = knoten(
+      "select",
+      { class: "hl-feld", "aria-label": t.spalte_typ },
+      Object.keys(t.typen).map((k) => knoten("option", { value: k }, t.typen[k]))
+    );
+    const meldung = knoten("div", { class: "hl-dlg-fehler" }, fehler_text || "");
+    const knopf = knoten("button", { class: "hl-dlg-knopf hl-primaer" }, t.hinzufuegen);
+    const absenden = async () => {
+      const ziel = this._zerlege_adresse(feld.value);
+      if (!ziel) {
+        meldung.textContent = t.adresse_ungueltig;
+        return;
+      }
+      if (!this._instanzen.includes(ziel.host)) {
+        meldung.textContent = t.quelle_fehlt(ziel.host);
+        return;
+      }
+      knopf.disabled = true;
+      knopf.replaceChildren(knoten("ha-spinner", { size: "tiny" }));
+      try {
+        await this._hass.callWS({ type: "hacs_lab/hinzufuegen", host: ziel.host, pfad: ziel.pfad, kategorie: typ.value });
+        await this._lade();
+        this._benutzerdefiniert();
+      } catch (fehler) {
+        this._benutzerdefiniert(this._fehlertext(fehler));
+      }
+    };
+    knopf.addEventListener("click", absenden);
+    feld.addEventListener("keydown", (ev) => ev.key === "Enter" && absenden());
+
+    const liste = knoten(
+      "div",
+      { class: "hl-dlg-liste" },
+      this._eintraege.map((e) =>
+        knoten(
+          "div",
+          { class: "hl-dlg-zeile" },
+          this._zeichen({ ...e, anzeige: this._kurzname(e.name) }, false),
+          knoten(
+            "div",
+            { class: "hl-zelle-name" },
+            knoten("div", { class: "hl-name" }, e.pfad || e.name),
+            knoten("div", { class: "hl-beschr" }, (t.typen[e.kategorie] || e.kategorie) + " · " + e.host)
+          ),
+          knoten("ha-icon-button", {
+            ".path": PFADE.loeschen,
+            ".label": t.entfernen,
+            onclick: async () => {
+              try {
+                await this._hass.callWS({ type: "hacs_lab/entfernen", storage_key: e.storage_key });
+              } catch (fehler) {
+                this._melde(this._fehlertext(fehler));
+              }
+              await this._lade();
+              this._benutzerdefiniert();
+            },
+          })
+        )
+      )
+    );
+
+    const dlg = knoten(
+      "div",
+      { class: "hl-dlg-grund", onclick: (ev) => ev.target === ev.currentTarget && zu() },
+      knoten(
+        "div",
+        { class: "hl-dlg hl-dlg-breit", role: "dialog", "aria-modal": "true" },
+        knoten(
+          "div",
+          { class: "hl-dlg-kopf" },
+          knoten("div", { class: "hl-dlg-titel" }, t.benutzerdefiniert),
+          knoten("ha-icon-button", { ".path": PFADE.schliessen, ".label": t.abbrechen, onclick: zu })
+        ),
+        liste,
+        knoten("div", { class: "hl-dlg-form" }, feld, typ),
+        meldung,
+        knoten("div", { class: "hl-dlg-knoepfe" }, knopf)
+      )
+    );
+    this._dialogplatz.replaceChildren(dlg);
+    feld.focus();
+  }
+
+  /** Eine Repository-Adresse in Host und Pfad zerlegen (https, mit oder ohne .git). */
+  _zerlege_adresse(text) {
+    let roh = String(text || "").trim();
+    if (!roh) return null;
+    if (!/^[a-z]+:\/\//i.test(roh)) roh = "https://" + roh;
+    try {
+      const u = new URL(roh);
+      const pfad = u.pathname
+        .replace(/\/-\/.*$/, "")
+        .replace(/\/(src|tree|blob|releases|issues)\/.*$/, "")
+        .replace(/\.git$/, "")
+        .replace(/^\/+|\/+$/g, "");
+      if (!u.host || pfad.split("/").length < 2) return null;
+      return { host: u.host, pfad };
+    } catch (fehler) {
+      return null;
+    }
+  }
+
   _ueber() {
     const t = this._t;
     const alt = TEXTE[sprache(this._hass)] || TEXTE.en;
@@ -1836,6 +1964,20 @@ const LADEN_STIL = `
     box-shadow: 0 11px 15px -7px rgba(0,0,0,.2), 0 24px 38px 3px rgba(0,0,0,.14);
   }
   .hl-dlg-titel { font-size: 22px; line-height: 28px; margin-bottom: 16px; }
+  .hl-dlg-breit { max-width: 560px; }
+  .hl-dlg-kopf { display: flex; align-items: flex-start; justify-content: space-between; }
+  .hl-dlg-liste { max-height: 40vh; overflow-y: auto; margin: 0 -8px 16px; }
+  .hl-dlg-zeile { display: flex; align-items: center; gap: 12px; padding: 4px 8px; }
+  .hl-dlg-zeile .hl-zelle-name { flex: 1; }
+  .hl-dlg-form { display: flex; gap: 8px; flex-wrap: wrap; }
+  .hl-feld {
+    flex: 1 1 200px; height: 48px; padding: 0 12px; box-sizing: border-box;
+    border-radius: 8px; border: 1px solid var(--outline-color, var(--divider-color));
+    background: var(--input-fill-color, transparent); color: var(--primary-text-color); font: inherit;
+  }
+  select.hl-feld { flex: 0 1 160px; }
+  .hl-feld:focus { outline: 2px solid var(--primary-color); outline-offset: -1px; }
+  .hl-dlg-fehler { color: var(--error-color); min-height: 20px; margin-top: 8px; font-size: 14px; }
   .hl-dlg-text { color: var(--secondary-text-color); line-height: 20px; }
   .hl-dlg-knoepfe { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; }
   .hl-dlg-knopf {
