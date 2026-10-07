@@ -149,3 +149,46 @@ async def test_archiv_wird_geladen():
 async def test_entwicklermodus_gibt_es_nicht():
     with pytest.raises(ForgeFehler):
         await forge().zweig_stand("foo/ha-bar", "main")
+
+
+async def test_plugin_mit_filename_wird_als_zip_aus_dem_release_geholt():
+    hacs = {"name": "Karte", "filename": "karte.js"}
+    f = forge(
+        dateien={
+            "raw.githubusercontent.com/baz/lovelace-karte/v0.4/hacs.json": hacs,
+            "releases/download/v0.4/karte.js": "console.log(1)",
+        }
+    )
+    release = (await f.releases("baz/lovelace-karte"))[0]
+    ((name, adresse),) = release.anhaenge.items()
+    assert name == "karte.js.zip"
+    paket = await f.anhang(adresse)
+    with zipfile.ZipFile(io.BytesIO(paket)) as z:
+        assert z.read("karte.js") == b"console.log(1)"
+        assert json.loads(z.read("hacs.json"))["filename"] == "karte.js"
+
+
+async def test_einzeldatei_faellt_auf_dist_im_tag_zurueck():
+    hacs = {"filename": "karte.js"}
+    f = forge(
+        dateien={
+            "raw.githubusercontent.com/baz/lovelace-karte/v0.4/hacs.json": hacs,
+            "raw.githubusercontent.com/baz/lovelace-karte/v0.4/dist/karte.js": "x",
+        }
+    )
+    release = (await f.releases("baz/lovelace-karte"))[0]
+    paket = await f.anhang(next(iter(release.anhaenge.values())))
+    with zipfile.ZipFile(io.BytesIO(paket)) as z:
+        assert z.read("karte.js") == b"x"
+
+
+async def test_quellarchiv_verliert_seine_symlinks():
+    puffer = io.BytesIO()
+    with zipfile.ZipFile(puffer, "w") as z:
+        z.writestr("r-1/hacs.json", "{}")
+        link = zipfile.ZipInfo("r-1/docs/chlog.md")
+        link.external_attr = 0o120777 << 16
+        z.writestr(link, "../CHANGELOG.md")
+    f = forge(dateien={"codeload.github.com": puffer.getvalue()})
+    with zipfile.ZipFile(io.BytesIO(await f.archiv("foo/ha-bar", "1.2.3"))) as z:
+        assert z.namelist() == ["r-1/hacs.json"]

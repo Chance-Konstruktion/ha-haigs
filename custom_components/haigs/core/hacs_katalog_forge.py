@@ -19,8 +19,12 @@ braucht die API). Er bleibt den eigenen Schmieden vorbehalten.
 
 from __future__ import annotations
 
+import io
 import json
+import stat
 import time
+import zipfile
+from pathlib import PurePosixPath
 from typing import Any
 
 from .entdeckung import Fund
@@ -40,6 +44,36 @@ KATALOG_FRISCH_SEK = 3 * 3600
 
 #: Der Host, unter dem die Katalog-Repositories stehen.
 KATALOG_HOST = "github.com"
+
+
+#: Marke am Ende einer Anhang-Adresse: "diese Einzeldatei in ein ZIP packen".
+_EINZELDATEI = "#haigs-einzeldatei"
+
+
+def _ohne_symlinks(archiv: bytes) -> bytes:
+    """Das Quellarchiv ohne Symlinks.
+
+    GitHub-Quellarchive enthalten Symlinks aus dem Repository (etwa
+    ``docs/chlog.md``). Der Kern weist solche Eintraege bewusst ab --
+    ein Symlink ist ein klassischer Weg aus dem Zielordner heraus.
+    Fuer den Katalog fallen sie hier einfach weg: sie sind nie der
+    Inhalt, den HACS installiert. Archive ohne Symlink bleiben
+    unberuehrt, kaputte Archive ebenfalls (der Kern meldet sie dann).
+    """
+    try:
+        with zipfile.ZipFile(io.BytesIO(archiv)) as quelle:
+            infos = quelle.infolist()
+            if not any(stat.S_ISLNK(i.external_attr >> 16) for i in infos):
+                return archiv
+            ziel = io.BytesIO()
+            with zipfile.ZipFile(ziel, "w", zipfile.ZIP_DEFLATED) as neu:
+                for info in infos:
+                    if stat.S_ISLNK(info.external_attr >> 16):
+                        continue
+                    neu.writestr(info, quelle.read(info.filename))
+            return ziel.getvalue()
+    except zipfile.BadZipFile:
+        return archiv
 
 
 def _info(repo_id: str, roh: dict[str, Any], kategorie: str) -> RepositoryInfo:
@@ -242,8 +276,14 @@ class HacsKatalogForge:
         anhaenge: dict[str, str] = {}
         hacs = await self._hacs_json(pfad, tag)
         datei = str(hacs.get("filename") or "")
+        adresse = f"https://github.com/{pfad}/releases/download/{tag}/"
         if hacs.get("zip_release") and datei.lower().endswith(".zip"):
-            anhaenge[datei] = f"https://github.com/{pfad}/releases/download/{tag}/{datei}"
+            anhaenge[datei] = adresse + datei
+        elif datei and not hacs.get("zip_release") and tag:
+            # Plugins und Themes: HACS laedt die gebaute Einzeldatei aus
+            # dem Release. Sie wird beim Laden in ein kleines ZIP gepackt
+            # (siehe anhang), damit die Installation einen Weg kennt.
+            anhaenge[datei + ".zip"] = adresse + PurePosixPath(datei).name + _EINZELDATEI
         return [
             Release(
                 tag=tag,
@@ -274,7 +314,38 @@ class HacsKatalogForge:
         return f"https://codeload.github.com/{pfad}/zip/{ref}"
 
     async def archiv(self, pfad: str, ref: str) -> bytes:
-        return await self.http.get_bytes(await self.archiv_url(pfad, ref))
+        return _ohne_symlinks(await self.http.get_bytes(await self.archiv_url(pfad, ref)))
 
     async def anhang(self, url: str) -> bytes:
-        return await self.http.get_bytes(url)
+        if not url.endswith(_EINZELDATEI):
+            return await self.http.get_bytes(url)
+        return await self._einzeldatei(url[: -len(_EINZELDATEI)])
+
+    async def _einzeldatei(self, url: str) -> bytes:
+        """Eine Release-Datei als ZIP mit der zugehoerigen ``hacs.json``.
+
+        Gibt es sie im Release nicht, sucht die Schmiede wie HACS an den
+        ueblichen Stellen des Tags (``dist/`` und Wurzel).
+        """
+        teile = url.split("/releases/download/")[0].removeprefix("https://github.com/")
+        tag = url.split("/releases/download/")[1].split("/", 1)[0]
+        name = url.rsplit("/", 1)[1]
+        hacs = await self._hacs_json(teile, tag)
+        gewuenscht = str(hacs.get("filename") or name)
+        inhalt: bytes | None = None
+        try:
+            inhalt = await self.http.get_bytes(url)
+        except NichtGefunden:
+            for kandidat in (f"dist/{name}", name):
+                try:
+                    inhalt = await self.datei(teile, kandidat, tag)
+                    break
+                except NichtGefunden:
+                    continue
+        if inhalt is None:
+            raise NichtGefunden(f"{name} liegt weder im Release {tag} noch im Tag")
+        puffer = io.BytesIO()
+        with zipfile.ZipFile(puffer, "w", zipfile.ZIP_DEFLATED) as zip_datei:
+            zip_datei.writestr("hacs.json", json.dumps(hacs or {"filename": gewuenscht}))
+            zip_datei.writestr(gewuenscht, inhalt)
+        return puffer.getvalue()
