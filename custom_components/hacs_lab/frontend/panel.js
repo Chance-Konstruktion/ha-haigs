@@ -1,86 +1,18 @@
 /**
- * HACS*lab Panel -- der Laden in GitLab-Hand (Flug 2083).
+ * HACS*lab Panel -- der Laden, gekleidet wie HACS.
  *
- * Stufe M7 war das Gesicht: Bedienung ohne YAML, vanilles JavaScript
- * als ES-Modul, geladen ueber ``/hacs_lab/panel.js``. Das Frontend
- * von Home Assistant findet hier das Element ``hacs-lab-panel`` und
- * setzt ihm ``hass`` und ``panel``. Alles weitere laufen die WebSocket-
- * Befehle aus ``websocket_api.py`` und die ganz normalen Dienste
- * (install auf den update-Entities aus Stufe M5).
+ * Geladen als ES-Modul ueber ``/hacs_lab/panel.js``; das Frontend von
+ * Home Assistant findet hier das Element ``hacs-lab-panel`` und setzt
+ * ``hass``, ``narrow`` und ``route``. Die Daten kommen ueber die
+ * WebSocket-Befehle aus ``websocket_api.py`` (eintraege, erneuern,
+ * detail, hinzufuegen, entfernen, deinstallieren) und den Dienst
+ * ``update.install`` der update-Entities.
  *
- * Flug 2083 zieht dem Laden die Tracht des Imkers-Servers an:
- *
- * * der Balken oben sieht aus wie GitLabs Leiste -- dunkel, mit dem
- *   Tanuki (das echte Markenbild, vier Pfade, vom Server geholt), der
- *   Suche in der Mitte (``Suchen oder springen zu …``) und Werkzeugen
- *   rechts (Frischholen, Neu). Brotkrumen im Detail wie dort.
- * * die Liste ist EINE Seite in einklappbaren Abschnitten, wie im
- *   HACS-Laden: Aktualisierbar, Installiert, Neu, Downloadbar --
- *   jeder Kopf zaehlt seine Karten und laesst sich zuklappen.
- * * der Laden frischt sich selber auf: jedes Betreten laeuft
- *   ``hacs_lab/erneuern`` -- der frische M5-Lauf, nicht der Takt.
- *   Ruht die Bedienung (15 Sekunden), wird kein zweiter Lauf erzwungen.
- *
- * Flug 2084 macht den Laden voll -- die Wünsche des Imkers:
- *
- * * das Lager (``hacs_lab/lager.<host>`` im Speicher) hält die Liste
- *   und die Funde über Neustart und Wiederkehr hinweg: das Betreten
- *   malt SOFORT aus dem Speicher (``hacs_lab/eintraege``, kein
- *   Netzruf) und erneuert danach im Hintergrund -- der Laden geht
- *   nie wieder leer auf. Der Hintergrund-Takt des Lagers feuert
- *   ``hacs_lab_aktualisiert``; das Panel hört darauf und malt neu,
- *   während es offen bleibt.
- * * die Karten tragen die Zeichen ihrer Projekte (``avatar_url``);
- *   fehlt das Bild, bleibt ein Buchstabe -- nie ein kaputtes Bild.
- * * die Namen sind keine lila GitLab-Links mehr: Weiß im dunkeln,
- *   Schwarz im hellen -- die Farbe der Bedienung (``--primary-text-
- *   color``), damit der Laden in jede Tracht passt.
- * * der Abschnitt heisst jetzt Ehrlich: Installiert ist, was
- *   heruntergeladen und oben ist; Downloadbar ist, was beobachtet
- *   wird, aber noch nichts heruntergeladen hat.
- *
- * Flug 2085 macht den Laden unendlich -- die Wünsche des Imkers:
- *
- * * die Zeichen der Karten wie im Original-HACS: das Bild, wenn die
- *   Forge eins nennt, sonst ein Buchstabe in GitLabs Farben (dieselbe
- *   Pastell-Palette, derselbe Buchstabe immer dieselbe Farbe).
- * * die Instanzen stehen als Plättchen im Laden: jedes klickbar zu
- *   seinen Einstellungen (Abstand, Custom Repositories, Entfernen),
- *   und der gestrichelte «+»-Knopf daneben öffnet den Einrichtungs-
- *   dialog für die NÄCHSTE Instanz. Es gibt keine Obergrenze: jede
- *   Domain ist ein Eintrag, der Laden sammelt sie alle.
- * * der leere Laden (erste Einrichtung) schickt mit einem Knopf
- *   direkt in denselben Dialog -- kein Suchen in den Einstellungen.
- *
- * Flug 2088 stellt drei Schmieden in denselben Laden:
- *
- * * das Warten sieht aus wie Home Assistant: solange noch nichts
- *   da ist (erster Betritt, erste Detailfahrt), steht eine Karte
- *   mit dem Rundblitz des Hauses in seiner Farbe mittig im Raum --
- *   nicht GitLabs Leiste, sondern die Ladesprache der Umgebung.
- * * die Instanz-Plaettchen nennen ihren Anbieter (GitLab, Forgejo,
- *   Gitea) -- die Karte reist als "anbieter" mit der Liste; welche
- *   Schmiede einen Eintrag geformt hat, entscheidet der Server
- *   (core/schmiede.py), hier steht nur das Wort daneben.
- * * das Suffix-Fallback kennt gitea: foo/bar*gitea zaehlt zu seinen
- *   Buchstaben wie *lab und *forge.
- *
- * Flug 2091 macht die Suche EINMALIG -- der Wunsch des Imkers: eine
- * Suchoption oben in der Leiste, keine zweite unter den Kategorien.
- *
- * * das Suchfeld im Balken grenzt beim Tippen ein (wie gehabt) und
- *   fragt auf Enter ALLE eingerichteten Instanzen: ein Wort mit
- *   Schraegstrich ist ein Gruppen-Weg (frueher das Feld unter Neu),
- *   jedes andere ein Stichwort, das der Anbieter in Name und
- *   Beschreibung sucht. Die Funde landen im Abschnitt Neu.
- * * das Formular unter dem Abschnitt Neu ist damit weg -- die Suche
- *   hat nur noch EIN Zuhause, und die Lupe dreht sich, solange die
- *   Server antworten.
- *
- * Zwei Sprachen, im File selbst: Deutsch und Englisch, gewaehlt nach
- * der Sprache der Bedienung. Der Kennzeichnungs-Suffix (*lab, *forge,
- * *gitea)
- * kommt fertig vom Server -- hier wird nichts doppelt gewusst.
+ * Seit Flug 2100 baut das Panel auf denselben Bausteinen wie HACS
+ * (Datentabelle, Markdown, Chips, Overflow-Menue) -- siehe den
+ * Abschnitt «Flug 2100» weiter unten. Der Kopf der Datei haelt die
+ * Texte beider Sprachen und den eigenen Markdown-Renderer, der nur
+ * noch einspringt, wenn ``ha-markdown`` fehlt.
  *
  * Sicherheit: Der Markdown-Renderer flieht zuerst JEDES Zeichen und
  * baut danach erst Markup. Links und Bilder werden nur fuer
@@ -591,35 +523,6 @@ function datum_kurz(iso) {
   return d.toLocaleDateString();
 }
 
-/** Uhrkurzform (Stand des Lagers), falls ISO -- sonst unverandert. */
-function uhr_kurz(iso) {
-  if (!iso) return "";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "";
-  return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-}
-
-/** Der juengste Lager-Stand ueber alle Instanzen (leer, wenn keiner). */
-function neuester_stand(karte) {
-  let juengste = "";
-  for (const wert of Object.values(karte || {})) {
-    if (String(wert) > juengste) {
-      juengste = String(wert);
-    }
-  }
-  return juengste;
-}
-
-/** Kategorienamen -- der Server schickt sie mit, dies ist nur der Rueckfall. */
-const KATEGORIEN = [
-  "integration",
-  "plugin",
-  "theme",
-  "template",
-  "appdaemon",
-  "python_script",
-];
-
 /** Die Marken der drei Schmieden -- Eigennamen, nicht übersetzbar. */
 const ANBIETER_NAMEN = {
   gitlab: "GitLab",
@@ -627,107 +530,8 @@ const ANBIETER_NAMEN = {
   gitea: "Gitea",
 };
 
-/** Der Rundblitz -- die Warteskulptur des Hauses (Flug 2088).
- *
- * Derselbe Bogen, den ha-spinner zeichnet: ein Kreis, dem ein Stück
- * fehlt, das sich dreht. Bewusst als eigenes SVG statt als ha-spinner:
- * das Element gehört dem Haus und darf fehlen -- die eigene Zeichnung
- * steht immer, und ihre Farben sind die der Tracht (var). */
-function dreher_svg(groesse_klasse) {
-  return (
-    `<svg class="${groesse_klasse}" viewBox="0 0 24 24" aria-hidden="true" ` +
-    `focusable="false"><circle cx="12" cy="12" r="9.5" fill="none" ` +
-    `stroke="currentColor" stroke-width="2.6" stroke-linecap="round" ` +
-    `stroke-dasharray="43 14"/></svg>`
-  );
-}
-
-/** Die Abschnitte des Ladens, in dieser Reihenfolge. */
-const ABSCHNITTE = ["aktualisierbar", "installiert", "neu", "downloadbar"];
-
 /** Das Ereignis, das der Server feuert, sobald ein Lager frisch liegt. */
 const EREIGNIS_AKTUALISIERT = "hacs_lab_aktualisiert";
-
-/**
- * Der Tanuki -- das Markenbild von GitLab, vier Pfade aus der Feder
- * des Imkers-Servers (dieselben Zahlen wie in iconset.js, dort nur
- * als Silhouette). Der Kopf zeichnet ihn farbig; die Seitenleiste
- * nimmt die einfarbige Schwester aus dem Iconset.
- */
-const TANUKI_PFAD_KOERPER =
-  "m49.014 19-.067-.18-6.784-17.696a1.792 1.792 0 0 0-3.389.182l-4.579 14.02H15.651l-4.58-14.02a1.795 1.795 0 0 0-3.388-.182l-6.78 17.7-.071.175A12.595 12.595 0 0 0 5.01 33.556l.026.02.057.044 10.32 7.734 5.12 3.87 3.11 2.351a2.102 2.102 0 0 0 2.535 0l3.11-2.352 5.12-3.869 10.394-7.779.029-.022a12.595 12.595 0 0 0 4.182-14.554Z";
-const TANUKI_PFAD_WANGE_RECHTS =
-  "m49.014 19-.067-.18a22.88 22.88 0 0 0-9.12 4.103L24.931 34.187l9.485 7.167 10.393-7.779.03-.022a12.595 12.595 0 0 0 4.175-14.554Z";
-const TANUKI_PFAD_KINN =
-  "m15.414 41.354 5.12 3.87 3.11 2.351a2.102 2.102 0 0 0 2.535 0l3.11-2.352 5.12-3.869-9.484-7.167-9.51 7.167Z";
-const TANUKI_PFAD_WANGE_LINKS =
-  "M10.019 22.923a22.86 22.86 0 0 0-9.117-4.1L.832 19A12.595 12.595 0 0 0 5.01 33.556l.026.02.057.044 10.32 7.734 9.491-7.167L10.02 22.923Z";
-
-/** Der farbige Tanuki als fertiges SVG-Stueck (Groesse via CSS). */
-function tanuki_svg(klassenname) {
-  return (
-    `<svg class="${klassenname}" viewBox="0 0 50 48" aria-hidden="true" focusable="false">` +
-    `<path fill="#E24329" d="${TANUKI_PFAD_KOERPER}"/>` +
-    `<path fill="#FC6D26" d="${TANUKI_PFAD_WANGE_RECHTS}"/>` +
-    `<path fill="#FCA326" d="${TANUKI_PFAD_KINN}"/>` +
-    `<path fill="#FC6D26" d="${TANUKI_PFAD_WANGE_LINKS}"/>` +
-    `</svg>`
-  );
-}
-
-/** Das Markenbild (Flug 2097): original.png, 96x96 als Daten-URI.
- *
- * Der Imker hat gesprochen -- EIN Bild ueberall: das Panel traegt es
- * in der Leiste und auf der Ladeseite, dieselbe Quelle liefert auch
- * den Avatar und spaeter die exe-Form. Eingebettet als Daten-URI,
- * damit das Panel ohne zweite Datei und ohne Netzruft auskommt;
- * die Fuesse des Markensymbols (Fusszeile, Brotkrumen-Pfeil) bleiben
- * fuer den Fuchs von GitLab reserviert.
- */
-const LOGO_DATAURI = "data:image/png;base64,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";
-
-/** Ein einfacher Strich-Chemawinkel (zuklappbare Abschnitte). */
-const SPITZE_SVG =
-  '<svg class="hl-spitze" viewBox="0 0 16 16" aria-hidden="true" focusable="false">' +
-  '<path d="M5.5 3.5 11 8l-5.5 4.5" fill="none" stroke="currentColor" ' +
-  'stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-
-/** Lupe fuer die Suchzeile (GitLabs Werkzeug). */
-const LUPE_SVG =
-  '<svg class="hl-lupe" viewBox="0 0 16 16" aria-hidden="true" focusable="false">' +
-  '<circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.7"/>' +
-  '<path d="m10.5 10.5 3.5 3.5" stroke="currentColor" stroke-width="1.7" ' +
-  'stroke-linecap="round"/></svg>';
-
-/** Der Kreislaufpfeil (Frischholen). */
-const KREIS_SVG =
-  '<svg class="hl-kreis" viewBox="0 0 16 16" aria-hidden="true" focusable="false">' +
-  '<path d="M13.5 8a5.5 5.5 0 1 1-1.61-3.89" fill="none" stroke="currentColor" ' +
-  'stroke-width="1.7" stroke-linecap="round"/><path d="M13.8 1.8v3h-3" fill="none" ' +
-  'stroke="currentColor" stroke-width="1.7" stroke-linecap="round" ' +
-  'stroke-linejoin="round"/></svg>';
-
-/** Das Plus (Neu hinzufuegen). */
-const PLUS_SVG =
-  '<svg class="hl-plus" viewBox="0 0 16 16" aria-hidden="true" focusable="false">' +
-  '<path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.7" ' +
-  'stroke-linecap="round"/></svg>';
-
-/** Der Server -- zwei Schichten mit Licht, fuer die Instanz-Plaettchen. */
-const SERVER_SVG =
-  '<svg class="hl-server" viewBox="0 0 16 16" aria-hidden="true" focusable="false">' +
-  '<rect x="1.5" y="1.8" width="13" height="4.6" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.4"/>' +
-  '<circle cx="4.1" cy="4.1" r="0.95" fill="currentColor"/>' +
-  '<rect x="1.5" y="9.6" width="13" height="4.6" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.4"/>' +
-  '<circle cx="4.1" cy="11.9" r="0.95" fill="currentColor"/></svg>';
-
-/** Warndreieck fuer die Instanz-Meldung. */
-const WARN_SVG =
-  '<svg class="hl-warn" viewBox="0 0 16 16" aria-hidden="true" focusable="false">' +
-  '<path d="M8 2 15 14H1Z" fill="none" stroke="currentColor" stroke-width="1.5" ' +
-  'stroke-linejoin="round"/><path d="M8 6.5v3.2" stroke="currentColor" ' +
-  'stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="12" r="0.9" ' +
-  'fill="currentColor"/></svg>';
 
 /** Wie lange ein frischer Lauf ruht, bevor der Betritt ihn erneut erzwinge. */
 const BETRETEN_RUHE_MS = 15000;
@@ -762,66 +566,352 @@ function zeichen_farbe(name) {
   return ZEICHEN_FARBEN[saat % ZEICHEN_FARBEN.length];
 }
 
-/** Die Klasse des Panels. */
+
+/* ------------------------------------------------------------------ *
+ * Flug 2100 -- der Laden zieht die Kleider von HACS an.
+ *
+ * Der Wunsch des Imkers: wer HACS*lab oeffnet, soll sich fragen, ob er
+ * im Original-HACS steht -- und erst am Akzent und an der Spalte
+ * «Quelle» merken, dass hier mehrere Schmieden zugleich liefern.
+ *
+ * Darum baut das Panel nicht mehr selbst, sondern nimmt dasselbe
+ * Material wie HACS: ``hass-tabs-subpage-data-table`` fuer die Liste
+ * (Filter, Suche, Gruppen, Sortierung, Spalten -- alles vom Haus),
+ * ``ha-markdown`` fuer die README, ``ha-assist-chip`` fuer die
+ * Kennzahlen, ``ha-icon-overflow-menu`` fuer das Drei-Punkte-Menue.
+ * Die Zellen sind DOM-Knoten, keine Lit-Vorlagen: Lit setzt Knoten
+ * unveraendert ein, und so braucht die Datei keinen eigenen Bundler.
+ *
+ * Der eigene Ton: GitLabs Orange als Akzent (Knopf «Herunterladen»,
+ * Kopf der ausstehenden Aktualisierungen) und die Spalte Quelle mit
+ * Schmiede und Host -- dort, wo HACS die Downloads zaehlt.
+ * ------------------------------------------------------------------ */
+
+const PFADE = {
+  punkte: "M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z",
+  zurueck: "M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z",
+  download: "M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z",
+  extern: "M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z",
+  ticket: "M11,15H13V17H11V15M11,7H13V13H11V7M12,2C6.47,2 2,6.5 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20Z",
+  stern: "M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z",
+  person: "M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z",
+  neuladen: "M2 12C2 16.97 6.03 21 11 21C13.39 21 15.68 20.06 17.4 18.4L15.9 16.9C14.63 18.25 12.86 19 11 19C4.76 19 1.64 11.46 6.05 7.05C10.46 2.64 18 5.77 18 12H15L19 16H19.1L23 12H20C20 7.03 15.97 3 11 3C6.03 3 2 7.03 2 12Z",
+  loeschen: "M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z",
+  info: "M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z",
+  plus: "M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z",
+  server: "M4,1H20A1,1 0 0,1 21,2V6A1,1 0 0,1 20,7H4A1,1 0 0,1 3,6V2A1,1 0 0,1 4,1M4,9H20A1,1 0 0,1 21,10V14A1,1 0 0,1 20,15H4A1,1 0 0,1 3,14V10A1,1 0 0,1 4,9M4,17H20A1,1 0 0,1 21,18V22A1,1 0 0,1 20,23H4A1,1 0 0,1 3,22V18A1,1 0 0,1 4,17M9,5H10V3H9V5M9,13H10V11H9V13M9,21H10V19H9V21M5,3V5H7V3H5M5,11V13H7V11H5M5,19V21H7V19H5Z",
+  tag: "M5.5,7A1.5,1.5 0 0,1 4,5.5A1.5,1.5 0 0,1 5.5,4A1.5,1.5 0 0,1 7,5.5A1.5,1.5 0 0,1 5.5,7M21.41,11.58L12.41,2.58C12.05,2.22 11.55,2 11,2H4C2.89,2 2,2.89 2,4V11C2,11.55 2.22,12.05 2.59,12.41L11.58,21.41C11.95,21.77 12.45,22 13,22C13.55,22 14.050,21.77 14.41,21.41L21.41,14.41C21.78,14.05 22,13.55 22,13C22,12.44 21.77,11.94 21.41,11.58Z",
+  neustart: "M12,4C14.1,4 16.1,4.8 17.6,6.3C20.7,9.4 20.7,14.5 17.6,17.6C15.8,19.5 13.3,20.2 10.9,19.9L11.4,17.9C13.1,18.1 14.9,17.5 16.2,16.2C18.5,13.9 18.5,10.1 16.2,7.7C15.1,6.6 13.5,6 12,6V10.6L7,5.6L12,0.6V4M6.3,17.6C3.7,15 3.3,11 5.1,7.9L6.6,9.4C5.5,11.6 5.9,14.4 7.8,16.2C8.3,16.7 8.9,17.1 9.6,17.4L9,19.4C8,19 7.1,18.4 6.3,17.6Z",
+  schliessen: "M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z",
+  repo: "M6,2H18A2,2 0 0,1 20,4V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V4A2,2 0 0,1 6,2Z",
+  update: "M21,10.12H14.22L16.96,7.3C14.23,4.6 9.81,4.5 7.08,7.2C4.35,9.91 4.35,14.28 7.08,17C9.81,19.7 14.23,19.7 16.96,17C18.32,15.65 19,14.080 19,12.1H21C21,14.08 20.120,16.65 18.36,18.39C14.85,21.87 9.15,21.87 5.64,18.39C2.14,14.92 2.11,9.28 5.62,5.81C9.13,2.34 14.76,2.34 18.27,5.81L21,3V10.12M12.5,8V12.25L16,14.33L15.28,15.54L11,13V8H12.5Z",
+};
+
+/** Texte der neuen Bedienung -- die Worte sind die von HACS. */
+const LADEN_TEXTE = {
+  de: {
+    titel: "HACS*lab",
+    suche: "Durchsuchen",
+    spalte_name: "Repository-Name",
+    spalte_quelle: "Quelle",
+    spalte_sterne: "Sterne",
+    spalte_aktivitaet: "Aktivität",
+    spalte_typ: "Typ",
+    spalte_status: "Status",
+    spalte_installiert: "Installierte Version",
+    spalte_verfuegbar: "Verfügbare Version",
+    gruppen: {
+      aktualisierbar: "Ausstehende Aktualisierung",
+      installiert: "Heruntergeladen",
+      neu: "Neu",
+      downloadbar: "Verfügbar zum Herunterladen",
+    },
+    typen: {
+      integration: "Integration",
+      plugin: "Dashboard",
+      theme: "Theme",
+      template: "Template",
+      appdaemon: "AppDaemon",
+      python_script: "Python Script",
+    },
+    filter_typ: "Typ",
+    filter_quelle: "Quelle",
+    filter_heruntergeladen: "Heruntergeladen",
+    nur_heruntergeladen: "Nur heruntergeladene",
+    keine_daten: "Keine Repositories gefunden",
+    herunterladen: "Herunterladen",
+    aktualisieren: "Aktualisieren",
+    erneut: "Erneut herunterladen",
+    entfernen: "Entfernen",
+    deinstallieren: "Deinstallieren",
+    repo_oeffnen: "Repository öffnen",
+    tickets_oeffnen: "Issues öffnen",
+    releases_oeffnen: "Releases öffnen",
+    informationen_neu: "Informationen aktualisieren",
+    liste_neu: "Liste aktualisieren",
+    instanz_neu: "Quelle hinzufügen",
+    instanzen: "Quellen",
+    ueber: "Über HACS*lab",
+    abbrechen: "Abbrechen",
+    version: "Version",
+    dialog_download: (n) => `${n} herunterladen?`,
+    dialog_download_text: (v, h) =>
+      `Version ${v} wird von ${h} heruntergeladen und nach custom_components gelegt.`,
+    dialog_entfernen: (n) => `${n} entfernen?`,
+    dialog_entfernen_text:
+      "Die Dateien werden gelöscht und das Repository verschwindet aus der Liste der Heruntergeladenen.",
+    neustart_noetig: "Neustart erforderlich",
+    neustart_text:
+      "Home Assistant lädt neue Integrationen erst beim Start.",
+    neustart_knopf: "Neu starten",
+    einrichten: "Einrichten",
+    readme_fehlt: "Dieses Repository hat keine README.",
+    kein_release: "Noch kein Release – sobald das Repository eins veröffentlicht, lässt es sich hier herunterladen.",
+    lade: "Lade …",
+    erfolg_download: (n) => `${n} wurde heruntergeladen.`,
+    erfolg_entfernt: (n) => `${n} wurde entfernt.`,
+    keine_instanz:
+      "Noch keine Quelle eingerichtet. Füge eine GitLab-, Forgejo- oder Gitea-Instanz hinzu.",
+    ueber_text:
+      "HACS*lab bringt Integrationen, Karten und Themes aus selbst gehosteten Git-Schmieden nach Home Assistant – GitLab, Forgejo und Gitea, so viele Instanzen du willst. Kein Fork von HACS, sondern ein eigenes Zuhause daneben.",
+  },
+  en: {
+    titel: "HACS*lab",
+    suche: "Search",
+    spalte_name: "Repository name",
+    spalte_quelle: "Source",
+    spalte_sterne: "Stars",
+    spalte_aktivitaet: "Activity",
+    spalte_typ: "Type",
+    spalte_status: "Status",
+    spalte_installiert: "Installed version",
+    spalte_verfuegbar: "Available version",
+    gruppen: {
+      aktualisierbar: "Pending update",
+      installiert: "Downloaded",
+      neu: "New",
+      downloadbar: "Available for download",
+    },
+    typen: {
+      integration: "Integration",
+      plugin: "Dashboard",
+      theme: "Theme",
+      template: "Template",
+      appdaemon: "AppDaemon",
+      python_script: "Python Script",
+    },
+    filter_typ: "Type",
+    filter_quelle: "Source",
+    filter_heruntergeladen: "Downloaded",
+    nur_heruntergeladen: "Downloaded only",
+    keine_daten: "No repositories found",
+    herunterladen: "Download",
+    aktualisieren: "Update",
+    erneut: "Redownload",
+    entfernen: "Remove",
+    deinstallieren: "Uninstall",
+    repo_oeffnen: "Open repository",
+    tickets_oeffnen: "Open issues",
+    releases_oeffnen: "Open releases",
+    informationen_neu: "Update information",
+    liste_neu: "Refresh list",
+    instanz_neu: "Add source",
+    instanzen: "Sources",
+    ueber: "About HACS*lab",
+    abbrechen: "Cancel",
+    version: "Version",
+    dialog_download: (n) => `Download ${n}?`,
+    dialog_download_text: (v, h) =>
+      `Version ${v} will be downloaded from ${h} and placed in custom_components.`,
+    dialog_entfernen: (n) => `Remove ${n}?`,
+    dialog_entfernen_text:
+      "The files are deleted and the repository leaves the list of downloads.",
+    neustart_noetig: "Restart required",
+    neustart_text: "Home Assistant loads new integrations on startup only.",
+    neustart_knopf: "Restart",
+    einrichten: "Set up",
+    readme_fehlt: "This repository has no README.",
+    kein_release: "No release yet – once the repository publishes one, you can download it here.",
+    lade: "Loading …",
+    erfolg_download: (n) => `${n} was downloaded.`,
+    erfolg_entfernt: (n) => `${n} was removed.`,
+    keine_instanz:
+      "No source set up yet. Add a GitLab, Forgejo or Gitea instance.",
+    ueber_text:
+      "HACS*lab brings integrations, cards and themes from self-hosted Git forges into Home Assistant – GitLab, Forgejo and Gitea, as many instances as you like. Not a fork of HACS, but a home of its own right next to it.",
+  },
+};
+
+/** Ein DOM-Knoten in einer Zeile: Tag, Eigenschaften, Kinder. */
+function knoten(tag, eigenschaften, ...kinder) {
+  const el = document.createElement(tag);
+  for (const [schluessel, wert] of Object.entries(eigenschaften || {})) {
+    if (wert === undefined || wert === null || wert === false) continue;
+    if (schluessel === "class") el.className = wert;
+    else if (schluessel === "style") el.setAttribute("style", wert);
+    else if (schluessel.startsWith("on")) el.addEventListener(schluessel.slice(2), wert);
+    else if (schluessel.startsWith(".")) el[schluessel.slice(1)] = wert;
+    else el.setAttribute(schluessel, wert === true ? "" : String(wert));
+  }
+  for (const kind of kinder.flat()) {
+    if (kind === undefined || kind === null || kind === false) continue;
+    el.append(kind instanceof Node ? kind : document.createTextNode(String(kind)));
+  }
+  return el;
+}
+
+/** Relative Zeit wie HACS («vor 3 Tagen»), ueber Intl -- ohne Bibliothek. */
+function relativ(iso, sprache_kurz) {
+  if (!iso) return "—";
+  const t = Date.parse(iso);
+  if (Number.isNaN(t)) return "—";
+  const sek = Math.round((t - Date.now()) / 1000);
+  const stufen = [
+    [60, "second"],
+    [60, "minute"],
+    [24, "hour"],
+    [7, "day"],
+    [4.34524, "week"],
+    [12, "month"],
+    [Infinity, "year"],
+  ];
+  let wert = sek;
+  let einheit = "second";
+  for (const [teiler, name] of stufen) {
+    einheit = name;
+    if (Math.abs(wert) < teiler) break;
+    wert = wert / teiler;
+  }
+  try {
+    return new Intl.RelativeTimeFormat(sprache_kurz, { numeric: "auto" }).format(
+      Math.round(wert),
+      einheit
+    );
+  } catch (fehler) {
+    return datum_kurz(iso);
+  }
+}
+
+/** Relative Adressen der README auf die rohen Dateien der Schmiede biegen. */
+function readme_adressen(text, info, anbieter) {
+  text = String(text || "").replace(/^\uFEFF/, "");
+  if (!info || !info.web_url) return text;
+  const zweig = info.standardzweig || "main";
+  const roh =
+    anbieter === "gitlab"
+      ? `${info.web_url}/-/raw/${zweig}/`
+      : `${info.web_url}/raw/branch/${zweig}/`;
+  const seite =
+    anbieter === "gitlab"
+      ? `${info.web_url}/-/blob/${zweig}/`
+      : `${info.web_url}/src/branch/${zweig}/`;
+  const absolut = (u) => /^([a-z]+:|#|\/\/)/i.test(u);
+  const sauber = (u) => u.replace(/^\.\//, "").replace(/^\//, "");
+  return text
+    .replace(/(!\[[^\]]*\]\()([^)\s]+)/g, (m, a, u) => (absolut(u) ? m : a + roh + sauber(u)))
+    .replace(/((?<!!)\[[^\]]*\]\()([^)\s]+)/g, (m, a, u) => (absolut(u) ? m : a + seite + sauber(u)))
+    .replace(/(<img[^>]*\ssrc=["'])([^"']+)/gi, (m, a, u) => (absolut(u) ? m : a + roh + sauber(u)));
+}
+
+/** Die Bausteine des Hauses laden, falls noch keine Seite sie geholt hat. */
+async function bausteine_laden() {
+  if (customElements.get("hass-tabs-subpage-data-table")) return;
+  try {
+    const aufloeser = document.createElement("partial-panel-resolver");
+    const routen = aufloeser._getRoutes
+      ? aufloeser._getRoutes([{ component_name: "config", url_path: "a" }])
+      : aufloeser.getRoutes([{ component_name: "config", url_path: "a" }]);
+    await routen.routes.a.load();
+    const konfig = document.createElement("ha-panel-config");
+    await konfig.routerOptions.routes.integrations.load();
+  } catch (fehler) {
+    /* der Rueckfall unten wartet trotzdem */
+  }
+  await Promise.race([
+    customElements.whenDefined("hass-tabs-subpage-data-table"),
+    new Promise((r) => setTimeout(r, 8000)),
+  ]);
+}
+
 class HacsLabPanel extends HTMLElement {
   constructor() {
     super();
+    this.attachShadow({ mode: "open" });
     this._hass = null;
-    this._suche = "";
-    this._sort = "name";
+    this._narrow = false;
+    this._route = null;
     this._eintraege = [];
+    this._funde = [];
     this._instanzen = [];
-    this._anbieter = {}; // host -> Schmiede-Name (GitLab/Forgejo/Gitea)
-    this._funde_pro_host = {}; // host -> Funde (Lager oder eigene Suche)
-    this._aktualisiert_am = {}; // host -> Zeitstempel des Lagers
-    this._kategorien = KATEGORIEN;
-    this._funde_von = ""; // Gruppen-Wort, das die Funde zuletzt erzeugte (Flug 2091)
-    this._sucht = false; // laeuft gerade die Kopfsuche gegen die Instanzen?
-    this._such_fehler = {}; // host -> Grund (nur von der Kopfsuche)
-    this._detail = null; // { host, pfad, daten }
-    this._fehler = "";
-    this._instanz_fehler = {}; // host -> Grund (aus dem frischen Lauf)
+    this._anbieter = {};
+    this._laedt = true;
     this._beschaeftigt = false;
-    this._laedt = true; // die erste Fahrt: noch nichts gesehen (Flug 2088)
     this._erneuert_am = 0;
-    this._abmeldung = null; // Ereignis-Abo kuenndigen
-    this._offen = {
-      aktualisierbar: true,
-      installiert: true,
-      neu: true,
-      downloadbar: false,
-    };
+    this._abmeldung = null;
+    this._detail = null; // { zeile, daten, laedt }
+    this._dialog = null;
+    this._filter_typ = new Set();
+    this._filter_quelle = new Set();
+    this._nur_heruntergeladen = false;
+    this._suchwort = "";
+    this._bereit = false;
   }
 
   set hass(hass) {
     const erste = this._hass === null;
     this._hass = hass;
+    if (this._tabelle) this._tabelle.hass = hass;
+    this._kinder_hass();
     if (erste) {
-      this._abonnieren();
-      this._betrete();
+      this._start();
     }
+  }
+
+  set narrow(narrow) {
+    this._narrow = narrow;
+    if (this._tabelle) this._tabelle.narrow = narrow;
+  }
+
+  set route(route) {
+    this._route = route;
+    if (this._tabelle) this._tabelle.route = route;
+    this._folge_route();
+  }
+
+  /** Die Adresse entscheidet: /hacs-lab/repository/<id> ist die Detailseite. */
+  _folge_route() {
+    if (!this._bereit || !this._route) return;
+    const pfad = this._route.path || "";
+    const treffer = pfad.match(/^\/repository\/(.+)$/);
+    if (!treffer) {
+      if (this._detail) this._schliesse_detail(true);
+      return;
+    }
+    const id = decodeURIComponent(treffer[1]);
+    if (this._detail && this._detail.zeile.id === id) return;
+    const z = this._zeilen_karte && this._zeilen_karte.get(id);
+    if (z) this._oeffne(z, true);
+    else this._warte_auf_id = id;
   }
 
   set panel(panel) {
     this._panel = panel;
   }
 
-  set narrow(narrow) {
-    this._narrow = narrow;
+  get _t() {
+    return LADEN_TEXTE[sprache(this._hass)] || LADEN_TEXTE.en;
+  }
+
+  get _sprache_kurz() {
+    return (this._hass && this._hass.locale && this._hass.locale.language) ||
+      (this._hass && this._hass.language) || "en";
   }
 
   connectedCallback() {
-    if (!this._gerendert) {
-      this._zeichne();
-    } else {
-      // Jeder Betritt des Ladens frischt auf -- nicht nur der erste.
-      this._betrete();
-    }
+    if (this._bereit) this._betrete();
   }
 
   disconnectedCallback() {
-    // Das Ereignis-Abo gehoert zum Element: verlaesst der Laden die
-    // Buehne, wird es gekuendigt -- niemand hoert auf leere Kartons.
     if (this._abmeldung) {
       try {
         this._abmeldung();
@@ -832,95 +922,98 @@ class HacsLabPanel extends HTMLElement {
     }
   }
 
-  get _t() {
-    return TEXTE[sprache(this._hass)];
+  async _start() {
+    this.shadowRoot.innerHTML = `<style>${LADEN_STIL}</style><div class="hl-warte"><ha-spinner></ha-spinner></div>`;
+    await bausteine_laden();
+    this._bereit = true;
+    this._baue();
+    this._folge_route();
+    this._abonnieren();
+    this._betrete();
   }
 
-  /** Der Betritt: erst aus dem Lager malen, dann im Hintergrund erneuern. */
-  _betrete() {
-    if (!this._hass) {
-      return;
+  _kinder_hass() {
+    if (!this.shadowRoot) return;
+    for (const el of this.shadowRoot.querySelectorAll("[data-hass]")) {
+      el.hass = this._hass;
     }
-    this._lade().finally(() => {
-      if (
-        this._erneuert_am &&
-        Date.now() - this._erneuert_am < BETRETEN_RUHE_MS
-      ) {
-        return;
-      }
-      this._erneuern();
-    });
   }
 
-  /** Auf das Ereignis des Lagers hoeren -- der Hintergrund malt mit. */
+  /* ---------------- Daten ---------------- */
+
   _abonnieren() {
     const verbindung = this._hass && this._hass.connection;
-    if (!verbindung || typeof verbindung.subscribeEvents !== "function") {
-      return; // Rueckhalt: ohne Abonnement bleibt der Frischhol-Knopf
-    }
+    if (!verbindung || typeof verbindung.subscribeEvents !== "function") return;
     verbindung
-      .subscribeEvents((ereignis) => {
-        if (!ereignis || !ereignis.host || this._beschaeftigt || this._detail) {
-          return;
-        }
-        this._lade();
+      .subscribeEvents(() => {
+        if (!this._beschaeftigt) this._lade();
       }, EREIGNIS_AKTUALISIERT)
       .then((abmelden) => {
         this._abmeldung = abmelden;
       })
-      .catch(() => {
-        /* das Abonnement darf scheitern, der Laden bleibt bedienbar */
-      });
+      .catch(() => {});
   }
 
-  /** Fehler-Objekt (WebSocket oder Dienst) in Klartext. */
-  _fehlertext(fehler) {
-    const code = fehler && fehler.code;
-    const t = this._t;
-    if (code && t.fehler[code] !== undefined) {
-      return t.fehler[code];
-    }
-    if (fehler && fehler.message) {
-      return t.fehler.sonst + " (" + fehler.message + ")";
-    }
-    if (typeof fehler === "string" && fehler) {
-      return t.fehler.sonst + " (" + fehler + ")";
-    }
-    return t.fehler.sonst;
+  _betrete() {
+    this._lade().finally(() => {
+      if (this._erneuert_am && Date.now() - this._erneuert_am < BETRETEN_RUHE_MS) return;
+      this._erneuern();
+    });
   }
 
-  /** Der frische Lauf: jeder Aktualisierer wird herumgedreht, dann das Lager. */
-  async _erneuern() {
-    if (!this._hass || this._beschaeftigt) {
-      return;
-    }
-    this._beschaeftigt = true;
-    this._zeichne();
+  _uebernehme(antwort) {
+    this._eintraege = antwort.eintraege || [];
+    this._funde = antwort.funde || [];
+    this._instanzen = antwort.instanzen || [];
+    this._anbieter = antwort.anbieter || {};
+    this._laedt = false;
+    this._zeichne_liste();
+  }
+
+  async _lade() {
     try {
-      const antwort = await this._hass.callWS({
-        type: "hacs_lab/erneuern",
-      });
-      this._uebernehme(antwort);
-      this._instanz_fehler = antwort.gescheitert || {};
-      this._fehler = "";
+      this._uebernehme(await this._hass.callWS({ type: "hacs_lab/eintraege" }));
     } catch (fehler) {
-      this._fehler = this._fehlertext(fehler);
+      this._melde(this._fehlertext(fehler));
+    }
+  }
+
+  async _erneuern() {
+    if (this._beschaeftigt) return;
+    this._beschaeftigt = true;
+    try {
+      const antwort = await this._hass.callWS({ type: "hacs_lab/erneuern" });
+      this._uebernehme(antwort);
+      const gescheitert = Object.entries(antwort.gescheitert || {});
+      if (gescheitert.length) {
+        this._melde(gescheitert.map(([h, g]) => `${h}: ${g}`).join(" · "));
+      }
+    } catch (fehler) {
+      this._melde(this._fehlertext(fehler));
     }
     this._erneuert_am = Date.now();
-    this._laedt = false;
     this._beschaeftigt = false;
-    this._zeichne();
   }
 
-  /**
-   * Ziel im Home-Assistant-Frontend ansteuern (Flug 2085).
-   *
-   * Der Weg ist derselbe, dessen sich HACS fuer seine Knöpfe bedient:
-   * Adresse in die Geschichte legen und das Router-Ereignis feuern --
-   * das Frontend haelt die Leiste, das Panel wird abgebaut. Gelingt
-   * das Ereignis nicht (kaum denkbar), faellt die Zeile auf die gute
-   * alte Ganze-Seite-Weiterleitung zurueck.
-   */
+  _fehlertext(fehler) {
+    const alt = TEXTE[sprache(this._hass)] || TEXTE.en;
+    const code = fehler && fehler.code;
+    if (code && alt.fehler[code] !== undefined) return alt.fehler[code];
+    if (fehler && fehler.message) return alt.fehler.sonst + " (" + fehler.message + ")";
+    return alt.fehler.sonst;
+  }
+
+  /** Eine Nachricht unten am Rand, wie HA sie zeigt. */
+  _melde(text) {
+    this.dispatchEvent(
+      new CustomEvent("hass-notification", {
+        detail: { message: text },
+        bubbles: true,
+        composed: true,
+      })
+    );
+  }
+
   _gehe(ziel) {
     try {
       window.history.pushState(null, "", ziel);
@@ -930,1130 +1023,732 @@ class HacsLabPanel extends HTMLElement {
     }
   }
 
-  /** Die Liste laden -- der schnelle Griff aus dem Lager (kein Netzruf). */
-  async _lade() {
-    if (!this._hass) return;
-    this._beschaeftigt = true;
-    this._zeichne();
-    try {
-      const antwort = await this._hass.callWS({
-        type: "hacs_lab/eintraege",
+  /* ---------------- Zeilen ---------------- */
+
+  _status(e) {
+    if (e._fund) return "neu";
+    if (e.installiert && e.neueste && e.installiert !== e.neueste) return "aktualisierbar";
+    if (e.installiert) return "installiert";
+    return "downloadbar";
+  }
+
+  _zeilen() {
+    const zeilen = [];
+    const t = this._t;
+    for (const e of this._eintraege) {
+      const status = this._status(e);
+      zeilen.push({
+        ...e,
+        id: e.storage_key,
+        anzeige: this._kurzname(e.name),
+        status,
+        status_text: t.gruppen[status],
+        typ_text: t.typen[e.kategorie] || e.kategorie,
+        quelle: this._quelle_text(e.host),
+        sterne: e.sterne || 0,
+        aktivitaet: e.veroeffentlicht_am || e.hinzugefuegt_am || "",
       });
-      this._uebernehme(antwort);
-      this._fehler = "";
-    } catch (fehler) {
-      this._fehler = this._fehlertext(fehler);
     }
-    // Die erste Fahrt ist vorbei: ob mit Bestand oder mit Fehler --
-    // ab hier ist die Ladeseite nicht mehr die ehrliche Antwort.
-    this._laedt = false;
-    this._beschaeftigt = false;
-    this._zeichne();
+    for (const f of this._funde) {
+      if (f.vorhanden || f.gueltig === false) continue;
+      zeilen.push({
+        ...f,
+        _fund: true,
+        id: "fund|" + f.host + "|" + f.full_name,
+        pfad: f.full_name,
+        anzeige: this._kurzname(f.name),
+        status: "neu",
+        status_text: t.gruppen.neu,
+        typ_text: t.typen[f.kategorie] || f.kategorie,
+        quelle: this._quelle_text(f.host),
+        sterne: f.sterne || 0,
+        neueste: f.letzte_version,
+        aktivitaet: f.zuletzt_aktiv || "",
+      });
+    }
+    return zeilen.filter((z) => {
+      if (this._filter_typ.size && !this._filter_typ.has(z.kategorie)) return false;
+      if (this._filter_quelle.size && !this._filter_quelle.has(z.host)) return false;
+      if (this._nur_heruntergeladen && !z.installiert) return false;
+      return true;
+    });
   }
 
-  /** Eine Lager-Antwort in den Zustand des Panels uebernehmen. */
-  _uebernehme(antwort) {
-    this._eintraege = antwort.eintraege || [];
-    this._instanzen = antwort.instanzen || [];
-    this._anbieter = antwort.anbieter || {};
-    this._kategorien = antwort.kategorien || KATEGORIEN;
-    this._funde_pro_host = {};
-    for (const fund of antwort.funde || []) {
-      const host = fund.host || "";
-      (this._funde_pro_host[host] = this._funde_pro_host[host] || []).push(fund);
-    }
-    this._aktualisiert_am = antwort.aktualisiert_am || {};
-    // Der frische Lauf ist die neuere Wahrheit: die Funde stammen jetzt
-    // wieder vom Takt des Hauses, nicht mehr von der letzten Kopfsuche.
-    this._funde_von = "";
-    this._such_fehler = {};
+  _kurzname(name) {
+    return String(name || "").split("/").pop();
   }
 
-  /**
-   * Die Kopfsuche fragt die Instanzen (Flug 2091: die EINE Suche).
-   *
-   * Tippen grenzt ein -- Enter fragt alle eingerichteten Server direkt.
-   * Ein Wort mit Schraegstrich ist ein Gruppen-Weg (wie frueher das
-   * Feld unter Neu), alles andere ein Stichwort, das der Anbieter in
-   * Name und Beschreibung sucht. Leer gefragt: der ganze Bestand,
-   * genau wie der Takt ihn faende. Die Funde landen im Abschnitt Neu
-   * und bleiben bis zum naechsten Lauf des Lagers stehen; gescheiterte
-   * Server melden sich im Banner und verlieren ihre letzten Funde
-   * nicht.
-   */
-  async _suche_server() {
-    if (this._sucht || !this._hass || !this._instanzen.length) {
+  _quelle_text(host) {
+    const a = this._anbieter[host];
+    return (ANBIETER_NAMEN[a] || a || "Git") + " · " + host;
+  }
+
+  _zeichen(z, gross) {
+    const groesse = gross ? 40 : 32;
+    if (z.avatar_url) {
+      return knoten("img", {
+        class: "hl-zeichen",
+        src: z.avatar_url,
+        alt: "",
+        loading: "lazy",
+        style: `width:${groesse}px;height:${groesse}px`,
+        onerror: (ev) => ev.target.replaceWith(this._buchstabe(z, groesse)),
+      });
+    }
+    return this._buchstabe(z, groesse);
+  }
+
+  _buchstabe(z, groesse) {
+    const name = (z.anzeige || z.name || "?").split("/").pop();
+    return knoten(
+      "div",
+      {
+        class: "hl-zeichen hl-buchstabe",
+        style: `width:${groesse}px;height:${groesse}px;background:${zeichen_farbe(name)};color:${ZEICHEN_SCHRIFT}`,
+      },
+      name.charAt(0).toUpperCase()
+    );
+  }
+
+  _spalten() {
+    const t = this._t;
+    const schmal = this._narrow;
+    return {
+      icon: {
+        title: "",
+        label: "Icon",
+        type: "icon",
+        moveable: false,
+        showNarrow: true,
+        template: (z) => this._zeichen(z, false),
+      },
+      anzeige: {
+        title: t.spalte_name,
+        main: true,
+        sortable: true,
+        filterable: true,
+        direction: "asc",
+        flex: 3,
+        showNarrow: true,
+        template: (z) =>
+          knoten(
+            "div",
+            { class: "hl-zelle-name" },
+            knoten("div", { class: "hl-name" }, z.anzeige),
+            knoten("div", { class: "hl-beschr" }, z.beschreibung || "")
+          ),
+      },
+      beschreibung: { title: "", hidden: true, filterable: true },
+      quelle: {
+        title: t.spalte_quelle,
+        sortable: true,
+        groupable: true,
+        filterable: true,
+        hidden: schmal,
+        flex: 1.2,
+        template: (z) =>
+          knoten(
+            "div",
+            { class: "hl-zelle-name" },
+            knoten("div", { class: "hl-name" }, ANBIETER_NAMEN[this._anbieter[z.host]] || this._anbieter[z.host] || "Git"),
+            knoten("div", { class: "hl-beschr" }, z.host)
+          ),
+      },
+      sterne: {
+        title: t.spalte_sterne,
+        sortable: true,
+        type: "numeric",
+        hidden: schmal,
+        width: "80px",
+        template: (z) => String(z.sterne),
+      },
+      aktivitaet: {
+        title: t.spalte_aktivitaet,
+        sortable: true,
+        hidden: schmal,
+        width: "130px",
+        template: (z) => relativ(z.aktivitaet, this._sprache_kurz),
+      },
+      installiert: {
+        title: t.spalte_installiert,
+        sortable: true,
+        hidden: true,
+        defaultHidden: true,
+        width: "140px",
+        template: (z) => z.installiert || "—",
+      },
+      neueste: {
+        title: t.spalte_verfuegbar,
+        sortable: true,
+        hidden: true,
+        defaultHidden: true,
+        width: "140px",
+        template: (z) => z.neueste || "—",
+      },
+      status_text: {
+        title: t.spalte_status,
+        groupable: true,
+        sortable: true,
+        hidden: true,
+        defaultHidden: true,
+      },
+      typ_text: {
+        title: t.spalte_typ,
+        sortable: true,
+        groupable: true,
+        filterable: true,
+        hidden: schmal,
+        width: "110px",
+      },
+      aktionen: {
+        title: "",
+        label: "Aktionen",
+        type: "overflow-menu",
+        showNarrow: true,
+        moveable: false,
+        hideable: false,
+        template: (z) =>
+          knoten("ha-icon-overflow-menu", {
+            ".hass": this._hass,
+            ".narrow": true,
+            ".items": this._menue(z),
+            "data-hass": true,
+            onclick: (ev) => ev.stopPropagation(),
+          }),
+      },
+    };
+  }
+
+  _menue(z) {
+    const t = this._t;
+    const punkte = [
+      { path: PFADE.info, label: t.informationen_neu, action: () => this._oeffne(z) },
+      z.web_url && { path: PFADE.extern, label: t.repo_oeffnen, action: () => window.open(z.web_url, "_blank", "noreferrer") },
+      z.tickets_url && { path: PFADE.ticket, label: t.tickets_oeffnen, action: () => window.open(z.tickets_url, "_blank", "noreferrer") },
+    ];
+    if (z.installiert) {
+      punkte.push({ path: PFADE.neuladen, label: t.erneut, action: () => this._frage_download(z) });
+      punkte.push({ divider: true });
+      punkte.push({ path: PFADE.loeschen, label: t.entfernen, warning: true, action: () => this._frage_entfernen(z) });
+    } else {
+      if (z.neueste) {
+        punkte.push({ path: PFADE.download, label: t.herunterladen, action: () => this._frage_download(z) });
+      }
+      if (!z._fund) {
+        punkte.push({ divider: true });
+        punkte.push({ path: PFADE.loeschen, label: t.entfernen, warning: true, action: () => this._entferne_eintrag(z) });
+      }
+    }
+    return punkte.filter(Boolean);
+  }
+
+  /* ---------------- Bau ---------------- */
+
+  _baue() {
+    const t = this._t;
+    const wurzel = this.shadowRoot;
+    wurzel.innerHTML = `<style>${LADEN_STIL}</style>`;
+
+    const tabelle = document.createElement("hass-tabs-subpage-data-table");
+    tabelle.hass = this._hass;
+    tabelle.narrow = this._narrow;
+    tabelle.route = this._route || { prefix: "/hacs-lab", path: "" };
+    tabelle.tabs = [{ name: t.titel, path: "/hacs-lab" }];
+    tabelle.mainPage = true;
+    tabelle.clickable = true;
+    tabelle.hasFilters = true;
+    tabelle.id = "id";
+    tabelle.searchLabel = t.suche;
+    tabelle.noDataText = t.keine_daten;
+    tabelle.initialGroupColumn = "status_text";
+    tabelle.groupOrder = ["aktualisierbar", "installiert", "neu", "downloadbar"].map(
+      (g) => t.gruppen[g]
+    );
+    tabelle.initialSorting = { column: "sterne", direction: "desc" };
+    tabelle.columns = this._spalten();
+    tabelle.data = [];
+    tabelle.addEventListener("row-click", (ev) => {
+      const z = this._zeilen_karte && this._zeilen_karte.get(ev.detail.id);
+      if (z) this._oeffne(z);
+    });
+    tabelle.addEventListener("clear-filter", () => {
+      this._filter_typ.clear();
+      this._filter_quelle.clear();
+      this._nur_heruntergeladen = false;
+      this._zeichne_liste();
+    });
+
+    const werkzeug = knoten("ha-icon-overflow-menu", {
+      slot: "toolbar-icon",
+      ".hass": this._hass,
+      ".narrow": true,
+      "data-hass": true,
+      ".items": [
+        { path: PFADE.neuladen, label: t.liste_neu, action: () => { this._erneuert_am = 0; this._erneuern(); } },
+        { path: PFADE.plus, label: t.instanz_neu, action: () => this._gehe("/config/integrations/integration/hacs_lab") },
+        { divider: true },
+        { path: PFADE.info, label: t.ueber, action: () => this._ueber() },
+      ],
+    });
+    tabelle.append(werkzeug);
+
+    this._filterflaeche = knoten("div", { slot: "filter-pane", class: "hl-filter" });
+    tabelle.append(this._filterflaeche);
+
+    this._tabelle = tabelle;
+    this._listenseite = knoten("div", { class: "hl-seite" }, tabelle);
+    this._detailseite = knoten("div", { class: "hl-seite hl-detail", hidden: true });
+    this._dialogplatz = knoten("div", {});
+    wurzel.append(this._listenseite, this._detailseite, this._dialogplatz);
+    this._zeichne_liste();
+  }
+
+  _zeichne_liste() {
+    if (!this._tabelle) return;
+    const zeilen = this._zeilen();
+    this._zeilen_karte = new Map(zeilen.map((z) => [z.id, z]));
+    this._tabelle.columns = this._spalten();
+    this._tabelle.data = zeilen;
+    this._tabelle.filters =
+      this._filter_typ.size + this._filter_quelle.size + (this._nur_heruntergeladen ? 1 : 0);
+    if (!this._laedt && !this._instanzen.length) {
+      this._tabelle.noDataText = this._t.keine_instanz;
+    }
+    this._zeichne_filter();
+    if (this._warte_auf_id && this._zeilen_karte.has(this._warte_auf_id)) {
+      const id = this._warte_auf_id;
+      this._warte_auf_id = null;
+      this._oeffne(this._zeilen_karte.get(id), true);
+    }
+    if (this._detail) {
+      const frisch = this._zeilen_karte.get(this._detail.zeile.id);
+      if (frisch) {
+        this._detail.zeile = frisch;
+        this._zeichne_detail();
+      }
+    }
+  }
+
+  _zeichne_filter() {
+    const t = this._t;
+    const flaeche = this._filterflaeche;
+    flaeche.replaceChildren();
+    const typen = [...new Set([...this._eintraege, ...this._funde].map((e) => e.kategorie))].filter(Boolean);
+    const haken = (text, an, wechsel) =>
+      knoten(
+        "label",
+        { class: "hl-haken" },
+        knoten("input", { type: "checkbox", ".checked": an, onchange: (ev) => wechsel(ev.target.checked) }),
+        knoten("span", {}, text)
+      );
+    const gruppe = (titel, inhalt) =>
+      knoten("ha-expansion-panel", { outlined: false, expanded: true, header: titel }, knoten("div", { class: "hl-filter-inhalt" }, inhalt));
+    flaeche.append(
+      gruppe(t.filter_typ, typen.map((k) =>
+        haken(t.typen[k] || k, this._filter_typ.has(k), (an) => {
+          an ? this._filter_typ.add(k) : this._filter_typ.delete(k);
+          this._zeichne_liste();
+        })
+      )),
+      gruppe(t.filter_quelle, this._instanzen.map((h) =>
+        haken(this._quelle_text(h), this._filter_quelle.has(h), (an) => {
+          an ? this._filter_quelle.add(h) : this._filter_quelle.delete(h);
+          this._zeichne_liste();
+        })
+      )),
+      gruppe(t.filter_heruntergeladen, [
+        haken(t.nur_heruntergeladen, this._nur_heruntergeladen, (an) => {
+          this._nur_heruntergeladen = an;
+          this._zeichne_liste();
+        }),
+      ])
+    );
+  }
+
+  /* ---------------- Detail ---------------- */
+
+  async _oeffne(z, von_route) {
+    if (!von_route) {
+      this._gehe("/hacs-lab/repository/" + encodeURIComponent(z.id));
       return;
     }
-    this._sucht = true;
-    this._zeichne();
-    const nadel = this._suche.trim();
-    const funde_neu = {};
-    const fehler = {};
-    for (const host of this._instanzen) {
-      const frage = { type: "hacs_lab/entdecken", host: host };
-      if (nadel.includes("/")) {
-        frage.gruppe = nadel;
-      } else if (nadel) {
-        frage.stichwort = nadel;
+    this._detail = { zeile: z, daten: null, laedt: true };
+    this._listenseite.hidden = true;
+    this._detailseite.hidden = false;
+    this._zeichne_detail();
+    try {
+      const daten = await this._hass.callWS({ type: "hacs_lab/detail", host: z.host, pfad: z.pfad || z.full_name });
+      if (this._detail && this._detail.zeile.id === z.id) {
+        this._detail.daten = daten;
+        this._detail.laedt = false;
+        this._zeichne_detail();
       }
+    } catch (fehler) {
+      if (this._detail) {
+        this._detail.laedt = false;
+        this._detail.fehler = this._fehlertext(fehler);
+        this._zeichne_detail();
+      }
+    }
+  }
+
+  _schliesse_detail(von_route) {
+    if (!von_route) {
+      this._gehe("/hacs-lab");
+      return;
+    }
+    this._detail = null;
+    this._detailseite.hidden = true;
+    this._detailseite.replaceChildren();
+    this._listenseite.hidden = false;
+  }
+
+  _zeichne_detail() {
+    const t = this._t;
+    const d = this._detail;
+    if (!d) return;
+    const z = d.zeile;
+    const info = (d.daten && d.daten.info) || {};
+    const besitzer = (z.pfad || z.full_name || "").split("/").slice(0, -1).join("/");
+
+    const kopf = knoten(
+      "div",
+      { class: "hl-kopf" },
+      knoten("ha-icon-button", {
+        ".path": PFADE.zurueck,
+        ".label": "Zurück",
+        onclick: () => this._schliesse_detail(),
+      }),
+      knoten("div", { class: "hl-kopf-titel" }, z.anzeige),
+      knoten("ha-icon-overflow-menu", {
+        ".hass": this._hass,
+        ".narrow": true,
+        ".items": this._menue(z),
+        "data-hass": true,
+      })
+    );
+
+    const chip = (pfad, text, titel, link) => {
+      const c = knoten("ha-assist-chip", { ".label": String(text), title: titel || "", ".filled": false });
+      c.append(knoten("ha-svg-icon", { slot: "icon", ".path": pfad }));
+      if (link) {
+        c.addEventListener("click", () => window.open(link, "_blank", "noreferrer"));
+        c.classList.add("hl-klickbar");
+      }
+      return c;
+    };
+    const sterne = info.sterne !== undefined ? info.sterne : z.sterne;
+    const tickets = info.offene_tickets !== undefined ? info.offene_tickets : z.offene_tickets;
+    const chips = knoten(
+      "div",
+      { class: "hl-chips" },
+      besitzer && chip(PFADE.person, besitzer, "", null),
+      chip(PFADE.server, this._quelle_text(z.host), t.spalte_quelle, info.web_url || z.web_url),
+      chip(PFADE.stern, sterne || 0, t.spalte_sterne, info.web_url || z.web_url),
+      tickets !== undefined && chip(PFADE.ticket, tickets, "Issues", info.tickets_url || z.tickets_url),
+      z.neueste && chip(PFADE.tag, z.neueste, t.version, info.releases_url || z.releases_url)
+    );
+
+    const karte = knoten("ha-card", { class: "hl-detail-karte" }, chips);
+
+    const zustand = this._zustand_hinweis(z);
+    if (zustand) karte.append(zustand);
+    if (!z.neueste && !z.installiert && !d.laedt) {
+      karte.append(knoten("div", { class: "hl-zustand-platz" }, knoten("ha-alert", { "alert-type": "info" }, t.kein_release)));
+    }
+
+    if (d.laedt) {
+      karte.append(knoten("div", { class: "hl-warte-klein" }, knoten("ha-spinner", { size: "small" })));
+    } else if (d.fehler) {
+      karte.append(knoten("ha-alert", { "alert-type": "error" }, d.fehler));
+    } else {
+      const text = d.daten && d.daten.readme;
+      if (text) {
+        const md = knoten("ha-markdown", {
+          class: "hl-readme",
+          ".breaks": false,
+          ".lazyImages": true,
+          ".content": readme_adressen(text, info, this._anbieter[z.host]),
+        });
+        if (!customElements.get("ha-markdown")) {
+          const ersatz = knoten("div", { class: "hl-readme" });
+          ersatz.innerHTML = markdown(text);
+          karte.append(ersatz);
+        } else {
+          karte.append(md);
+        }
+      } else {
+        karte.append(knoten("div", { class: "hl-leer" }, info.beschreibung || z.beschreibung || t.readme_fehlt));
+      }
+    }
+
+    const update_da = z.installiert && z.neueste && z.installiert !== z.neueste;
+    const fab_text = !z.neueste
+      ? null
+      : update_da
+        ? t.aktualisieren
+        : z.installiert
+          ? null
+          : t.herunterladen;
+    const fab =
+      fab_text &&
+      knoten(
+        "button",
+        { class: "hl-fab", onclick: () => this._frage_download(z) },
+        knoten("ha-svg-icon", { ".path": update_da ? PFADE.update : PFADE.download }),
+        knoten("span", {}, fab_text)
+      );
+
+    this._detailseite.replaceChildren(
+      kopf,
+      knoten("div", { class: "hl-detail-inhalt" }, karte),
+      fab || ""
+    );
+  }
+
+  _zustand_hinweis(z) {
+    const i = z.integration;
+    if (!i || !i.zustand || i.zustand === "eingerichtet") return null;
+    const alt = TEXTE[sprache(this._hass)] || TEXTE.en;
+    const typ = i.zustand === "nicht_geladen" ? "error" : i.zustand === "neustart" ? "warning" : "info";
+    const hinweis = knoten("ha-alert", { "alert-type": typ, title: alt.zustand[i.zustand] || "" }, alt.zustand_titel[i.zustand] || "");
+    if (i.zustand === "neustart") {
+      hinweis.append(
+        knoten("ha-button", { slot: "action", onclick: () => this._hass.callService("homeassistant", "restart") }, this._t.neustart_knopf)
+      );
+    } else if (i.zustand === "hinzufuegen") {
+      hinweis.append(
+        knoten("ha-button", { slot: "action", onclick: () => this._gehe("/config/integrations/dashboard") }, this._t.einrichten)
+      );
+    }
+    return knoten("div", { class: "hl-zustand-platz" }, hinweis);
+  }
+
+  /* ---------------- Dialoge ---------------- */
+
+  _dialog_zeigen(titel, text, knopf_text, aktion, warnung) {
+    const t = this._t;
+    const zu = () => this._dialogplatz.replaceChildren();
+    const knopf = knoten(
+      "button",
+      { class: "hl-dlg-knopf" + (warnung ? " hl-warnung" : " hl-primaer") },
+      knopf_text
+    );
+    knopf.addEventListener("click", async () => {
+      knopf.disabled = true;
+      knopf.replaceChildren(knoten("ha-spinner", { size: "tiny" }));
       try {
-        const antwort = await this._hass.callWS(frage);
-        funde_neu[host] = antwort.funde || [];
-      } catch (grund) {
-        fehler[host] = this._fehlertext(grund);
-        funde_neu[host] = this._funde_pro_host[host] || [];
+        await aktion();
+      } finally {
+        zu();
       }
-    }
-    this._funde_pro_host = funde_neu;
-    this._funde_von = nadel.includes("/") ? nadel : "";
-    this._such_fehler = fehler;
-    this._sucht = false;
-    this._zeichne();
-    // Die Frage ist fertig -- der Fokus gehoert zurueck ins Feld, der
-    // Cursor an sein Ende (dieselbe Kunst wie beim Tippen).
-    const frisch = this.querySelector('input[data-rolle="suche"]');
-    if (frisch) {
-      frisch.focus();
-      frisch.setSelectionRange(frisch.value.length, frisch.value.length);
-    }
+    });
+    const dlg = knoten(
+      "div",
+      { class: "hl-dlg-grund", onclick: (ev) => ev.target === ev.currentTarget && zu() },
+      knoten(
+        "div",
+        { class: "hl-dlg", role: "dialog", "aria-modal": "true" },
+        knoten("div", { class: "hl-dlg-titel" }, titel),
+        knoten("div", { class: "hl-dlg-text" }, text),
+        knoten(
+          "div",
+          { class: "hl-dlg-knoepfe" },
+          knoten("button", { class: "hl-dlg-knopf", onclick: zu }, t.abbrechen),
+          knopf
+        )
+      )
+    );
+    this._dialogplatz.replaceChildren(dlg);
   }
 
-  /** Detailansicht holen: Stammdaten, README, Releases. */
-  async _hole_detail(host, pfad) {
-    // Erst das Geruest: der Name steht in den Brotkrumen, waehrend die
-    // Ladeseite (Flug 2088) den Rest heranholt.
-    this._detail = { host: host, pfad: pfad, daten: null };
-    this._beschaeftigt = true;
-    this._zeichne();
-    try {
-      const daten = await this._hass.callWS({
-        type: "hacs_lab/detail",
-        host: host,
-        pfad: pfad,
-      });
-      this._detail = { host: host, pfad: pfad, daten: daten };
-      this._fehler = "";
-    } catch (fehler) {
-      // Zurueck in den Laden mit der Meldung -- eine steckengebliebene
-      // Ladeseite waere die unehrlichere Antwort.
-      this._detail = null;
-      this._fehler = this._fehlertext(fehler);
-    }
-    this._beschaeftigt = false;
-    this._zeichne();
+  _frage_download(z) {
+    const t = this._t;
+    const name = (z.anzeige || "").split("/").pop();
+    this._dialog_zeigen(
+      t.dialog_download(name),
+      t.dialog_download_text(z.neueste || "—", z.host),
+      z.installiert && z.installiert !== z.neueste ? t.aktualisieren : t.herunterladen,
+      () => this._herunterladen(z)
+    );
   }
 
-  /** Aufnehmen -- derselbe Weg wie der Dialog, nur ohne Dialog. */
-  async _hinzufuegen(host, pfad, kategorie) {
+  _frage_entfernen(z) {
+    const t = this._t;
+    const name = (z.anzeige || "").split("/").pop();
+    this._dialog_zeigen(t.dialog_entfernen(name), t.dialog_entfernen_text, t.entfernen, () => this._deinstalliere(z), true);
+  }
+
+  _ueber() {
+    const t = this._t;
+    this._dialog_zeigen(t.ueber, t.ueber_text, "OK", async () => {});
+  }
+
+  async _herunterladen(z) {
+    const t = this._t;
     this._beschaeftigt = true;
-    this._zeichne();
     try {
-      await this._hass.callWS({
-        type: "hacs_lab/hinzufuegen",
-        host: host,
-        pfad: pfad,
-        kategorie: kategorie,
-      });
-      this._fehler = "";
-      await this._lade();
-      const liste = this._funde_pro_host[host] || [];
-      if (liste.length) {
-        this._funde_pro_host[host] = liste.map((f) =>
-          f.full_name === pfad ? { ...f, vorhanden: true } : f
-        );
+      let eintrag = z;
+      if (z._fund) {
+        await this._hass.callWS({ type: "hacs_lab/hinzufuegen", host: z.host, pfad: z.full_name, kategorie: z.kategorie });
+        // Die update-Entity entsteht im Hintergrund -- kurz warten, bis die Liste sie nennt.
+        for (let i = 0; i < 20; i++) {
+          const antwort = await this._hass.callWS({ type: "hacs_lab/eintraege" });
+          eintrag = (antwort.eintraege || []).find((e) => e.host === z.host && e.pfad === z.full_name);
+          if (eintrag && eintrag.entity_id) break;
+          await new Promise((r) => setTimeout(r, 750));
+        }
       }
+      if (!eintrag || !eintrag.entity_id) throw new Error("update-Entity fehlt");
+      await this._hass.callService("update", "install", { entity_id: eintrag.entity_id });
+      this._melde(t.erfolg_download((z.anzeige || "").split("/").pop()));
     } catch (fehler) {
-      this._fehler = this._fehlertext(fehler);
+      this._melde(this._fehlertext(fehler));
     }
     this._beschaeftigt = false;
-    this._zeichne();
-  }
-
-  /** Entfernen -- mit Rueckfrage, Dateien bleiben (Stufe M4). */
-  async _entfernen(eintrag) {
-    const bestaetigt = window.confirm(
-      this._t.entfernen_frage(eintrag.name)
-    );
-    if (!bestaetigt) {
-      return;
-    }
-    this._beschaeftigt = true;
-    this._zeichne();
-    try {
-      await this._hass.callWS({
-        type: "hacs_lab/entfernen",
-        storage_key: eintrag.storage_key,
-      });
-      this._fehler = "";
-    } catch (fehler) {
-      this._fehler = this._fehlertext(fehler);
-    }
-    await this._lade();
-    this._beschaeftigt = false;
-    this._zeichne();
-  }
-
-  /** Deinstallieren -- Dateien weg, den verzeichneten Weg (Stufe M4b). */
-  async _deinstallieren(eintrag) {
-    const bestaetigt = window.confirm(
-      this._t.deinstallieren_frage(eintrag.name)
-    );
-    if (!bestaetigt) {
-      return;
-    }
-    this._beschaeftigt = true;
-    this._zeichne();
-    try {
-      await this._hass.callWS({
-        type: "hacs_lab/deinstallieren",
-        storage_key: eintrag.storage_key,
-      });
-      this._fehler = "";
-    } catch (fehler) {
-      this._fehler = this._fehlertext(fehler);
-    }
-    await this._lade();
-    this._beschaeftigt = false;
-    this._zeichne();
-  }
-
-  /** Installieren oder aktualisieren -- der Dienst der update-Entity. */
-  async _installieren(eintrag) {
-    if (!eintrag.entity_id) {
-      this._fehler = this._t.fehler.sonst;
-      this._zeichne();
-      return;
-    }
-    this._beschaeftigt = true;
-    this._zeichne();
-    try {
-      await this._hass.callService("update", "install", {
-        entity_id: eintrag.entity_id,
-      });
-      this._fehler = "";
-    } catch (fehler) {
-      this._fehler = this._fehlertext(fehler);
-    }
-    this._beschaeftigt = false;
-    this._erneuert_am = 0; // der Betritt-Ruhe zwingt hier nichts
+    this._erneuert_am = 0;
     await this._erneuern();
   }
 
-  /** Suchnadel auf einer Zeile (Name, Beschreibung, Pfad). */
-  _passt(zeile) {
-    const nadel = this._suche.trim().toLowerCase();
-    if (!nadel) {
-      return true;
-    }
-    const heuhaufen = (
-      (zeile.name || "") +
-      " " +
-      (zeile.beschreibung || "") +
-      " " +
-      (zeile.full_name || zeile.pfad || "")
-    ).toLowerCase();
-    return heuhaufen.includes(nadel);
-  }
-
-  /** Eine Liste nach der gewaehlten Sortierung ordnen. */
-  _sortiere(liste) {
-    const kopie = [...liste];
-    kopie.sort((a, b) => {
-      if (this._sort === "sterne") {
-        return (
-          (b.sterne || 0) - (a.sterne || 0) ||
-          String(a.name).localeCompare(String(b.name))
-        );
-      }
-      if (this._sort === "datum") {
-        const da = a.veroeffentlicht_am || a.hinzugefuegt_am || "";
-        const db = b.veroeffentlicht_am || b.hinzugefuegt_am || "";
-        return (
-          String(db).localeCompare(String(da)) ||
-          String(a.name).localeCompare(String(b.name))
-        );
-      }
-      return String(a.name).localeCompare(String(b.name));
-    });
-    return kopie;
-  }
-
-  /**
-   * Die vier Abschnitte des Ladens -- jede Zeile genau einmal:
-   * aktualisierbar (installiert, aber neueste weicht ab), installiert
-   * (heruntergeladen und oben), downloadbar (beobachtet, nichts
-   * heruntergeladen), neu (Funde der Suche, noch nicht aufgenommen).
-   */
-  _gruppen() {
-    const aktualisierbar = [];
-    const installiert = [];
-    const downloadbar = [];
-    for (const e of this._eintraege) {
-      if (!this._passt(e)) {
-        continue;
-      }
-      const update_da = e.neueste && e.installiert !== e.neueste;
-      if (e.installiert && update_da) {
-        aktualisierbar.push(e);
-      } else if (e.installiert) {
-        installiert.push(e);
-      } else {
-        downloadbar.push(e);
-      }
-    }
-    // Die Funde der Kopfsuche sind die ANTWORT auf das Gruppen-Wort --
-    // wenn die Nadel genau dieses Wort ist, zeigt der Abschnitt Neu
-    // alles, was die Server sagten (die Namen muessen das Wort ja nicht
-    // tragen). Jede andere Nadel greift wie ueberall: Name, Pfad, Text.
-    const nadel = this._suche.trim().toLowerCase();
-    const gruppen_wort = this._funde_von.trim().toLowerCase();
-    // Flug 2096, Wunde 2 aus dem 3-System-Test: ein Gesicht, ein Platz.
-    // Ein Fund, der schon Eintrag ist, bleibt NUR beim Eintrag --
-    // entweder Neu ODER Downloadbar ODER Installiert/Aktualisierbar,
-    // nie doppelt und nie dreifach. Der Server schickt in jedem Fund
-    // ein vorhanden-Faehnchen, und der eigene Abgleich greift, falls
-    // das Faehnchen fehlt.
-    const bereits = new Set(
-      this._eintraege.map(
-        (e) => (e.host || "") + "|" + (e.pfad || e.full_name || "")
-      )
-    );
-    const neu = [];
-    for (const host of Object.keys(this._funde_pro_host)) {
-      for (const fund of this._funde_pro_host[host]) {
-        if (fund && fund.vorhanden) {
-          continue;
-        }
-        const name = fund.full_name || fund.pfad || "";
-        if (bereits.has((fund.host || host) + "|" + name)) {
-          continue;
-        }
-        if (nadel && nadel !== gruppen_wort && !this._passt(fund)) {
-          continue;
-        }
-        neu.push(fund);
-      }
-    }
-    return {
-      aktualisierbar: this._sortiere(aktualisierbar),
-      installiert: this._sortiere(installiert),
-      neu: this._sortiere(neu),
-      downloadbar: this._sortiere(downloadbar),
-    };
-  }
-
-  _zeichne() {
-    this._gerendert = true;
-    const inhalt = this._detail
-      ? this._detail.daten
-        ? this._html_detail()
-        : this._html_ladeseite(this._t.detail_lade_text)
-      : this._laedt && !this._instanzen.length && !this._eintraege.length
-        ? this._html_ladeseite(this._t.lade_text)
-        : this._html_laden();
-    this.innerHTML = `
-      <style>${STIL}</style>
-      <div class="hl-panel">
-        ${this._html_balken()}
-        <div class="hl-inhalt">
-          ${this._fehler ? `<div class="hl-fehler">${fliehe(this._fehler)}</div>` : ""}
-          ${inhalt}
-        </div>
-        ${this._html_fusszeile()}
-      </div>`;
-    this._binden();
-  }
-
-  /** Die Ladeseite (Flug 2088) -- die Warteskulptur des Hauses.
-   *
-   * Der Rundblitz dreht sich in der Farbe der Tracht
-   * (``--primary-color``), die Karte traegt die Ecken und den Grund
-   * des Hauses (``--ha-card-*``). Solange noch kein Bestand da ist,
-   * ist DAS die ehrliche Flaeche -- keine leeren Abschnitte, kein
-   * Zappeln, sondern die Sprache, die Home Assistant auch spricht,
-   * wenn es selber laedt.
-   */
-  _html_ladeseite(text) {
+  async _deinstalliere(z) {
     const t = this._t;
-    return `
-      <div class="hl-ladeseite">
-        <div class="hl-ladekarte" role="status" aria-live="polite">
-          <img class="hl-lade-logo" src="${LOGO_DATAURI}" alt="${fliehe(t.titel)}">
-          ${dreher_svg("hl-dreher")}
-          <div class="hl-lade-titel">${fliehe(t.lade_titel)}</div>
-          <div class="hl-lade-text">${fliehe(text || t.lade_text)}</div>
-        </div>
-      </div>`;
+    try {
+      await this._hass.callWS({ type: "hacs_lab/deinstallieren", storage_key: z.storage_key });
+      this._melde(t.erfolg_entfernt((z.anzeige || "").split("/").pop()));
+    } catch (fehler) {
+      this._melde(this._fehlertext(fehler));
+    }
+    await this._lade();
   }
 
-  /** Der Balken oben -- GitLabs Leiste: Marke, Suche, Werkzeuge. */
-  _html_balken() {
-    const t = this._t;
-    const updates = this._gruppen().aktualisierbar.length;
-    const marke = `
-      <div class="hl-marke">
-        <img class="hl-logo" src="${LOGO_DATAURI}" alt="${fliehe(t.titel)}">
-        <span class="hl-wort">${fliehe(t.titel)}</span>
-        ${updates ? `<span class="hl-abzeichen">${fliehe(String(updates))}</span>` : ""}
-      </div>`;
-    if (this._detail) {
-      const name =
-        (this._detail.daten && this._detail.daten.info &&
-          this._detail.daten.info.name) ||
-        this._detail.pfad;
-      // Brotkrumen wie im Imker-Server: Marke, Trenner, Projektname.
-      return `
-      <div class="hl-balken">
-        <div class="hl-brotkrumen">
-          <button class="hl-ikonknopf" data-aktion="zurueck" title="${fliehe(t.zurueck)}">
-            ${'<svg class="hl-spitze-links" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M10.5 3.5 5 8l5.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'}
-          </button>
-          ${marke}
-          <span class="hl-trenner">/</span>
-          <span class="hl-brotkrume">${fliehe(name)}</span>
-        </div>
-        <span class="hl-abstand"></span>
-      </div>`;
+  async _entferne_eintrag(z) {
+    try {
+      await this._hass.callWS({ type: "hacs_lab/entfernen", storage_key: z.storage_key });
+    } catch (fehler) {
+      this._melde(this._fehlertext(fehler));
     }
-    return `
-      <div class="hl-balken">
-        ${marke}
-        <div class="hl-suchfeld ${this._sucht ? "sucht" : ""}">
-          ${LUPE_SVG}
-          <input class="hl-suche" type="search" placeholder="${fliehe(t.suche)}"
-                 value="${fliehe(this._suche)}" data-rolle="suche"
-                 title="${fliehe(t.suche_hinweis)}"
-                 enterkeyhint="search"
-                 aria-label="${fliehe(t.suche)}"
-                 ${this._sucht ? 'aria-busy="true"' : ""}>
-        </div>
-        <div class="hl-werkzeuge">
-          <button class="hl-ikonknopf" data-aktion="aktualisieren" title="${fliehe(t.aktualisieren)}"
-                  aria-label="${fliehe(t.aktualisieren)}" ${this._beschaeftigt ? "disabled" : ""}>${KREIS_SVG}</button>
-          <button class="hl-ikonknopf" data-aktion="neu" title="${fliehe(t.neu_knopf)}"
-                  aria-label="${fliehe(t.neu_knopf)}">${PLUS_SVG}</button>
-        </div>
-      </div>`;
-  }
-
-  /** Die Fusszeile (Flug 2092): der Gruss vom unteren Rand.
-   *
-   * Wer ganz runterscrollt, bekommt den Grund des Hauses in einer
-   * Zeile: der Fuchs und das Geluebde -- fuer die Freiheit gebaut,
-   * gegen das Monopol. Der Fuchs tanzt ein kleines Stueck, wenn man
-   * ihn streichelt (hover) -- sonst steht er still und wartet.
-   */
-  _html_fusszeile() {
-    const t = this._t;
-    return `
-      <footer class="hl-fuss" role="contentinfo">
-        ${tanuki_svg("hl-fuss-tanuki")}
-        <span class="hl-fuss-wort">${fliehe(t.fuss_zeile)}</span>
-      </footer>`;
-  }
-
-  /** Der Laden: Werkzeugleiste, Instanz-Plaettchen, Meldung, Abschnitte. */
-  _html_laden() {
-    const t = this._t;
-    if (!this._instanzen.length) {
-      return `
-        <div class="hl-hinweis">
-          <div>${fliehe(t.instanzen_leer)}</div>
-          <button class="hl-knopf hl-primaer hl-hinweis-knopf" data-aktion="instanz_hinzu">
-            ${fliehe(t.erste_instanz)}
-          </button>
-        </div>`;
-    }
-    const gruppen = this._gruppen();
-    const gesamt =
-      gruppen.aktualisierbar.length +
-      gruppen.installiert.length +
-      gruppen.downloadbar.length;
-    const stand = uhr_kurz(neuester_stand(this._aktualisiert_am));
-    const stand_zeile = stand
-      ? ` · ${fliehe(t.stand)} ${fliehe(stand)}`
-      : "";
-    const werkzeug = `
-      <div class="hl-werkzeug">
-        <label class="hl-sortierung">
-          <span class="hl-sortwort">${fliehe(t.sortierung)}</span>
-          <select class="hl-sort" data-rolle="sort">
-            <option value="name" ${this._sort === "name" ? "selected" : ""}>${fliehe(t.sort.name)}</option>
-            <option value="sterne" ${this._sort === "sterne" ? "selected" : ""}>${fliehe(t.sort.sterne)}</option>
-            <option value="datum" ${this._sort === "datum" ? "selected" : ""}>${fliehe(t.sort.datum)}</option>
-          </select>
-        </label>
-        <span class="hl-zaehler-zeile">${fliehe(t.anzahl(gesamt))}${stand_zeile}${this._sucht ? ` · ${fliehe(t.scan_laeuft)}` : this._beschaeftigt ? ` · ${fliehe(t.frisch_laeuft)}` : ""}</span>
-      </div>
-      <div class="hl-instanzzeile">
-        <span class="hl-instanzwort">${fliehe(t.instanzen_titel)}</span>
-        ${this._instanzen
-          .map(
-            (h) =>
-              `<button class="hl-instanz" data-aktion="instanz" title="${fliehe(t.instanz_verwalten)}">${SERVER_SVG}<span>${fliehe(h)}</span>${this._html_anbieter(h)}</button>`
-          )
-          .join("")}
-        <button class="hl-instanz hl-instanz-neu" data-aktion="instanz_hinzu" title="${fliehe(t.instanz_hinzufuegen)}">${PLUS_SVG}<span>${fliehe(t.instanz_hinzufuegen)}</span></button>
-      </div>`;
-    const meldungen = {
-      ...this._instanz_fehler,
-      ...this._such_fehler,
-    };
-    const meldung = Object.keys(meldungen).length
-      ? `<div class="hl-banner">${WARN_SVG}<span>${fliehe(
-          Object.entries(meldungen)
-            .map(([host, grund]) => `${host}: ${grund}`)
-            .join(" · ")
-        )}</span></div>`
-      : "";
-    return `${werkzeug}${meldung}${ABSCHNITTE.map((schlussel) =>
-      this._html_abschnitt(schlussel, gruppen[schlussel])
-    ).join("")}`;
-  }
-
-  /** Ein einklappbarer Abschnitt mit Kopf, Zaehler und Karten. */
-  _html_abschnitt(schlussel, zeilen) {
-    const t = this._t;
-    const offen = !!this._offen[schlussel];
-    const karten =
-      schlussel === "neu"
-        ? zeilen.map((f) => this._html_zeile_fund(f)).join("")
-        : zeilen.map((e) => this._html_zeile_eintrag(e)).join("");
-    const leer = karten
-      ? ""
-      : `<div class="hl-abschnitt-leer">${fliehe(t.abschnitte_leer[schlussel])}</div>`;
-    return `
-      <section class="hl-abschnitt" data-abschnitt="${schlussel}">
-        <button class="hl-abschnitt-kopf" data-rolle="abschnitt" data-abschnitt="${schlussel}"
-                aria-expanded="${offen}">
-          ${SPITZE_SVG}
-          <span class="hl-abschnitt-titel">${fliehe(t.abschnitte[schlussel])}</span>
-          <span class="hl-abschnitt-text">${fliehe(t.abschnittstexte[schlussel])}</span>
-          <span class="hl-zaehler ${schlussel === "aktualisierbar" ? "hl-zaehler-heiss" : ""}">${fliehe(String(zeilen.length))}</span>
-        </button>
-        ${offen ? `<div class="hl-abschnitt-koerper">${karten}${leer}</div>` : ""}
-      </section>`;
-  }
-
-  /** Das Zeichen einer Karte: Bild, oder farbiger Buchstabe (GitLab). */
-  _avatar_html(zeile) {
-    const name = String(zeile.name || zeile.full_name || "?").trim();
-    const bloss = name.replace(/[*](lab|forge|gitea)$/i, "");
-    const buchstabe = fliehe(
-      (bloss.charAt(0) || "?").toUpperCase()
-    );
-    const farbe = zeichen_farbe(bloss || name);
-    const adresse = String(zeile.avatar_url || "");
-    if (adresse && adresse_ok(adresse)) {
-      return (
-        `<img class="hl-avatar" src="${fliehe(adresse)}" alt="" loading="lazy"` +
-        ` data-buchstabe="${buchstabe}" data-farbe="${farbe}">`
-      );
-    }
-    return (
-      `<span class="hl-avatar hl-avatar-buchstabe" style="background:${farbe};` +
-      `color:${ZEICHEN_SCHRIFT}" aria-hidden="true">${buchstabe}</span>`
-    );
-  }
-
-  /** Das Wort der Schmiede auf einem Plaettchen (Flug 2088).
-   *
-   * Die Karte "anbieter" reist mit der Liste; fehlt sie (alter
-   * Server, spaeterer Blick), bleibt das Plaettchen, wie es war --
-   * kein Wort ist besser als ein geratenes.
-   */
-  _html_anbieter(host) {
-    const name = ANBIETER_NAMEN[this._anbieter[host]];
-    return name ? `<span class="hl-anbieter">${fliehe(name)}</span>` : "";
-  }
-
-  /**
-   * Der Zustands-Chip einer installierten Integration (Flug 2098).
-   *
-   * Der Befund des Imkers: installierte Repos unter «Geräte & Dienste»
-   * nicht gefunden. Der Chip sagt je Karte, WO die Integration gerade
-   * steht -- Neustart ausstehend, nicht geladen, bereit zum Einrichten
-   * (das ist ein KNOPF, er oeffnet den Dialog), eingerichtet, oder der
-   * YAML-Weg fuer Integrationen ohne Dialog. Was nicht installiert
-   * ist, traegt keinen Chip; was der Server nicht kennt, auch nicht.
-   */
-  _html_zustand(e) {
-    const t = this._t;
-    const i = e.integration;
-    if (!i || !i.zustand) {
-      return "";
-    }
-    const text = t.zustand[i.zustand];
-    const titel = t.zustand_titel[i.zustand] || "";
-    if (!text) {
-      return "";
-    }
-    if (i.zustand === "hinzufuegen") {
-      // Der Weg fuehrt auf die Seite von Geräte & Dienste -- der
-      // Einrichtungsdialog des Frontend laesst sich von aussen nicht
-      // vorbelegen (der Router kuerzt /add?domain= still auf die
-      // Seite, bewiesen in Flug 2098). Der Titel nennt den letzten
-      // Handgriff: dort «Integration hinzufügen» waehlen.
-      return `
-        <button class="hl-zustand hl-zustand-knopf" data-aktion="geraete"
-                title="${fliehe(titel)}">
-          <ha-icon icon="mdi:plus-circle-outline"></ha-icon>
-          <span>${fliehe(text)}</span>
-        </button>`;
-    }
-    const ikonen = {
-      neustart: "mdi:restart",
-      nicht_geladen: "mdi:alert-circle-outline",
-      eingerichtet: "mdi:check-circle-outline",
-      yaml: "mdi:cog-outline",
-      ungewiss: "mdi:help-circle-outline",
-    };
-    return `
-      <span class="hl-zustand hl-zustand-${i.zustand}" title="${fliehe(titel)}">
-        <ha-icon icon="${fliehe(ikonen[i.zustand] || "mdi:help-circle-outline")}"></ha-icon>
-        <span>${fliehe(text)}</span>
-      </span>`;
-  }
-
-  _html_zeile_eintrag(e) {
-    const t = this._t;
-    const update_da = e.neueste && e.installiert !== e.neueste;
-    const versionszeile = `
-      <span class="hl-version ${update_da ? "frisch" : ""}">
-        ${fliehe(e.installiert || "—")} ${fliehe(t.installiert_label)}
-        · ${fliehe(e.neueste || "—")} ${fliehe(t.neueste_label)}
-      </span>`;
-    return `
-      <div class="hl-karte">
-        ${this._avatar_html(e)}
-        <div class="hl-karte-haupt">
-          <div class="hl-karte-kopf" data-aktion="details" data-host="${fliehe(e.host)}" data-pfad="${fliehe(e.pfad)}" title="${fliehe(t.details)}">
-            <span class="hl-name">${fliehe(e.name)}</span>
-            <span class="hl-kategorie">${fliehe(e.kategorie)}</span>
-          </div>
-          <div class="hl-unterzeile">
-            ${versionszeile}
-            ${this._html_zustand(e)}
-            <span class="hl-zahlen">
-              ${e.sterne !== undefined ? `<span title="${fliehe(String(e.sterne))} ${fliehe(e.sterne === 1 ? t.sterne_ein : t.sterne_viele)}"><ha-icon icon="mdi:star-outline"></ha-icon> ${fliehe(String(e.sterne))}</span>` : ""}
-              ${e.offene_tickets !== undefined ? `<span title="${fliehe(t.tickets)}"><ha-icon icon="mdi:alert-circle-outline"></ha-icon> ${fliehe(String(e.offene_tickets))}</span>` : ""}
-            </span>
-          </div>
-          ${e.beschreibung ? `<div class="hl-beschreibung">${fliehe(e.beschreibung)}</div>` : ""}
-          ${e.fehler ? `<div class="hl-klein-fehler">${fliehe(e.fehler)}</div>` : ""}
-        </div>
-        <div class="hl-knöpfe">
-          ${
-            e.installiert && update_da && e.entity_id
-              ? `<button class="hl-knopf hl-primaer" data-aktion="install" data-key="${fliehe(e.storage_key)}">${fliehe(t.update_install)}</button>`
-              : ""
-          }
-          ${
-            !e.installiert && e.neueste && e.entity_id
-              ? `<button class="hl-knopf hl-primaer" data-aktion="install" data-key="${fliehe(e.storage_key)}">${fliehe(t.installieren)}</button>`
-              : ""
-          }
-          ${
-            e.installiert
-              ? `<button class="hl-knopf hl-gefahr" data-aktion="deinstallieren" title="${fliehe(t.deinstalliert_hinweis)}" data-key="${fliehe(e.storage_key)}">${fliehe(t.deinstallieren)}</button>`
-              : ""
-          }
-          <button class="hl-knopf" data-aktion="entfernen" title="${fliehe(t.entfernt_hinweis)}" data-key="${fliehe(e.storage_key)}">${fliehe(t.entfernen)}</button>
-        </div>
-      </div>`;
-  }
-
-  _html_zeile_fund(f) {
-    const t = this._t;
-    const host = f.host || "";
-    return `
-      <div class="hl-karte ${f.vorhanden ? "schon-da" : ""}">
-        ${this._avatar_html(f)}
-        <div class="hl-karte-haupt">
-          <div class="hl-karte-kopf" data-aktion="details" data-host="${fliehe(host)}" data-pfad="${fliehe(f.full_name)}" title="${fliehe(t.details)}">
-            <span class="hl-name">${fliehe(f.name)}</span>
-            <span class="hl-kategorie">${fliehe(f.kategorie)}</span>
-          </div>
-          <div class="hl-unterzeile">
-            <span class="hl-version">${fliehe(f.letzte_version || "—")}</span>
-            <span class="hl-zahlen">
-              <span title="${fliehe(String(f.sterne))} ${fliehe(f.sterne === 1 ? t.sterne_ein : t.sterne_viele)}"><ha-icon icon="mdi:star-outline"></ha-icon> ${fliehe(String(f.sterne))}</span>
-              <span title="${fliehe(t.tickets)}"><ha-icon icon="mdi:alert-circle-outline"></ha-icon> ${fliehe(String(f.offene_tickets))}</span>
-            </span>
-          </div>
-          ${f.beschreibung ? `<div class="hl-beschreibung">${fliehe(f.beschreibung)}</div>` : ""}
-          ${!f.gueltig && f.fehler ? `<div class="hl-klein-fehler">${fliehe(f.fehler)}</div>` : ""}
-        </div>
-        <div class="hl-knöpfe">
-          ${
-            f.vorhanden
-              ? `<span class="hl-schon-da">${fliehe(this._t.schon_da)}</span>`
-              : f.gueltig
-                ? `<label class="hl-kategorie-wahl">${fliehe(t.kategorie)}
-                     <select data-rolle="kategorie" data-pfad="${fliehe(f.full_name)}">
-                       ${(this._kategorien || KATEGORIEN).map(
-                         (k) =>
-                           `<option value="${k}" ${k === f.kategorie ? "selected" : ""}>${k}</option>`
-                       ).join("")}
-                     </select>
-                   </label>
-                   <button class="hl-knopf hl-primaer" data-aktion="hinzufuegen" data-host="${fliehe(host)}" data-pfad="${fliehe(f.full_name)}" ${this._beschaeftigt ? "disabled" : ""}>${fliehe(t.hinzufuegen)}</button>`
-                : `<span class="hl-schon-da">✗</span>`
-          }
-        </div>
-      </div>`;
-  }
-
-  _html_detail() {
-    const t = this._t;
-    const d = this._detail.daten;
-    const info = d.info || {};
-    const sterne_wort =
-      (info.sterne || 0) === 1 ? t.sterne_ein : t.sterne_viele;
-    const verweise = [
-      info.web_url ? `<a href="${fliehe(info.web_url)}" target="_blank" rel="noopener noreferrer">${fliehe(t.repository)}</a>` : "",
-      info.tickets_url ? `<a href="${fliehe(info.tickets_url)}" target="_blank" rel="noopener noreferrer">${fliehe(t.tickets)}</a>` : "",
-      info.releases_url ? `<a href="${fliehe(info.releases_url)}" target="_blank" rel="noopener noreferrer">${fliehe(t.releases_link)}</a>` : "",
-    ]
-      .filter(Boolean)
-      .join("");
-    const readme = d.readme
-      ? `<div class="hl-datei">
-           <div class="hl-datei-kopf">${fliehe(d.readme_datei || t.readme)}</div>
-           <div class="hl-readme">${markdown(d.readme)}</div>
-         </div>`
-      : `<div class="hl-hinweis">${fliehe(t.readme_fehlt)}</div>`;
-    const releases = (d.releases || []).length
-      ? `<h2>${fliehe(t.releases)}</h2>
-         <div class="hl-releases">
-           ${(d.releases || [])
-             .map(
-               (r) => `
-             <div class="hl-release">
-               <div class="hl-release-kopf">
-                 <span class="hl-release-tag">${fliehe(r.tag)}</span>
-                 ${r.vorabversion ? `<span class="hl-vorab">${fliehe(t.vorab)}</span>` : ""}
-                 <span class="hl-release-datum">${fliehe(datum_kurz(r.veroeffentlicht_am))}</span>
-               </div>
-               ${r.name ? `<div class="hl-release-name">${fliehe(r.name)}</div>` : ""}
-               ${r.beschreibung ? `<div class="hl-release-notizen">${markdown(r.beschreibung)}</div>` : ""}
-             </div>`
-             )
-             .join("")}
-         </div>`
-      : `<h2>${fliehe(t.releases)}</h2><div class="hl-hinweis">${fliehe(t.keine_releases)}</div>`;
-    return `
-      <div class="hl-detail">
-        <div class="hl-karte">
-          ${this._avatar_html({ name: info.name || info.full_name, avatar_url: info.avatar_url })}
-          <div class="hl-karte-haupt">
-            <div class="hl-karte-kopf">
-              <span class="hl-name">${fliehe(info.name || info.full_name)}</span>
-            </div>
-            ${info.beschreibung ? `<div class="hl-beschreibung">${fliehe(info.beschreibung)}</div>` : ""}
-            <div class="hl-unterzeile">
-              <span class="hl-zahlen">
-                <span title="${fliehe(String(info.sterne))} ${fliehe(sterne_wort)}"><ha-icon icon="mdi:star-outline"></ha-icon> ${fliehe(String(info.sterne))}</span>
-                <span title="${fliehe(t.tickets)}"><ha-icon icon="mdi:alert-circle-outline"></ha-icon> ${fliehe(String(info.offene_tickets))}</span>
-              </span>
-              ${info.archiviert ? `<span class="hl-vorab">⚠</span>` : ""}
-            </div>
-            ${verweise ? `<div class="hl-verweise">${verweise}</div>` : ""}
-          </div>
-        </div>
-        ${readme}
-        ${releases}
-      </div>`;
-  }
-
-  /** Ereignisse anknuepfen -- nach jedem Zeichnen frisch. */
-  _binden() {
-    const wurzel = this;
-    const $ = (sel) => wurzel.querySelector(sel);
-    const $$ = (sel) => Array.from(wurzel.querySelectorAll(sel));
-
-    // Ein Zeichen, das nicht kommen will, wird zum Buchstaben -- nie
-    // zum kaputten Bild (Flug 2084). Der Fallback sitzt als Zuhoerer,
-    // nicht als Inline-Attribut: CSP laesst Inline-Handler kalt. Seit
-    // Flug 2085 traegt er dieselbe Farbe wie von Anfang an.
-    for (const bild of $$(".hl-avatar[data-buchstabe]")) {
-      bild.addEventListener("error", () => {
-        const ersatz = document.createElement("span");
-        ersatz.className = "hl-avatar hl-avatar-buchstabe";
-        ersatz.setAttribute("aria-hidden", "true");
-        ersatz.style.background = bild.dataset.farbe || "";
-        ersatz.style.color = ZEICHEN_SCHRIFT;
-        ersatz.textContent = bild.dataset.buchstabe || "?";
-        bild.replaceWith(ersatz);
-      });
-    }
-
-    // Karten-Koepfe sind keine Buttons -- jeder Traeger mit data-aktion hoert zu.
-    for (const knopf of $$('[data-aktion]')) {
-      knopf.addEventListener("click", () => {
-        const aktion = knopf.dataset.aktion;
-        const eintrag = this._eintraege.find((e) => e.storage_key === knopf.dataset.key);
-        if (aktion === "aktualisieren") {
-          this._erneuern();
-        } else if (aktion === "neu") {
-          // Der Plus-Knopf oeffnet den Abschnitt Neu und geht dorthin.
-          this._offen.neu = true;
-          this._zeichne();
-          const ziel = $('section[data-abschnitt="neu"]');
-          if (ziel) {
-            ziel.scrollIntoView({ behavior: "smooth", block: "start" });
-          }
-        } else if (aktion === "zurueck") {
-          this._detail = null;
-          this._zeichne();
-        } else if (aktion === "details") {
-          this._hole_detail(knopf.dataset.host, knopf.dataset.pfad);
-        } else if (aktion === "install" && eintrag) {
-          this._installieren(eintrag);
-        } else if (aktion === "entfernen" && eintrag) {
-          this._entfernen(eintrag);
-        } else if (aktion === "deinstallieren" && eintrag) {
-          this._deinstallieren(eintrag);
-        } else if (aktion === "hinzufuegen") {
-          const wahl = wurzel.querySelector(
-            `select[data-rolle="kategorie"][data-pfad="${CSS.escape(knopf.dataset.pfad)}"]`
-          );
-          const kategorie = wahl ? wahl.value : "integration";
-          this._hinzufuegen(knopf.dataset.host, knopf.dataset.pfad, kategorie);
-        } else if (aktion === "geraete") {
-          // Flug 2098: der zweite Schritt nach dem Neustart -- die
-          // Seite von Geräte & Dienste. Der Einrichtungsdialog selbst
-          // gehoert dem Frontend; die Domain steht im Titel des Knopfs.
-          this._gehe("/config/integrations/dashboard");
-        } else if (aktion === "instanz") {
-          // Plättchen: zu den Einstellungen der Integration -- dort stehen
-          // Abstand, Custom Repositories und Entfernen je Instanz.
-          this._gehe("/config/integrations/integration/hacs_lab");
-        } else if (aktion === "instanz_hinzu") {
-          // Die nächste Domain: der Einrichtungsdialog, Domain vorbelegt.
-          this._gehe("/config/integrations/dashboard/add?domain=hacs_lab");
-        }
-      });
-    }
-
-    // Einklappbare Abschnitte: der Kopf dreht die Spitze.
-    for (const kopf of $$('[data-rolle="abschnitt"]')) {
-      kopf.addEventListener("click", () => {
-        const schlussel = kopf.dataset.abschnitt;
-        this._offen[schlussel] = !this._offen[schlussel];
-        this._zeichne();
-      });
-    }
-
-    const suche = $('input[data-rolle="suche"]');
-    if (suche) {
-      suche.addEventListener("input", () => {
-        this._suche = suche.value;
-        const vorher = document.activeElement;
-        this._zeichne();
-        const frisch = $('input[data-rolle="suche"]');
-        if (frisch && vorher === suche) {
-          frisch.focus();
-          frisch.setSelectionRange(frisch.value.length, frisch.value.length);
-        }
-      });
-      // Enter fragt die Instanzen: die EINE Suche des Ladens (Flug
-      // 2091) -- das Formular unter den Kategorien ist damit erspart.
-      suche.addEventListener("keydown", (ereignis) => {
-        if (ereignis.key === "Enter") {
-          ereignis.preventDefault();
-          this._suche_server();
-        }
-      });
-    }
-
-    const sort = $('select[data-rolle="sort"]');
-    if (sort) {
-      sort.addEventListener("change", () => {
-        this._sort = sort.value;
-        this._zeichne();
-      });
-    }
+    if (this._detail) this._schliesse_detail();
+    await this._lade();
   }
 }
 
-const STIL = `
-:host { display: block; }
-.hl-panel { --hl-orange: #fc6d26; --hl-rot: #e24329; --hl-gold: #fca326;
-  --hl-lila: #6b4fbb; --hl-gefahr: #d64541; --hl-balken: #333238;
-  color: var(--primary-text-color); font-size: 14px; }
-
-/* -- GitLabs Leiste: dunkel, Marke links, Suche Mitte, Werkzeuge rechts */
-.hl-balken { display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
-  background: var(--hl-balken); color: #dcdcdc; padding: 9px 16px; }
-.hl-marke { display: flex; align-items: center; gap: 8px; }
-/* Das Markenbild (Flug 2097): original.png in der Leiste -- Eckigkeit
-   wie GitLabs eigene Kachel, Hoehe wie einst der Fuchs. */
-.hl-logo { height: 28px; width: auto; flex: 0 0 auto; border-radius: 6px;
-  display: block; }
-.hl-wort { font-size: 15px; font-weight: 600; color: #fff; letter-spacing: .2px; }
-.hl-abzeichen { background: var(--hl-orange); color: #fff; border-radius: 999px;
-  font-size: 11.5px; font-weight: 600; padding: 1px 7px; line-height: 1.5; }
-.hl-brotkrumen { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.hl-trenner { opacity: .45; }
-.hl-brotkrume { font-size: 14.5px; font-weight: 600; color: #fff;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.hl-spitze-links { width: 14px; height: 14px; }
-.hl-suchfeld { flex: 1 1 300px; max-width: 620px; display: flex;
-  align-items: center; gap: 8px; background: rgba(255, 255, 255, .08);
-  border: 1px solid rgba(255, 255, 255, .18); border-radius: 4px;
-  padding: 0 10px; height: 34px; color: #b9b9b9; }
-.hl-suchfeld:focus-within { border-color: rgba(255, 255, 255, .4); }
-.hl-lupe { width: 14px; height: 14px; flex: 0 0 auto; }
-.hl-suche { flex: 1; background: none; border: none; outline: none;
-  color: #f0f0f0; font: inherit; height: 100%; }
-.hl-suche::placeholder { color: #8e8e93; }
-.hl-werkzeuge { display: flex; gap: 4px; margin-left: auto; }
-.hl-ikonknopf { display: inline-flex; align-items: center; justify-content: center;
-  width: 34px; height: 34px; border: none; border-radius: 4px; background: none;
-  color: #dcdcdc; cursor: pointer; padding: 0; }
-.hl-ikonknopf:hover { background: rgba(255, 255, 255, .12); color: #fff; }
-.hl-ikonknopf[disabled] { opacity: .55; cursor: default; }
-.hl-ikonknopf svg { width: 17px; height: 17px; }
-.hl-ikonknopf[disabled] .hl-kreis { animation: hl-drehen .9s linear infinite; }
-@keyframes hl-drehen { to { transform: rotate(360deg); } }
-
-/* -- Der Laden darunter */
-.hl-inhalt { max-width: 1000px; margin: 0 auto; padding: 12px 16px 8px; }
-
-/* -- Die Fusszeile (Flug 2092): Fuchs und Geluebde am unteren Rand */
-.hl-fuss { max-width: 1000px; margin: 0 auto; padding: 20px 16px 32px;
-  display: flex; align-items: center; justify-content: center; gap: 9px;
-  color: var(--secondary-text-color); font-size: 12.5px;
-  border-top: 1px solid rgba(127, 127, 127, .25); }
-.hl-fuss-tanuki { height: 18px; width: auto; flex: 0 0 auto;
-  transition: transform .25s ease; }
-.hl-fuss:hover { color: var(--primary-text-color); }
-.hl-fuss:hover .hl-fuss-tanuki { animation: hl-fuchs-tanz .6s ease; }
-@keyframes hl-fuchs-tanz { 25% { transform: rotate(-9deg); }
-  60% { transform: rotate(7deg); } 100% { transform: rotate(0); } }
-.hl-fehler { background: var(--error-color, #db4437); color: #fff;
-  border-radius: 4px; padding: 10px 14px; margin-bottom: 12px; font-size: 14px; }
-.hl-banner { display: flex; gap: 10px; align-items: flex-start;
-  background: rgba(252, 163, 38, .14); border: 1px solid rgba(252, 163, 38, .55);
-  border-radius: 4px; padding: 10px 14px; margin-bottom: 12px; font-size: 13.5px;
-  color: var(--primary-text-color); }
-.hl-warn { width: 15px; height: 15px; color: var(--hl-gold);
-  flex: 0 0 auto; margin-top: 1px; }
-.hl-hinweis { opacity: .7; padding: 24px 0; text-align: center; font-size: 14px; }
-.hl-hinweis-knopf { margin-top: 14px; }
-
-/* -- Die Instanz-Plaettchen (Flug 2085): endlos viele Server */
-.hl-instanzzeile { display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-  padding: 0 0 12px; }
-.hl-instanzwort { font-size: 12.5px; color: var(--secondary-text-color);
-  flex: 0 0 auto; }
-.hl-instanz { display: inline-flex; align-items: center; gap: 7px;
-  border: 1px solid rgba(127, 127, 127, .4); border-radius: 999px;
-  background: var(--card-background-color, #fff); color: var(--primary-text-color);
-  padding: 4px 12px 4px 9px; font: inherit; font-size: 12.5px; cursor: pointer;
-  max-width: 100%; }
-.hl-instanz span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.hl-instanz svg { width: 13px; height: 13px; flex: 0 0 auto;
-  color: var(--secondary-text-color); }
-.hl-instanz:hover { border-color: var(--hl-orange); }
-.hl-instanz:hover svg { color: var(--hl-orange); }
-.hl-instanz-neu { border-style: dashed; }
-.hl-instanz-neu svg { width: 12px; height: 12px; }
-
-/* -- Das Wort der Schmiede auf dem Plaettchen (Flug 2088) */
-.hl-anbieter { font-size: 10.5px; font-weight: 600; line-height: 1.7;
-  color: var(--secondary-text-color); border: 1px solid rgba(127, 127, 127, .35);
-  border-radius: 999px; padding: 0 7px; flex: 0 0 auto; }
-
-/* -- Die Ladeseite (Flug 2088): Home Assistants eigene Wartesprache.
-   Der Rundblitz dreht in der Farbe der Tracht, die Karte traegt Ecken
-   und Grund des Hauses -- dieselben Variablen, die ha-card nutzt. */
-.hl-ladeseite { display: flex; justify-content: center; padding: 56px 0; }
-.hl-ladekarte { display: flex; flex-direction: column; align-items: center;
-  gap: 10px; min-width: 260px; max-width: 380px; padding: 30px 44px;
-  background: var(--card-background-color, #fff);
-  border: 1px solid var(--ha-card-border-color, rgba(127, 127, 127, .35));
-  border-radius: var(--ha-card-border-radius, 12px);
-  box-shadow: var(--ha-card-box-shadow, none); }
-/* Das Markenbild auf der Ladeseite: das Gesicht des Hauses, solange
-   der Rundblitz noch dreht (Flug 2097). */
-.hl-lade-logo { height: 56px; width: auto; border-radius: 10px; }
-.hl-dreher { width: 36px; height: 36px; color: var(--primary-color, #03a9f4);
-  animation: hl-drehen .9s linear infinite; }
-.hl-lade-titel { font-size: 15px; font-weight: 600;
-  color: var(--primary-text-color); }
-.hl-lade-text { font-size: 13px; color: var(--secondary-text-color);
-  text-align: center; line-height: 1.45; }
-.hl-werkzeug { display: flex; align-items: center; gap: 12px; padding: 4px 0 12px;
-  flex-wrap: wrap; }
-.hl-sortierung { display: flex; align-items: center; gap: 8px;
-  color: var(--secondary-text-color); font-size: 13px; }
-.hl-sort { border: 1px solid rgba(127, 127, 127, .4); border-radius: 4px;
-  background: var(--card-background-color, #fff); color: var(--primary-text-color);
-  padding: 6px 8px; font: inherit; font-size: 13px; }
-.hl-zaehler-zeile { margin-left: auto; color: var(--secondary-text-color);
-  font-size: 12.5px; }
-
-/* -- Einklappbare Abschnitte */
-.hl-abschnitt { border-bottom: 1px solid rgba(127, 127, 127, .25); }
-.hl-abschnitt-kopf { display: flex; align-items: baseline; gap: 10px; width: 100%;
-  background: none; border: none; color: var(--primary-text-color); cursor: pointer;
-  padding: 12px 4px; font-family: inherit; text-align: left; }
-.hl-spitze { width: 12px; height: 12px; flex: 0 0 auto; align-self: center;
-  transition: transform .12s ease; color: var(--secondary-text-color); }
-.hl-abschnitt-kopf[aria-expanded="true"] .hl-spitze { transform: rotate(90deg); }
-.hl-abschnitt-titel { font-size: 15px; font-weight: 600; flex: 0 0 auto; }
-.hl-abschnitt-text { font-size: 12.5px; color: var(--secondary-text-color);
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.hl-zaehler { margin-left: auto; font-size: 12px; font-weight: 500;
-  background: rgba(127, 127, 127, .18); border-radius: 999px; padding: 1px 9px;
-  color: var(--secondary-text-color); align-self: center; flex: 0 0 auto; }
-.hl-zaehler.hl-zaehler-heiss { background: var(--hl-orange); color: #fff; }
-.hl-abschnitt-koerper { padding: 2px 0 16px 18px; }
-.hl-abschnitt-leer { opacity: .65; padding: 10px 0; font-size: 13.5px; }
-
-/* -- Die Kopfsuche (Flug 2091): waehrend sie laeuft, dreht sich die
-   Lupe -- dieselbe Sprache wie der Rundblitz der Ladeseite. */
-.hl-suchfeld.sucht .hl-lupe { animation: hl-drehen .9s linear infinite;
-  color: var(--hl-orange); }
-
-/* -- Karten: GitLaws Zeilen -- kompakt, Rand statt Schatten */
-.hl-karte { display: flex; gap: 12px; background: var(--card-background-color, #fff);
-  border: 1px solid rgba(127, 127, 127, .35); border-radius: 4px;
-  padding: 12px 14px; margin-bottom: 8px; flex-wrap: wrap; align-items: flex-start; }
-.hl-karte:hover { border-color: rgba(127, 127, 127, .6); }
-.hl-karte.schon-da { opacity: .55; }
-
-/* -- Das Zeichen der Karte (Flug 2084): Bild oder Buchstabe.
-   Flug 2085: ohne Bild traegt der Buchstabe GitLabs Pastell -- die
-   Farbe kommt von der Karte (inline), die Klasse bleibt das Layout. */
-.hl-avatar { width: 38px; height: 38px; border-radius: 6px; flex: 0 0 auto;
-  object-fit: cover; background: var(--card-background-color, #fff); }
-.hl-avatar-buchstabe { display: inline-flex; align-items: center; justify-content: center;
-  background: rgba(127, 127, 127, .18); color: var(--primary-text-color);
-  font-weight: 600; font-size: 16px; user-select: none; }
-
-.hl-karte-haupt { flex: 1 1 340px; min-width: 0; }
-.hl-karte-kopf { display: flex; align-items: baseline; gap: 10px; cursor: pointer; }
-.hl-name { font-size: 15px; font-weight: 600; color: var(--primary-text-color);
-  word-break: break-all; }
-.hl-karte-kopf:hover .hl-name { text-decoration: underline; }
-.hl-kategorie { font-size: 11.5px; color: var(--secondary-text-color);
-  border: 1px solid rgba(127, 127, 127, .4); border-radius: 999px; padding: 1px 9px;
-  flex: 0 0 auto; }
-.hl-unterzeile { display: flex; align-items: center; gap: 12px; padding-top: 6px;
-  font-size: 13px; color: var(--secondary-text-color); flex-wrap: wrap; }
-.hl-version.frisch { color: var(--hl-orange); font-weight: 600; }
-.hl-zahlen { display: flex; gap: 12px; margin-left: auto; align-items: center; }
-
-/* -- Der Zustands-Chip (Flug 2098): wo die installierte Integration
-   gerade steht. Gold = Neustart fehlt, Rot = nicht geladen, Grau =
-   YAML-Weg, gestrichelt = Weg ungewiss, Gruen = eingerichtet. Der
-   Chip "hinzufuegen" ist ein Knopf in der Tracht -- er oeffnet den
-   Einrichtungsdialog von Geräte & Dienste mit vorbelegter Domain. */
-.hl-zustand { display: inline-flex; align-items: center; gap: 5px;
-  border: 1px solid rgba(127, 127, 127, .4); border-radius: 999px;
-  padding: 1px 10px; font-size: 12px; color: var(--secondary-text-color);
-  flex: 0 0 auto; max-width: 100%; }
-.hl-zustand ha-icon { width: 14px; height: 14px; flex: 0 0 auto; }
-.hl-zustand span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.hl-zustand-neustart { border-color: rgba(252, 163, 38, .65);
-  background: rgba(252, 163, 38, .14); color: var(--primary-text-color); }
-.hl-zustand-nicht_geladen { border-color: rgba(214, 69, 65, .6);
-  background: rgba(214, 69, 65, .1);
-  color: var(--error-color, #db4437); }
-.hl-zustand-eingerichtet { border-color: rgba(76, 175, 80, .55);
-  background: rgba(76, 175, 80, .12); }
-.hl-zustand-yaml, .hl-zustand-ungewiss { border-style: dashed; }
-.hl-zustand-knopf { cursor: pointer; font: inherit; font-weight: 500;
-  background: var(--hl-orange); border-color: var(--hl-orange); color: #fff; }
-.hl-zustand-knopf:hover { background: var(--hl-rot); border-color: var(--hl-rot); }
-.hl-beschreibung { font-size: 13px; color: var(--secondary-text-color);
-  padding-top: 6px; }
-.hl-klein-fehler { font-size: 12px; color: var(--error-color, #db4437);
-  padding-top: 6px; }
-.hl-knöpfe { display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
-  justify-content: flex-end; flex: 0 0 auto; margin-left: auto; }
-
-/* -- Knöpfe: GitLaws vier Ecken, Orange fuer das Vorhaben */
-.hl-knopf { background: var(--card-background-color, #fff);
-  border: 1px solid rgba(127, 127, 127, .5); border-radius: 4px; padding: 6px 13px;
-  font-size: 13.5px; font-weight: 500; cursor: pointer;
-  color: var(--primary-text-color); font-family: inherit; line-height: 1.4; }
-.hl-knopf:hover { background: rgba(127, 127, 127, .12); }
-.hl-knopf[disabled] { opacity: .5; cursor: default; }
-.hl-knopf.hl-primaer { background: var(--hl-orange); border-color: var(--hl-orange);
-  color: #fff; }
-.hl-knopf.hl-primaer:hover { background: var(--hl-rot); border-color: var(--hl-rot); }
-.hl-knopf.hl-gefahr { background: none; border-color: rgba(214, 69, 65, .6);
-  color: var(--error-color, #d64541); }
-.hl-knopf.hl-gefahr:hover { background: rgba(214, 69, 65, .12); }
-.hl-kategorie-wahl { display: flex; align-items: center; gap: 6px; font-size: 13px;
-  color: var(--secondary-text-color); }
-.hl-kategorie-wahl select { border: 1px solid rgba(127, 127, 127, .4);
-  border-radius: 4px; background: var(--card-background-color, #fff);
-  padding: 6px 8px; font: inherit; font-size: 13px;
-  color: var(--primary-text-color); }
-.hl-schon-da { font-size: 13px; color: var(--secondary-text-color); }
-
-/* -- Das Detail: Karte, Datei-Rahmen fuer die Beschreibung, Releases */
-.hl-detail .hl-beschreibung { font-size: 14px; }
-.hl-verweise { display: flex; gap: 14px; padding: 10px 0 2px; flex-wrap: wrap; }
-.hl-verweise a { color: var(--primary-text-color); text-decoration: underline;
-  font-size: 14px; font-weight: 500; }
-.hl-verweise a:hover { text-decoration: none; }
-.hl-datei { border: 1px solid rgba(127, 127, 127, .35); border-radius: 4px;
-  margin: 16px 0; overflow: hidden; background: var(--card-background-color, #fff); }
-.hl-datei-kopf { background: rgba(127, 127, 127, .12); padding: 10px 14px;
-  font-size: 12.5px; font-weight: 600; color: var(--secondary-text-color);
-  border-bottom: 1px solid rgba(127, 127, 127, .35);
-  font-family: var(--code-font-family, monospace); }
-.hl-readme { padding: 16px; font-size: 14px; line-height: 1.55; }
-.hl-readme img { max-width: 100%; border-radius: 4px; }
-.hl-readme pre { background: rgba(127, 127, 127, .12); padding: 12px;
-  border-radius: 4px; overflow-x: auto; }
-.hl-readme code { font-family: var(--code-font-family, monospace); font-size: 13px; }
-.hl-readme blockquote { border-left: 3px solid var(--hl-lila); margin: 8px 0;
-  padding: 4px 12px; opacity: .85; }
-.hl-readme a { color: var(--primary-text-color); text-decoration: underline; }
-/* Flug 2096: die HTML-Tabellen der HACS-READMEs -- dezent im Haus-Stil */
-.hl-readme table { border-collapse: collapse; margin: 10px 0; max-width: 100%;
-  display: block; overflow-x: auto; }
-.hl-readme td, .hl-readme th { border: 1px solid var(--divider-color, rgba(127, 127, 127, .25));
-  padding: 6px 10px; vertical-align: top; }
-.hl-readme ul, .hl-readme ol { padding-left: 22px; margin: 6px 0; }
-.hl-readme p { margin: 6px 0; }
-.hl-releases .hl-release { background: var(--card-background-color, #fff);
-  border: 1px solid rgba(127, 127, 127, .35); border-radius: 4px;
-  padding: 12px 16px; margin-bottom: 8px; }
-.hl-release-kopf { display: flex; align-items: baseline; gap: 10px; }
-.hl-release-tag { font-weight: 600; font-size: 14.5px;
-  background: rgba(127, 127, 127, .15); color: var(--primary-text-color);
-  border-radius: 4px; padding: 1px 8px; }
-.hl-release-datum { margin-left: auto; font-size: 12px;
-  color: var(--secondary-text-color); }
-.hl-vorab { font-size: 11px; border: 1px solid rgba(127, 127, 127, .4);
-  border-radius: 999px; padding: 1px 8px; color: var(--secondary-text-color); }
-.hl-release-name { font-size: 13.5px; padding-top: 4px; }
-.hl-release-notizen { font-size: 13px; padding-top: 6px; line-height: 1.45; }
-.hl-readme h1, .hl-detail h2 { font-size: 18px; font-weight: 600; }
-.hl-readme h2 { font-size: 16px; }
-h2 { font-size: 16px; font-weight: 600; padding: 12px 0 8px; }
-`;
-
-/**
- * Derselbe Tanuki auch fuer die Seitenleiste: als einfarbige Silhouette
- * ueber die eigene Kollektion ``hacs-lab`` (denselben Dienst leistet
- * iconset.js auf JEDER Seite -- das hier ist der Rueckhalt, falls jene
- * Anmeldung nicht griff). Das Frontend fragt die Kollektionen ab, sobald
- * es ein Zeichen zeichnen soll; angemeldet darf das mehrfach sein.
- */
-window.customIconsets = window.customIconsets || {};
-window.customIconsets["hacs-lab"] = (name) =>
-  name === "tanuki"
-    ? { path: TANUKI_PFAD_KOERPER, viewBox: "0 0 50 48" }
-    : null;
-
 customElements.define("hacs-lab-panel", HacsLabPanel);
+
+const LADEN_STIL = `
+  :host {
+    display: block;
+    height: 100%;
+    --hl-akzent: #fc6d26;
+    --hl-akzent-text: #ffffff;
+  }
+  .hl-seite { height: 100%; }
+  .hl-seite[hidden] { display: none; }
+  hass-tabs-subpage-data-table { height: 100%; }
+  .hl-warte, .hl-warte-klein {
+    display: flex; align-items: center; justify-content: center;
+  }
+  .hl-warte { height: 100vh; }
+  .hl-warte-klein { padding: 48px 0; }
+  .hl-zeichen {
+    border-radius: 6px; object-fit: contain; display: block;
+  }
+  .hl-buchstabe {
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 500; font-size: 16px;
+  }
+  .hl-zelle-name { overflow: hidden; min-width: 0; }
+  .hl-name {
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .hl-beschr {
+    color: var(--secondary-text-color);
+    font-size: 12px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .hl-quelle {
+    color: var(--secondary-text-color);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .hl-filter { padding: 0; }
+  .hl-filter ha-expansion-panel {
+    --expansion-panel-content-padding: 0 16px;
+    border-bottom: 1px solid var(--divider-color);
+  }
+  .hl-filter-inhalt { display: flex; flex-direction: column; padding: 4px 0 12px; }
+  .hl-haken {
+    display: flex; align-items: center; gap: 12px;
+    padding: 6px 0; cursor: pointer; color: var(--primary-text-color);
+  }
+  .hl-haken input { accent-color: var(--primary-color); width: 18px; height: 18px; }
+
+  .hl-detail {
+    background: var(--primary-background-color);
+    min-height: 100%;
+    position: relative;
+  }
+  .hl-kopf {
+    position: sticky; top: 0; z-index: 4;
+    display: flex; align-items: center; gap: 8px;
+    height: var(--header-height, 56px);
+    padding: 0 4px 0 calc(4px + env(safe-area-inset-left));
+    background: var(--app-header-background-color, var(--primary-background-color));
+    color: var(--app-header-text-color, var(--primary-text-color));
+    border-bottom: var(--app-header-border-bottom, 1px solid var(--divider-color));
+    box-sizing: border-box;
+  }
+  .hl-kopf-titel {
+    flex: 1; font-size: 20px; font-weight: 400;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .hl-detail-inhalt {
+    max-width: 1100px; margin: 0 auto; padding: 8px 8px 96px; box-sizing: border-box;
+  }
+  .hl-detail-karte { display: block; padding: 16px; }
+  .hl-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .hl-chips ha-assist-chip.hl-klickbar { cursor: pointer; }
+  .hl-zustand-platz { margin: 0 0 12px; }
+  .hl-readme { display: block; overflow-wrap: anywhere; }
+  .hl-readme img { max-width: 100%; }
+  .hl-leer { color: var(--secondary-text-color); padding: 16px 0; }
+
+  .hl-fab {
+    position: fixed;
+    right: calc(16px + env(safe-area-inset-right));
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    z-index: 5;
+    display: inline-flex; align-items: center; gap: 12px;
+    height: 56px; padding: 0 20px 0 16px;
+    border: none; border-radius: 16px; cursor: pointer;
+    background: var(--hl-akzent); color: var(--hl-akzent-text);
+    font: inherit; font-weight: 500; font-size: 14px;
+    letter-spacing: 0.9px; text-transform: uppercase;
+    box-shadow: 0 3px 5px -1px rgba(0,0,0,.2), 0 6px 10px 0 rgba(0,0,0,.14), 0 1px 18px 0 rgba(0,0,0,.12);
+    transition: box-shadow 0.2s, filter 0.2s;
+  }
+  .hl-fab:hover { filter: brightness(1.08); box-shadow: 0 5px 5px -3px rgba(0,0,0,.2), 0 8px 10px 1px rgba(0,0,0,.14), 0 3px 14px 2px rgba(0,0,0,.12); }
+
+  .hl-dlg-grund {
+    position: fixed; inset: 0; z-index: 10;
+    background: rgba(0,0,0,0.5);
+    display: flex; align-items: center; justify-content: center; padding: 16px;
+  }
+  .hl-dlg {
+    background: var(--ha-dialog-surface-background, var(--card-background-color));
+    color: var(--primary-text-color);
+    border-radius: var(--ha-dialog-border-radius, 24px);
+    padding: 24px; width: 100%; max-width: 480px; box-sizing: border-box;
+    box-shadow: 0 11px 15px -7px rgba(0,0,0,.2), 0 24px 38px 3px rgba(0,0,0,.14);
+  }
+  .hl-dlg-titel { font-size: 22px; line-height: 28px; margin-bottom: 16px; }
+  .hl-dlg-text { color: var(--secondary-text-color); line-height: 20px; }
+  .hl-dlg-knoepfe { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; }
+  .hl-dlg-knopf {
+    min-width: 64px; height: 40px; padding: 0 16px;
+    border-radius: 20px; border: none; cursor: pointer;
+    background: transparent; color: var(--primary-color);
+    font: inherit; font-weight: 500;
+  }
+  .hl-dlg-knopf:hover { background: rgba(var(--rgb-primary-color, 3,169,244), 0.08); }
+  .hl-dlg-knopf.hl-primaer { background: var(--hl-akzent); color: var(--hl-akzent-text); }
+  .hl-dlg-knopf.hl-warnung { background: var(--error-color); color: #fff; }
+`;

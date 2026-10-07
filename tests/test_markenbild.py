@@ -5,8 +5,9 @@ wird. Diese Pruefungen halten die Zusage gegen den Stand:
 
 * die Quelle steht an der Wurzel (original.png)
 * logo.png ist die 512er-Form derselben Quelle (Avatar, exe, Verpackung)
-* das Panel traegt das Bild in der Leiste und auf der Ladeseite --
-  eingebettet als Daten-URI, damit das Panel ohne zweite Datei lebt
+* seit Flug 2100 traegt das Panel kein eigenes Logo mehr: die Leiste
+  ist die von Home Assistant, wie bei HACS -- die Marke lebt in der
+  Seitenleiste (Iconset) und auf der Ladentheke
 
 Absichtlich ohne Bildbibliothek: der CI-Raum hat keine, und die Form
 (PNG-Kopf, Groesse, Zeichen im panel.js) sagt genug. Getrocknet wie
@@ -18,7 +19,6 @@ from __future__ import annotations
 from pathlib import Path
 
 WURZEL = Path(__file__).resolve().parents[1]
-PANEL = WURZEL / "custom_components" / "hacs_lab" / "frontend" / "panel.js"
 PNG_KOPF = b"\x89PNG\r\n\x1a\n"
 
 
@@ -42,23 +42,3 @@ def test_die_512er_form_ist_die_gleiche_marke():
         f"logo.png wiegt {groesse} Bytes -- GitLims Avatarlimit (200 KiB) "
         "und Ladezeit zugleich"
     )
-
-
-def test_das_panel_traegt_die_marke_in_leiste_und_ladeseite():
-    text = PANEL.read_text(encoding="utf-8")
-    assert 'const LOGO_DATAURI = "data:image/png;base64,' in text, (
-        "das Markenbild muss als Daten-URI eingebettet sein (kein Netzruft)"
-    )
-    assert 'class="hl-logo"' in text, "die Leiste zeigt das Markenbild"
-    assert 'class="hl-lade-logo"' in text, "die Ladeseite zeigt das Markenbild"
-    assert text.count("LOGO_DATAURI") >= 3, (
-        "Marke und beide Verwendungen haengen an derselben Konstanten"
-    )
-    assert "${LOGO_DATAURI}" in text
-
-
-def test_die_marke_ersetzt_nicht_die_fusszeile():
-    """Der Fusszeilen-Fuchs bleibt Fuchs -- nur die Marke ist das neue Bild."""
-    text = PANEL.read_text(encoding="utf-8")
-    assert 'tanuki_svg("hl-fuss-tanuki")' in text
-    assert "hl-logo" in text
