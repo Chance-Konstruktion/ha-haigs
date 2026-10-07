@@ -19,10 +19,10 @@ from pytest_homeassistant_custom_component.common import (
     async_fire_time_changed,
 )
 
-from custom_components.hacs_lab.ablage import migriere
-from custom_components.hacs_lab.const import CONF_HOST, CONF_TOKEN, DOMAIN
-from custom_components.hacs_lab.core.identity import RepositoryIdentity
-from custom_components.hacs_lab.diagnostics import (
+from custom_components.haigs.ablage import migriere
+from custom_components.haigs.const import CONF_HOST, CONF_TOKEN, DOMAIN
+from custom_components.haigs.core.identity import RepositoryIdentity
+from custom_components.haigs.diagnostics import (
     async_get_config_entry_diagnostics,
 )
 from tests.attrappe import Aufzeichnung

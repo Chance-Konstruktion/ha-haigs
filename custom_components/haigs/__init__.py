@@ -1,4 +1,4 @@
-"""Home-Assistant-Schicht von HACS*lab (Stufe M2: das Geruest).
+"""Home-Assistant-Schicht von HAIGS (Stufe M2: das Geruest).
 
 Die Trennung ist Absicht und Architektur-Entscheidung: alles, was ohne
 Home Assistant auskommt, liegt in ``core/`` innerhalb dieser
@@ -95,7 +95,7 @@ def _neustart_hinweise_aufraeumen(hass: HomeAssistant) -> None:
             issue_registry.async_delete_issue(hass, DOMAIN, kennung)
 
 
-class HacsLabKoordinator(DataUpdateCoordinator[dict[str, int | str]]):
+class HaigsKoordinator(DataUpdateCoordinator[dict[str, int | str]]):
     """Herzschlag gegen die Instanz.
 
     M2 fragt hier nur, was ohnehin gefragt wird: die Projekte zum Topic
@@ -145,7 +145,7 @@ class Laufzeit:
     """
 
     forge: Forge
-    koordinator: HacsLabKoordinator
+    koordinator: HaigsKoordinator
     ablage: Ablage
     eintraege: Eintraege
     lager: Lager | None = None
@@ -203,7 +203,7 @@ async def async_setup_entry(hass: HomeAssistant, eintrag: ConfigEntry) -> bool:
     eintraege = await Eintraege.aus_ablage(ablage)
     _meldung_unlesbare_ablage(hass, forge.host, eintraege.unlesbar)
 
-    koordinator = HacsLabKoordinator(hass, eintrag, forge)
+    koordinator = HaigsKoordinator(hass, eintrag, forge)
     await koordinator.async_config_entry_first_refresh()
 
     hass.data.setdefault(DOMAIN, {})[eintrag.entry_id] = laufzeit = Laufzeit(
@@ -235,7 +235,7 @@ async def async_setup_entry(hass: HomeAssistant, eintrag: ConfigEntry) -> bool:
             dt_util.utcnow() + timedelta(seconds=LAGER_START_VERZOEGERUNG_SEK),
         )
     )
-    _LOGGER.info("HACS*lab eingerichtet fuer %s", forge.host)
+    _LOGGER.info("HAIGS eingerichtet fuer %s", forge.host)
     return True
 
 

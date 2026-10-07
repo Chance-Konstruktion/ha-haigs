@@ -17,10 +17,10 @@ Die Fluege davor prueften den.Normalfall. Diese Suite stellt die
 import json
 
 import pytest
-from hacs_lab.core.entdeckung import entdecke, pruefe_kandidat
-from hacs_lab.core.forge import RepositoryInfo
-from hacs_lab.core.gitlab_forge import GitLabForge
-from hacs_lab.core.validierung import pruefe_hacs_json, pruefe_manifest
+from haigs.core.entdeckung import entdecke, pruefe_kandidat
+from haigs.core.forge import RepositoryInfo
+from haigs.core.gitlab_forge import GitLabForge
+from haigs.core.validierung import pruefe_hacs_json, pruefe_manifest
 
 from tests.attrappe import projekt
 from tests.attrappe_kern import FakeHttp

@@ -1,4 +1,4 @@
-"""Diagnose für HACS*lab: alles, was ein Mensch zum Helfen braucht, ohne Geheimnisse.
+"""Diagnose für HAIGS: alles, was ein Mensch zum Helfen braucht, ohne Geheimnisse.
 
 Stufe M8 der Roadmap: «Diagnose-Ausgabe ohne Token im Klartext». Die
 Datei ist eine Plattform des Diagnose-Bausteins von Home Assistant --

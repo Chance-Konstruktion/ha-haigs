@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import json
 
-from hacs_lab.core.forge import NichtGefunden
+from haigs.core.forge import NichtGefunden
 
 
 class FakeHttp:

@@ -3,8 +3,8 @@
 import json
 
 import pytest
-from hacs_lab.core.forge import NichtGefunden
-from hacs_lab.core.gitlab_forge import GitLabForge
+from haigs.core.forge import NichtGefunden
+from haigs.core.gitlab_forge import GitLabForge
 
 from tests.attrappe import projekt
 from tests.attrappe_kern import FakeHttp
@@ -198,7 +198,7 @@ async def test_stammdaten_nach_id_geloescht_ist_nicht_gefunden():
 @pytest.mark.asyncio
 async def test_stammdaten_nach_id_keine_ziffern_kein_weg():
     """Die ID kommt aus der Ablage -- trotzdem wird sie geprueft, bevor sie reist."""
-    from hacs_lab.core.forge import ForgeFehler
+    from haigs.core.forge import ForgeFehler
 
     with pytest.raises(ForgeFehler):
         await forge(json_antworten={"/projects/": projekt()}).repository_nach_id("../7a")

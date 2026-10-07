@@ -1,8 +1,8 @@
 /**
- * HACS*lab Panel -- der Laden, gekleidet wie HACS.
+ * HAIGS Panel -- der Laden, gekleidet wie HACS.
  *
- * Geladen als ES-Modul ueber ``/hacs_lab/panel.js``; das Frontend von
- * Home Assistant findet hier das Element ``hacs-lab-panel`` und setzt
+ * Geladen als ES-Modul ueber ``/haigs/panel.js``; das Frontend von
+ * Home Assistant findet hier das Element ``haigs-panel`` und setzt
  * ``hass``, ``narrow`` und ``route``. Die Daten kommen ueber die
  * WebSocket-Befehle aus ``websocket_api.py`` (eintraege, erneuern,
  * detail, hinzufuegen, entfernen, deinstallieren) und den Dienst
@@ -21,7 +21,7 @@
 
 const TEXTE = {
   de: {
-    titel: "HACS*lab",
+    titel: "HAIGS",
     suche: "Suchen oder springen zu …",
     aktualisieren: "Liste aktualisieren",
     neu_knopf: "Neu hinzufügen",
@@ -119,7 +119,7 @@ const TEXTE = {
       "Instanz öffnen — Abstand, Custom Repositories, Entfernen",
   },
   en: {
-    titel: "HACS*lab",
+    titel: "HAIGS",
     suche: "Search or go to …",
     aktualisieren: "Refresh list",
     neu_knopf: "Add new",
@@ -531,7 +531,7 @@ const ANBIETER_NAMEN = {
 };
 
 /** Das Ereignis, das der Server feuert, sobald ein Lager frisch liegt. */
-const EREIGNIS_AKTUALISIERT = "hacs_lab_aktualisiert";
+const EREIGNIS_AKTUALISIERT = "haigs_aktualisiert";
 
 /** Wie lange ein frischer Lauf ruht, bevor der Betritt ihn erneut erzwinge. */
 const BETRETEN_RUHE_MS = 15000;
@@ -591,7 +591,7 @@ function tanuki_svg(klassenname) {
 /* ------------------------------------------------------------------ *
  * Flug 2100 -- der Laden zieht die Kleider von HACS an.
  *
- * Der Wunsch des Imkers: wer HACS*lab oeffnet, soll sich fragen, ob er
+ * Der Wunsch des Imkers: wer HAIGS oeffnet, soll sich fragen, ob er
  * im Original-HACS steht -- und erst am Akzent und an der Spalte
  * «Quelle» merken, dass hier mehrere Schmieden zugleich liefern.
  *
@@ -632,7 +632,7 @@ const PFADE = {
 /** Texte der neuen Bedienung -- die Worte sind die von HACS. */
 const LADEN_TEXTE = {
   de: {
-    titel: "HACS*lab",
+    titel: "HAIGS",
     suche: "Durchsuchen",
     spalte_name: "Repository-Name",
     spalte_quelle: "Quelle",
@@ -673,7 +673,7 @@ const LADEN_TEXTE = {
     liste_neu: "Liste aktualisieren",
     instanz_neu: "Quelle hinzufügen",
     instanzen: "Quellen",
-    ueber: "Über HACS*lab",
+    ueber: "Über HAIGS",
     benutzerdefiniert: "Benutzerdefinierte Repositories",
     repository_adresse: "Repository",
     hinzufuegen: "Hinzufügen",
@@ -704,10 +704,10 @@ const LADEN_TEXTE = {
     keine_instanz:
       "Noch keine Quelle eingerichtet. Füge eine GitLab-, Forgejo- oder Gitea-Instanz hinzu.",
     ueber_text:
-      "HACS*lab bringt Integrationen, Karten und Themes aus selbst gehosteten Git-Schmieden nach Home Assistant – GitLab, Forgejo und Gitea, so viele Instanzen du willst. Kein Fork von HACS, sondern ein eigenes Zuhause daneben.",
+      "HAIGS bringt Integrationen, Karten und Themes aus selbst gehosteten Git-Schmieden nach Home Assistant – GitLab, Forgejo und Gitea, so viele Instanzen du willst. Kein Fork von HACS, sondern ein eigenes Zuhause daneben.",
   },
   en: {
-    titel: "HACS*lab",
+    titel: "HAIGS",
     suche: "Search",
     spalte_name: "Repository name",
     spalte_quelle: "Source",
@@ -748,7 +748,7 @@ const LADEN_TEXTE = {
     liste_neu: "Refresh list",
     instanz_neu: "Add source",
     instanzen: "Sources",
-    ueber: "About HACS*lab",
+    ueber: "About HAIGS",
     benutzerdefiniert: "Custom repositories",
     repository_adresse: "Repository",
     hinzufuegen: "Add",
@@ -778,7 +778,7 @@ const LADEN_TEXTE = {
     keine_instanz:
       "No source set up yet. Add a GitLab, Forgejo or Gitea instance.",
     ueber_text:
-      "HACS*lab brings integrations, cards and themes from self-hosted Git forges into Home Assistant – GitLab, Forgejo and Gitea, as many instances as you like. Not a fork of HACS, but a home of its own right next to it.",
+      "HAIGS brings integrations, cards and themes from self-hosted Git forges into Home Assistant – GitLab, Forgejo and Gitea, as many instances as you like. Not a fork of HACS, but a home of its own right next to it.",
   },
 };
 
@@ -873,7 +873,7 @@ async function bausteine_laden() {
   ]);
 }
 
-class HacsLabPanel extends HTMLElement {
+class HaigsPanel extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
@@ -919,7 +919,7 @@ class HacsLabPanel extends HTMLElement {
     this._folge_route();
   }
 
-  /** Die Adresse entscheidet: /hacs-lab/repository/<id> ist die Detailseite. */
+  /** Die Adresse entscheidet: /haigs/repository/<id> ist die Detailseite. */
   _folge_route() {
     if (!this._bereit || !this._route) return;
     const pfad = this._route.path || "";
@@ -1039,7 +1039,7 @@ class HacsLabPanel extends HTMLElement {
 
   async _lade() {
     try {
-      this._uebernehme(await this._hass.callWS({ type: "hacs_lab/eintraege" }));
+      this._uebernehme(await this._hass.callWS({ type: "haigs/eintraege" }));
     } catch (fehler) {
       this._melde(this._fehlertext(fehler));
     }
@@ -1049,7 +1049,7 @@ class HacsLabPanel extends HTMLElement {
     if (this._beschaeftigt) return;
     this._beschaeftigt = true;
     try {
-      const antwort = await this._hass.callWS({ type: "hacs_lab/erneuern" });
+      const antwort = await this._hass.callWS({ type: "haigs/erneuern" });
       this._uebernehme(antwort);
       const gescheitert = Object.entries(antwort.gescheitert || {});
       if (gescheitert.length) {
@@ -1327,8 +1327,8 @@ class HacsLabPanel extends HTMLElement {
     const tabelle = document.createElement("hass-tabs-subpage-data-table");
     tabelle.hass = this._hass;
     tabelle.narrow = this._narrow;
-    tabelle.route = this._route || { prefix: "/hacs-lab", path: "" };
-    tabelle.tabs = [{ name: t.titel, path: "/hacs-lab" }];
+    tabelle.route = this._route || { prefix: "/haigs", path: "" };
+    tabelle.tabs = [{ name: t.titel, path: "/haigs" }];
     tabelle.mainPage = true;
     tabelle.clickable = true;
     tabelle.hasFilters = true;
@@ -1361,7 +1361,7 @@ class HacsLabPanel extends HTMLElement {
       ".items": [
         { path: PFADE.neuladen, label: t.liste_neu, action: () => { this._erneuert_am = 0; this._erneuern(); } },
         { path: PFADE.repo, label: t.benutzerdefiniert, action: () => this._benutzerdefiniert() },
-        { path: PFADE.plus, label: t.instanz_neu, action: () => this._gehe("/config/integrations/integration/hacs_lab") },
+        { path: PFADE.plus, label: t.instanz_neu, action: () => this._gehe("/config/integrations/integration/haigs") },
         { divider: true },
         { path: PFADE.info, label: t.ueber, action: () => this._ueber() },
       ],
@@ -1445,7 +1445,7 @@ class HacsLabPanel extends HTMLElement {
 
   async _oeffne(z, von_route) {
     if (!von_route) {
-      this._gehe("/hacs-lab/repository/" + encodeURIComponent(z.id));
+      this._gehe("/haigs/repository/" + encodeURIComponent(z.id));
       return;
     }
     this._detail = { zeile: z, daten: null, laedt: true };
@@ -1453,7 +1453,7 @@ class HacsLabPanel extends HTMLElement {
     this._detailseite.hidden = false;
     this._zeichne_detail();
     try {
-      const daten = await this._hass.callWS({ type: "hacs_lab/detail", host: z.host, pfad: z.pfad || z.full_name });
+      const daten = await this._hass.callWS({ type: "haigs/detail", host: z.host, pfad: z.pfad || z.full_name });
       if (this._detail && this._detail.zeile.id === z.id) {
         this._detail.daten = daten;
         this._detail.laedt = false;
@@ -1470,7 +1470,7 @@ class HacsLabPanel extends HTMLElement {
 
   _schliesse_detail(von_route) {
     if (!von_route) {
-      this._gehe("/hacs-lab");
+      this._gehe("/haigs");
       return;
     }
     this._detail = null;
@@ -1706,7 +1706,7 @@ class HacsLabPanel extends HTMLElement {
       knopf.disabled = true;
       knopf.replaceChildren(knoten("ha-spinner", { size: "tiny" }));
       try {
-        await this._hass.callWS({ type: "hacs_lab/hinzufuegen", host: ziel.host, pfad: ziel.pfad, kategorie: typ.value });
+        await this._hass.callWS({ type: "haigs/hinzufuegen", host: ziel.host, pfad: ziel.pfad, kategorie: typ.value });
         await this._lade();
         this._benutzerdefiniert();
       } catch (fehler) {
@@ -1735,7 +1735,7 @@ class HacsLabPanel extends HTMLElement {
             ".label": t.entfernen,
             onclick: async () => {
               try {
-                await this._hass.callWS({ type: "hacs_lab/entfernen", storage_key: e.storage_key });
+                await this._hass.callWS({ type: "haigs/entfernen", storage_key: e.storage_key });
               } catch (fehler) {
                 this._melde(this._fehlertext(fehler));
               }
@@ -1800,10 +1800,10 @@ class HacsLabPanel extends HTMLElement {
     try {
       let eintrag = z;
       if (z._fund) {
-        await this._hass.callWS({ type: "hacs_lab/hinzufuegen", host: z.host, pfad: z.full_name, kategorie: z.kategorie });
+        await this._hass.callWS({ type: "haigs/hinzufuegen", host: z.host, pfad: z.full_name, kategorie: z.kategorie });
         // Die update-Entity entsteht im Hintergrund -- kurz warten, bis die Liste sie nennt.
         for (let i = 0; i < 20; i++) {
-          const antwort = await this._hass.callWS({ type: "hacs_lab/eintraege" });
+          const antwort = await this._hass.callWS({ type: "haigs/eintraege" });
           eintrag = (antwort.eintraege || []).find((e) => e.host === z.host && e.pfad === z.full_name);
           if (eintrag && eintrag.entity_id) break;
           await new Promise((r) => setTimeout(r, 750));
@@ -1823,7 +1823,7 @@ class HacsLabPanel extends HTMLElement {
   async _deinstalliere(z) {
     const t = this._t;
     try {
-      await this._hass.callWS({ type: "hacs_lab/deinstallieren", storage_key: z.storage_key });
+      await this._hass.callWS({ type: "haigs/deinstallieren", storage_key: z.storage_key });
       this._melde(t.erfolg_entfernt((z.anzeige || "").split("/").pop()));
     } catch (fehler) {
       this._melde(this._fehlertext(fehler));
@@ -1833,7 +1833,7 @@ class HacsLabPanel extends HTMLElement {
 
   async _entferne_eintrag(z) {
     try {
-      await this._hass.callWS({ type: "hacs_lab/entfernen", storage_key: z.storage_key });
+      await this._hass.callWS({ type: "haigs/entfernen", storage_key: z.storage_key });
     } catch (fehler) {
       this._melde(this._fehlertext(fehler));
     }
@@ -1842,7 +1842,7 @@ class HacsLabPanel extends HTMLElement {
   }
 }
 
-customElements.define("hacs-lab-panel", HacsLabPanel);
+customElements.define("haigs-panel", HaigsPanel);
 
 const LADEN_STIL = `
   :host {

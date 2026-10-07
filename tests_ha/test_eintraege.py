@@ -12,10 +12,10 @@ import pytest
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
 
-from custom_components.hacs_lab.ablage import Ablage
-from custom_components.hacs_lab.const import ABLAGE_VERSION, ablage_schluessel
-from custom_components.hacs_lab.core.identity import GITHUB, GITLAB, RepositoryIdentity
-from custom_components.hacs_lab.eintraege import (
+from custom_components.haigs.ablage import Ablage
+from custom_components.haigs.const import ABLAGE_VERSION, ablage_schluessel
+from custom_components.haigs.core.identity import GITHUB, GITLAB, RepositoryIdentity
+from custom_components.haigs.eintraege import (
     AdresseUngueltig,
     BereitsVorhanden,
     Eintraege,

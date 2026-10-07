@@ -1,6 +1,6 @@
 """Der Zustand einer installierten Integration -- reine Entscheidung.
 
-Flug 2098. Der Befund des Imkers: ueber HACS*lab hinzugefuegte Repos
+Flug 2098. Der Befund des Imkers: ueber HAIGS hinzugefuegte Repos
 sind unter «Geräte & Dienste» nicht zu finden. Die Physik dahinter
 gehoert Home Assistant selbst, und sie hat drei Schichten:
 
@@ -23,7 +23,7 @@ Diese Datei entscheidet nur, WELCHER Zustand gilt -- als reine
 Funktion auf plainen Werten, damit die Kern-Suite sie ohne Home
 Assistant pruefen kann. Die Werte selbst (Neustart noch ausstehend?
 eingerichtet? Dialog vorhanden?) liest die HA-Schicht in
-:mod:`custom_components.hacs_lab.sichtbarkeit` und haengt sie als
+:mod:`custom_components.haigs.sichtbarkeit` und haengt sie als
 ``integration``-Block an jede Zeile der Liste.
 
 Die Zustaende -- Rueckgabe ``None`` heisst: kein Chip, die Zeile ist

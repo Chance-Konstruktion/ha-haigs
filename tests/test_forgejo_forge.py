@@ -7,9 +7,9 @@ Repository, ohne dass der Ablauf den Anbieter kennt.
 """
 
 import pytest
-from hacs_lab.core.entdeckung import entdecke
-from hacs_lab.core.forge import NichtGefunden
-from hacs_lab.core.forgejo_forge import ForgejoForge
+from haigs.core.entdeckung import entdecke
+from haigs.core.forge import NichtGefunden
+from haigs.core.forgejo_forge import ForgejoForge
 
 from tests.attrappe_kern import FakeHttp
 from tests.forgejo_antworten import (
@@ -434,7 +434,7 @@ async def test_stammdaten_nach_id_geloescht_ist_nicht_gefunden():
 
 @pytest.mark.asyncio
 async def test_stammdaten_nach_id_keine_ziffern_kein_weg():
-    from hacs_lab.core.forge import ForgeFehler
+    from haigs.core.forge import ForgeFehler
 
     with pytest.raises(ForgeFehler):
         await forge().repository_nach_id("7a/../")

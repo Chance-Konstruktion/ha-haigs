@@ -22,7 +22,7 @@ from pytest_homeassistant_custom_component.common import (
     async_fire_time_changed,
 )
 
-from custom_components.hacs_lab.const import (
+from custom_components.haigs.const import (
     EREIGNIS_AKTUALISIERT,
 )
 from tests.attrappe import Aufzeichnung
@@ -38,7 +38,7 @@ from .test_m7 import (
     releases,
 )
 
-LAGER_KEY = "hacs_lab.lager." + HOST.replace(".", "_")
+LAGER_KEY = "haigs.lager." + HOST.replace(".", "_")
 
 
 def lager_daten() -> dict:
@@ -118,7 +118,7 @@ async def test_nach_dem_neustart_steht_die_liste_sofort_da(
     await richten(hass, mock_eintrag())
     client = await hass_ws_client(hass)
 
-    antwort = await frage(client, 1, "hacs_lab/eintraege")
+    antwort = await frage(client, 1, "haigs/eintraege")
     assert antwort["success"]
     zeile = antwort["result"]["eintraege"][0]
     assert zeile["name"] == "foo/bar*lab"
@@ -144,7 +144,7 @@ async def test_der_hintergrund_frucht_von_sich_aus(
     Der Start-Lauf kommt LAGER_START_VERZOEGERUNG_SEK nach dem Richten
     (im Vorlauf um zwölf Stunden feuert er zuerst). Danach hängt er am
     Takt: der nächste Vorlauf läuft ihn erneut. Jeder Lauf speichert und
-    feuert ``hacs_lab_aktualisiert`` -- das Panel malt daraufhin von
+    feuert ``haigs_aktualisiert`` -- das Panel malt daraufhin von
     selbst neu.
     """
     from .test_m5 import speichern
@@ -253,7 +253,7 @@ async def test_deinstallation_zieht_den_stand_nach(
     ziel = Path(hass.config.config_dir) / "custom_components" / "beispiel_integration"
     assert ziel.exists()
 
-    antwort = await frage(client, 1, "hacs_lab/deinstallieren", storage_key=STORAGE_KEY)
+    antwort = await frage(client, 1, "haigs/deinstallieren", storage_key=STORAGE_KEY)
     assert antwort["success"], antwort
     assert not ziel.exists()  # Dateien sind weg
 

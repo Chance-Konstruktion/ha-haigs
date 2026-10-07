@@ -1,7 +1,9 @@
-# HACS*lab
+# HAIGS
+
+**H**ome**A**ssistant-**I**mport-**G**it-**S**torage
 
 <p align="center">
-  <img src="logo.png" alt="HACS*lab — der GitLab-Fuchs übernimmt das Home-Assistant-Haus" width="192">
+  <img src="logo.png" alt="HAIGS — der GitLab-Fuchs übernimmt das Home-Assistant-Haus" width="192">
 </p>
 
 > 🇩🇪 Deutsch · [🇬🇧 English](README.en.md)
@@ -10,7 +12,7 @@ HACS-Verhalten für selbst gehostete Git-Forges: Home-Assistant-Custom-Component
 die auf **GitLab**, **Gitea** oder **Forgejo** ([Codeberg](https://codeberg.org))
 leben, hinzufügen, entdecken und aktuell halten — so, wie HACS es für GitHub tut.
 
-**Kein Fork.** HACS\*lab ist eine eigene Home-Assistant-Integration, die *neben*
+**Kein Fork.** HAIGS ist eine eigene Home-Assistant-Integration, die *neben*
 HACS läuft. Wir ändern keinen HACS-Code und kopieren keinen. Das hat einen
 Grund: Ein Fork müsste jedem HACS-Release hinterherjagen, und niemand außer uns
 würde ihn je benutzen.
@@ -23,7 +25,7 @@ einer eigenen — oder irgendeiner anderen — GitLab-, Gitea- oder
 Forgejo-Instanz, installierst du von Hand und erfährst nie, dass es eine neue
 Version gibt.
 
-HACS\*lab schließt diese Lücke. Es spricht alle drei Familien direkt an: Es
+HAIGS schließt diese Lücke. Es spricht alle drei Familien direkt an: Es
 findet Repositories mit dem Entdeckungs-Topic, liest ihre Metadaten, vergleicht
 Versionen, lädt das Versions-Archiv herunter und installiert es sicher.
 
@@ -32,22 +34,22 @@ Versionen, lädt das Versions-Archiv herunter und installiert es sicher.
 **Über HACS (empfohlen)**
 
 1. HACS → ⋮ → *Benutzerdefinierte Repositories* →
-   `https://github.com/Chance-Konstruktion/ha-hacs-lab`, Typ *Integration*.
-2. **HACS\*lab** herunterladen und Home Assistant neu starten.
-3. *Einstellungen → Geräte & Dienste → Integration hinzufügen* → **HACS\*lab**.
+   `https://github.com/Chance-Konstruktion/ha-haigs`, Typ *Integration*.
+2. **HAIGS** herunterladen und Home Assistant neu starten.
+3. *Einstellungen → Geräte & Dienste → Integration hinzufügen* → **HAIGS**.
    Host deiner Instanz eintragen (gitlab.com, codeberg.org, gitea.com oder
    selbst gehostet), optional ein Lese-Token. Der Anbieter bleibt auf **auto** –
-   HACS\*lab erkennt selbst, ob GitLab, Forgejo oder Gitea antwortet.
-4. In der Seitenleiste erscheint **HACS\*lab**. Weitere Instanzen richtest du
+   HAIGS erkennt selbst, ob GitLab, Forgejo oder Gitea antwortet.
+4. In der Seitenleiste erscheint **HAIGS**. Weitere Instanzen richtest du
    genauso ein – so viele du willst, in beliebiger Mischung.
 
-Danach hält sich HACS\*lab auch selbst aktuell: Nimm dieses Repository in die
+Danach hält sich HAIGS auch selbst aktuell: Nimm dieses Repository in die
 eigene Liste auf, und jedes neue Release erscheint als Update.
 
-**Von Hand:** `hacs-lab-vX.Y.Z.zip` von der
-[Release-Seite](https://github.com/Chance-Konstruktion/ha-hacs-lab/releases)
+**Von Hand:** `haigs-vX.Y.Z.zip` von der
+[Release-Seite](https://github.com/Chance-Konstruktion/ha-haigs/releases)
 ins Konfigurationsverzeichnis entpacken (es enthält genau
-`custom_components/hacs_lab/`), neu starten, weiter bei Schritt 3. Die SHA-256
+`custom_components/haigs/`), neu starten, weiter bei Schritt 3. Die SHA-256
 steht in jeder Release-Beschreibung; der Bau ist deterministisch.
 
 **Voraussetzungen:** Home Assistant 2025.2 oder neuer (getestet bis 2026.9).
@@ -56,7 +58,7 @@ Ein Lese-Token brauchst du nur für private Repositories (GitLab-Scope
 
 > Einrichtung und Panel sprechen Deutsch und Englisch.
 
-## HACS\*lab benutzen
+## HAIGS benutzen
 
 > **Handbuch:** das
 > [Projekt-Wiki](https://gitlab.schanz.ipv64.net/chance-konstruktion/hacs-lab/-/wikis/Home)
@@ -76,10 +78,10 @@ Ein Lese-Token brauchst du nur für private Repositories (GitLab-Scope
   funktionieren. Unten unterschreibt der Tanuki: *„Für die Freiheit gebaut —
   kein GitHub-Monopol-Scheiß.“*
 - **Icons wie in Home Assistant:** Integrationen bringen ihr Icon seit 2026 im
-  eigenen `brand/`-Ordner mit. HACS\*lab zeigt es über den Marken-Proxy von
+  eigenen `brand/`-Ordner mit. HAIGS zeigt es über den Marken-Proxy von
   Home Assistant – im Laden und bei den Updates.
 - **Entwicklermodus:** In den Optionen einer Instanz einschalten, und statt
-  Releases lädt HACS\*lab den neuesten Stand des Standardzweigs
+  Releases lädt HAIGS den neuesten Stand des Standardzweigs
   (`main@1a2b3c4`). Jeder Push ist sofort testbar, auch ohne Release.
 - **Grenzenlos Server, beliebige Mischung:** jede Instanz ist ein
   Konfigurationseintrag — richte so viele ein, wie du magst, jede mit eigenem
@@ -89,16 +91,16 @@ Ein Lese-Token brauchst du nur für private Repositories (GitLab-Scope
   für die nächste Domain öffnet. Derselbe Knopf sitzt im Erstlings-Hinweis des
   leeren Ladens.
 - **Nie ein leerer Laden:** die Liste lebt im *Lager*, einem Zwischenspeicher
-  je Instanz im Home-Assistant-Speicher (`hacs_lab.lager.<host>`). Das Panel
+  je Instanz im Home-Assistant-Speicher (`haigs.lager.<host>`). Das Panel
   zu öffnen malt sofort aus dem Lager (kein Netz-Umlauf), dann läuft die
   frische Prüfung im Hintergrund und zeichnet neu, sobald sie landet. Nach
   einem Neustart wird das Lager gelesen, während Home Assistant noch
   hochfährt; der erste Hintergrundlauf folgt kurz darauf, und derselbe Takt,
   den du für den Herzschlag eingestellt hast, hält das Lager frisch —
-  `hacs_lab_aktualisiert`-Ereignisse streichen das Panel neu, solange es
+  `haigs_aktualisiert`-Ereignisse streichen das Panel neu, solange es
   offen bleibt. Der Auffrischen-Knopf erzwingt einen Lauf jederzeit.
 - **Custom Repository hinzufügen:** Panel → ⋮ → *Benutzerdefinierte
-  Repositories* (wie in HACS), die Projekt-URL einfügen, eine Kategorie wählen. HACS\*lab liest Metadaten und
+  Repositories* (wie in HACS), die Projekt-URL einfügen, eine Kategorie wählen. HAIGS liest Metadaten und
   Version und bietet die Installation an.
 - **Entdecken:** Repositories, deren Besitzer auf ihrem GitLab-, Gitea- oder
   Forgejo-Projekt das Topic `hacs` gesetzt haben, erscheinen im Bereich *Neu*
@@ -143,7 +145,7 @@ Ein Lese-Token brauchst du nur für private Repositories (GitLab-Scope
 
 ## Für Repository-Besitzer
 
-Damit HACS\*lab ein Projekt findet und installieren kann (auf GitLab, Gitea
+Damit HAIGS ein Projekt findet und installieren kann (auf GitLab, Gitea
 und Forgejo/Codeberg gleichermaßen):
 
 1. Setze das Topic `hacs` unter *Einstellungen → Allgemein → Topics*.
@@ -161,7 +163,7 @@ und Forgejo/Codeberg gleichermaßen):
    oder `filename` — dieselben Konventionen, die HACS etabliert hat.
 3. Veröffentliche Versionen als Releases oder zumindest als Tags. Releases
    gewinnen; Tags sind der Rückfall. Kein gebautes Artefekt nötig: das
-   automatisch erzeugte Tag-Archiv genügt — HACS\*lab erkennt den Ordner
+   automatisch erzeugte Tag-Archiv genügt — HAIGS erkennt den Ordner
    `custom_components/<domain>/` darin und installiert genau diesen
    Teilbaum; Dateien der Repository-Wurzel (README, CI-Konfiguration) bleiben
    außen vor. Ein Release mit gebautem ZIP-Attachment (der Domain-Ordner als
@@ -185,7 +187,7 @@ wird.
 ## Sicherheit
 
 Code von einer Forge zu installieren ist eine Vertrauensentscheidung, keine
-technische. HACS\*lab nimmt den technischen Teil ernst: Versions-Archive
+technische. HAIGS nimmt den technischen Teil ernst: Versions-Archive
 werden mit Wächtern gegen Pfad-Flucht, Größe, Anzahl und Symlinks entpackt —
 vier böswillige Test-Archive (Pfad-Traversal, Riesen-Datei, Symlink-Angriff,
 Zip-Bombe) gehören zur Testsuite und müssen abgelehnt werden, *bevor*
@@ -198,15 +200,15 @@ zurückgerollt.
 ```
 logo.png, original.png        das eine Markenbild — Quelle (original.png) und
                               512er-Form (logo.png): Panel, Avatar, exe
-hacs.json                     Repository-Konventionen für HACS*lab selbst
-custom_components/hacs_lab/   die Integration — dünne Home-Assistant-Schicht
+hacs.json                     Repository-Konventionen für HAIGS selbst
+custom_components/haigs/   die Integration — dünne Home-Assistant-Schicht
   manifest.json               Domain, Version, Config-Flow, Icon
   config_flow.py              Einrichtungs-Dialog mit Verbindungsprüfung
   lager.py                    der Laden-Cache: gehaltene Liste + Bestandslauf,
-                              Hintergrund-Takt, `hacs_lab_aktualisiert`
+                              Hintergrund-Takt, `haigs_aktualisiert`
   frontend/panel.js           das Seitenleisten-Panel (ohne YAML) — GitLab-Stil
   frontend/iconset.js         der Tanuki als Seitenleisten-Icon (eigene
-                              Icon-Sammlung `hacs-lab`, auf jeder Seite)
+                              Icon-Sammlung `haigs`, auf jeder Seite)
   translations/               Dialog-Texte
   core/                       der Kern — reines Python, ohne Home Assistant,
                               ohne Netz in den Tests; liegt hier seit der
@@ -266,14 +268,14 @@ steht ausgearbeitet in [PROPOSAL.md](PROPOSAL.md).
 
 **Wo gearbeitet wird.** Entwickelt wird auf dem selbst gehosteten GitLab —
 das ist der Sinn des Projekts — und nach
-[GitHub](https://github.com/Chance-Konstruktion/ha-hacs-lab) gespiegelt, damit
+[GitHub](https://github.com/Chance-Konstruktion/ha-haigs) gespiegelt, damit
 Fremde das Projekt finden, installieren und Fehler melden können. Auf dem
 GitLab kann sich niemand von außen anmelden, deshalb ist
-**[GitHub der Ort für Fehlerberichte](https://github.com/Chance-Konstruktion/ha-hacs-lab/issues)**.
+**[GitHub der Ort für Fehlerberichte](https://github.com/Chance-Konstruktion/ha-haigs/issues)**.
 Die englische Fassung dieser Seite liegt als [README.en.md](README.en.md)
 daneben.
 
 ## Lizenz
 
 [MIT](LICENSE) — Copyright (c) 2026 chance-konstruktion und die
-HACS\*lab-Beitragenden.
+HAIGS-Beitragenden.

@@ -9,7 +9,7 @@ from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.hacs_lab.const import (
+from custom_components.haigs.const import (
     CONF_ABSTAND_MINUTEN,
     CONF_HOST,
     CONF_TOKEN,
@@ -62,8 +62,8 @@ async def test_ablage_tragt_den_host_im_schluessel(
     sitzung_einpflanzen([antwort()])
     await richten(hass, eintrag())
 
-    assert "hacs_lab.gitlab_example_net" in hass_storage
-    gespeichert = hass_storage["hacs_lab.gitlab_example_net"]
+    assert "haigs.gitlab_example_net" in hass_storage
+    gespeichert = hass_storage["haigs.gitlab_example_net"]
     assert gespeichert["version"] == 1
     assert gespeichert["data"] == {"eintraege": [], "stand": {}}
 
@@ -86,23 +86,23 @@ async def test_zwei_instanzen_nebeneinander(
         hass.data[DOMAIN][mock_zwei.entry_id].koordinator.data["gefundene_projekte"] == 2
     )
     # Zwei Ablagen, getrennt durch den Host im Schluessel.
-    assert "hacs_lab.gitlab_com" in hass_storage
-    assert "hacs_lab.gitlab_example_net" in hass_storage
+    assert "haigs.gitlab_com" in hass_storage
+    assert "haigs.gitlab_example_net" in hass_storage
 
 
 async def test_ablage_wandelt_alte_form(
     hass: HomeAssistant, sitzung_einpflanzen, hass_storage
 ) -> None:
-    hass_storage["hacs_lab.gitlab_example_net"] = {
+    hass_storage["haigs.gitlab_example_net"] = {
         "version": 1,
         "minor_version": 1,
-        "key": "hacs_lab.gitlab_example_net",
+        "key": "haigs.gitlab_example_net",
         "data": {"irgendwas_altes": 7},
     }
     sitzung_einpflanzen([antwort()])
     await richten(hass, eintrag())
 
-    assert hass_storage["hacs_lab.gitlab_example_net"]["data"] == {
+    assert hass_storage["haigs.gitlab_example_net"]["data"] == {
         "eintraege": [],
         "stand": {},
     }

@@ -1,7 +1,7 @@
 """Die Integration findet ihren Kern ohne jeden Suchpfad-Griff.
 
 Form-Entscheidung zu #11 (Befund a): der Kern wohnt als Unterpaket in
-der Integration (``custom_components/hacs_lab/core``). Damit entfaellt
+der Integration (``custom_components/haigs/core``). Damit entfaellt
 der Fallback ganz -- und das ist hier der Beweis, nicht die Behauptung.
 
 Eine Sonde im Unterprozess richtet ein Haus in der Lage einer echten
@@ -44,25 +44,25 @@ SONDE = dedent(
     assert str(haus) not in anfang, sys.path
 
     # Das Haus in der Lage einer echten Installation: die Integration
-    # liegt unter custom_components, der Kern IN ihr. Kein hacs_lab an
+    # liegt unter custom_components, der Kern IN ihr. Kein haigs an
     # der Wurzel, kein Eintrag auf dem Suchpfad -- genau hier muss die
     # Integration ohne jede Suche auskommen.
     wurzel = types.ModuleType("custom_components")
     wurzel.__path__ = [str(haus / "custom_components")]
     sys.modules["custom_components"] = wurzel
 
-    datei = haus / "custom_components" / "hacs_lab" / "__init__.py"
+    datei = haus / "custom_components" / "haigs" / "__init__.py"
     spec = importlib.util.spec_from_file_location(
-        "custom_components.hacs_lab",
+        "custom_components.haigs",
         datei,
         submodule_search_locations=[str(datei.parent)],
     )
     modul = importlib.util.module_from_spec(spec)
-    sys.modules["custom_components.hacs_lab"] = modul
+    sys.modules["custom_components.haigs"] = modul
     spec.loader.exec_module(modul)
 
     # Der Kern wurde gefunden -- als Unterpaket, aus demselben Ordner.
-    kern = sys.modules.get("custom_components.hacs_lab.core.forge")
+    kern = sys.modules.get("custom_components.haigs.core.forge")
     assert kern is not None, "Kern wurde nicht mitgeladen"
     assert str(haus) in str(kern.__file__), kern.__file__
 
@@ -88,7 +88,7 @@ def haus_richten(tmp_path: Path) -> Path:
     """Ein Haus wie eine echte Installation: Integration, Kern inklusive."""
     haus = tmp_path / "haus"
     shutil.copytree(REPO / "custom_components", haus / "custom_components")
-    assert not (REPO / "hacs_lab").exists(), (
+    assert not (REPO / "haigs").exists(), (
         "Kern liegt noch an der Wurzel -- das widerspricht der Form aus #11"
     )
     for name in GIFT_KANDIDATEN:

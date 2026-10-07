@@ -1,7 +1,9 @@
-# HACS*lab
+# HAIGS
+
+**H**ome**A**ssistant-**I**mport-**G**it-**S**torage
 
 <p align="center">
-  <img src="logo.png" alt="HACS*lab — the GitLab fox taking over the Home Assistant house" width="192">
+  <img src="logo.png" alt="HAIGS — the GitLab fox taking over the Home Assistant house" width="192">
 </p>
 
 > 🇬🇧 English · [🇩🇪 Deutsch](README.md)
@@ -10,7 +12,7 @@ HACS behaviour for self-hosted Git forges: add, discover, and update Home
 Assistant custom components that live on **GitLab**, **Gitea**, or **Forgejo**
 ([Codeberg](https://codeberg.org)) — the way HACS does it for GitHub.
 
-**Not a fork.** HACS*lab is its own Home Assistant integration that runs
+**Not a fork.** HAIGS is its own Home Assistant integration that runs
 *alongside* HACS. We change no HACS code and copy none. There is a reason:
 a fork would have to chase every HACS release, and nobody but us would ever
 use it.
@@ -22,7 +24,7 @@ address is rejected; there is no switch for it. If your integrations live on
 your own — or any other — GitLab, Gitea, or Forgejo instance, you install
 by hand and never learn that a new version exists.
 
-HACS*lab closes that gap. It speaks to all three families directly: it finds
+HAIGS closes that gap. It speaks to all three families directly: it finds
 repositories tagged for discovery, reads their metadata, compares versions,
 downloads the version archive, and installs it safely.
 
@@ -31,22 +33,22 @@ downloads the version archive, and installs it safely.
 **Via HACS (recommended)**
 
 1. HACS → ⋮ → *Custom repositories* →
-   `https://github.com/Chance-Konstruktion/ha-hacs-lab`, type *Integration*.
-2. Download **HACS\*lab** and restart Home Assistant.
-3. *Settings → Devices & services → Add integration* → **HACS\*lab**. Enter
+   `https://github.com/Chance-Konstruktion/ha-haigs`, type *Integration*.
+2. Download **HAIGS** and restart Home Assistant.
+3. *Settings → Devices & services → Add integration* → **HAIGS**. Enter
    your instance's host (gitlab.com, codeberg.org, gitea.com or self-hosted)
-   and optionally a read token. Leave the provider on **auto** – HACS\*lab
+   and optionally a read token. Leave the provider on **auto** – HAIGS
    detects whether GitLab, Forgejo or Gitea answers.
-4. **HACS\*lab** appears in the sidebar. Add more instances the same way – as
+4. **HAIGS** appears in the sidebar. Add more instances the same way – as
    many as you like, in any mix.
 
-From then on HACS\*lab can keep itself up to date: add this repository to
+From then on HAIGS can keep itself up to date: add this repository to
 its own list and every new release shows up as an update.
 
-**Manually:** unpack `hacs-lab-vX.Y.Z.zip` from the
-[releases page](https://github.com/Chance-Konstruktion/ha-hacs-lab/releases)
+**Manually:** unpack `haigs-vX.Y.Z.zip` from the
+[releases page](https://github.com/Chance-Konstruktion/ha-haigs/releases)
 into your configuration directory (it contains exactly
-`custom_components/hacs_lab/`), restart, continue with step 3. Every release
+`custom_components/haigs/`), restart, continue with step 3. Every release
 note carries the SHA-256; the build is deterministic.
 
 **Requirements:** Home Assistant 2025.2 or newer (tested up to 2026.9). A read
@@ -55,7 +57,7 @@ read-only token on Gitea/Forgejo).
 
 > Setup and panel speak English and German.
 
-## Using HACS*lab
+## Using HAIGS
 
 - **The panel – feels like HACS:** the same data table as the HACS store
   (filters, search, grouping by status, sorting, column picker), the same
@@ -67,9 +69,9 @@ read-only token on Gitea/Forgejo).
   links work. At the bottom the tanuki signs: *“Made for freedom — no GitHub
   monopoly, because one platform is a single point of failure.”*
 - **Icons like Home Assistant:** since 2026 integrations ship their icon in
-  their own `brand/` folder. HACS\*lab shows it through Home Assistant's
+  their own `brand/` folder. HAIGS shows it through Home Assistant's
   brands proxy – in the store and on updates.
-- **Developer mode:** switch it on in an instance's options and HACS\*lab
+- **Developer mode:** switch it on in an instance's options and HAIGS
   installs the latest state of the default branch instead of releases
   (`main@1a2b3c4`). Every push is testable right away, even without a release.
 - **Unlimited servers, any mix:** every instance is one config entry —
@@ -79,16 +81,16 @@ read-only token on Gitea/Forgejo).
   dashed "+ Add instance" button that opens the setup dialog for the
   next domain. The empty store's first-run hint carries the same button.
 - **Never an empty store:** the list lives in the *Lager* (the stock), a
-  per-instance cache in Home Assistant's storage (`hacs_lab.lager.<host>`).
+  per-instance cache in Home Assistant's storage (`haigs.lager.<host>`).
   Opening the panel paints from that cache instantly (no network
   round-trip), then runs the fresh check in the background and re-renders
   when it lands. After a restart the cache is read while Home Assistant is
   still booting; the first background run follows shortly, and the same
   interval you set for the heartbeat keeps the cache fresh —
-  `hacs_lab_aktualisiert` events repaint the panel while it stays open.
+  `haigs_aktualisiert` events repaint the panel while it stays open.
   The refresh button still forces a run at any time.
 - **Add a custom repository:** panel → ⋮ → *Custom repositories* (like
-  in HACS), paste the project URL, pick a category. HACS*lab reads the metadata, the version,
+  in HACS), paste the project URL, pick a category. HAIGS reads the metadata, the version,
   and offers the install.
 - **Discover:** repositories whose owner set the topic `hacs` on their
   GitLab, Gitea, or Forgejo project show up in the panel's *New* section
@@ -128,7 +130,7 @@ read-only token on Gitea/Forgejo).
 
 ## For repository owners
 
-To make a project findable and installable by HACS*lab (works the same on
+To make a project findable and installable by HAIGS (works the same on
 GitLab, Gitea, and Forgejo/Codeberg):
 
 1. Set the topic `hacs` under *Settings → General → Topics*.
@@ -146,7 +148,7 @@ GitLab, Gitea, and Forgejo/Codeberg):
    `zip_release`, or `filename` — the same conventions HACS established.
 3. Publish versions as releases, or at least as tags. Releases win; tags
    are the fallback. No built artifact required: the auto-generated tag
-   archive is enough — HACS*lab recognises the `custom_components/<domain>/`
+   archive is enough — HAIGS recognises the `custom_components/<domain>/`
    folder inside it and installs exactly that subtree, leaving repository
    root files (README, CI config) out of the target. A release with a
    built ZIP attachment (the domain folder as its root) stays the most
@@ -171,7 +173,7 @@ state — it is only found when explicitly searched for.
 ## Safety
 
 Installing code from a forge is a trust decision, not a technical one.
-HACS*lab takes the technical part seriously: version archives are unpacked
+HAIGS takes the technical part seriously: version archives are unpacked
 with path-escape, size, count, and symlink guards — four malicious test
 archives (path traversal, giant file, symlink attack, zip bomb) are part of
 the test suite and must be rejected *before* anything is written. The
@@ -182,15 +184,15 @@ atomically, rolled back on failure.
 
 ```
 logo.png, original.png        brand artwork — the GitLab fox in the HA house
-hacs.json                     repository conventions for HACS*lab itself
-custom_components/hacs_lab/   the integration — thin Home Assistant layer
+hacs.json                     repository conventions for HAIGS itself
+custom_components/haigs/   the integration — thin Home Assistant layer
   manifest.json               domain, version, config flow, icon
   config_flow.py              setup dialog with connection check
   lager.py                    the store cache: persisted list + scan,
-                              background interval, `hacs_lab_aktualisiert`
+                              background interval, `haigs_aktualisiert`
   frontend/panel.js           the sidebar panel (no YAML) — GitLab-style
   frontend/iconset.js         the tanuki as sidebar icon (own icon
-                              collection `hacs-lab`, on every page)
+                              collection `haigs`, on every page)
   translations/               dialog texts
   core/                       the core — pure Python, no Home Assistant,
                               no network in tests; lives here since the
@@ -249,9 +251,9 @@ decision, not an oversight. The reasoning lives in
 and [MITARBEIT.md](MITARBEIT.md) (how to contribute). The interface for a
 second forge provider — and what HACS itself would have to adopt for one —
 is written up in [PROPOSAL.md](PROPOSAL.md). You do not need German to use
-HACS*lab: this file, the setup dialog and the panel are English.
+HAIGS: this file, the setup dialog and the panel are English.
 
 ## License
 
-[MIT](LICENSE) — Copyright (c) 2026 chance-konstruktion and the HACS*lab
+[MIT](LICENSE) — Copyright (c) 2026 chance-konstruktion and the HAIGS
 contributors.

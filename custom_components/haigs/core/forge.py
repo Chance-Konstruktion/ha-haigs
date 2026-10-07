@@ -96,7 +96,7 @@ class HttpClient(Protocol):
 
 
 class Forge(Protocol):
-    """Was HACS*lab von einem Anbieter braucht -- mehr nicht."""
+    """Was HAIGS von einem Anbieter braucht -- mehr nicht."""
 
     provider: str
     host: str

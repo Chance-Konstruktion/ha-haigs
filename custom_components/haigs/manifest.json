@@ -1,0 +1,16 @@
+{
+  "domain": "haigs",
+  "name": "HAIGS",
+  "codeowners": [
+    "@Chance-Konstruktion"
+  ],
+  "config_flow": true,
+  "dependencies": [
+    "http"
+  ],
+  "documentation": "https://github.com/Chance-Konstruktion/ha-haigs",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/Chance-Konstruktion/ha-haigs/issues",
+  "requirements": [],
+  "version": "0.5.0"
+}

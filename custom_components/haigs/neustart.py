@@ -157,5 +157,5 @@ def _benachrichtige(
         hass,
         nachricht,
         title=titel,
-        notification_id="hacs_lab_neustart_" + _kennung(eintrag.storage_key),
+        notification_id="haigs_neustart_" + _kennung(eintrag.storage_key),
     )

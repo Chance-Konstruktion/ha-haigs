@@ -17,13 +17,13 @@ Die Fragen der Erkennung, in der Reihenfolge des Codes:
 import json
 
 import pytest
-from hacs_lab.core.forge import ForgeFehler
-from hacs_lab.core.forgejo_forge import ForgejoForge
-from hacs_lab.core.gitea_forge import GiteaForge
-from hacs_lab.core.gitlab_forge import GitLabForge
-from hacs_lab.core.http_aiohttp import AiohttpClient
-from hacs_lab.core.identity import FORGEJO, GITEA, GITLAB
-from hacs_lab.core.schmiede import AnbieterUnbekannt, erkenne, schmiede
+from haigs.core.forge import ForgeFehler
+from haigs.core.forgejo_forge import ForgejoForge
+from haigs.core.gitea_forge import GiteaForge
+from haigs.core.gitlab_forge import GitLabForge
+from haigs.core.http_aiohttp import AiohttpClient
+from haigs.core.identity import FORGEJO, GITEA, GITLAB
+from haigs.core.schmiede import AnbieterUnbekannt, erkenne, schmiede
 
 from tests.attrappe import Aufzeichnung, SitzungsAttrappe
 from tests.attrappe_kern import FakeHttp

@@ -1,10 +1,10 @@
-"""Konstanten der Home-Assistant-Schicht von HACS*lab."""
+"""Konstanten der Home-Assistant-Schicht von HAIGS."""
 
 from __future__ import annotations
 
 #: Domain der Integration -- Home Assistant verlangt sie hier, das
 #: Manifest nennt denselben Wert.
-DOMAIN = "hacs_lab"
+DOMAIN = "haigs"
 
 #: Einstellfelder des Einrichtungsdialogs.
 CONF_HOST = "host"
@@ -22,7 +22,7 @@ ANBIETER_AUTO = "auto"
 CONF_ABSTAND_MINUTEN = "abstand_minuten"
 
 #: Option des Entwicklermodus (Flug 2101): statt Releases installiert
-#: HACS*lab den juengsten Stand des Standardzweigs -- fuer alle
+#: HAIGS den juengsten Stand des Standardzweigs -- fuer alle
 #: Repositories dieser Instanz. Aus ist die Voreinstellung.
 CONF_ENTWICKLERMODUS = "entwicklermodus"
 

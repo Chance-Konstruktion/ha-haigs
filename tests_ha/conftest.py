@@ -54,8 +54,8 @@ def sitzung_einpflanzen(monkeypatch: pytest.MonkeyPatch) -> Any:
     def _einpflanzen(aufzeichnungen: list[Aufzeichnung]) -> SitzungsAttrappe:
         attrappe = SitzungsAttrappe(list(aufzeichnungen))
         for ziel in (
-            "custom_components.hacs_lab.config_flow",
-            "custom_components.hacs_lab",
+            "custom_components.haigs.config_flow",
+            "custom_components.haigs",
         ):
             monkeypatch.setattr(
                 f"{ziel}.async_get_clientsession",
@@ -75,8 +75,8 @@ def tote_sitzung(monkeypatch: pytest.MonkeyPatch, hass: HomeAssistant) -> None:
             raise OSError("Verbindungsaufbau fehlgeschlagen")
 
     for ziel in (
-        "custom_components.hacs_lab.config_flow",
-        "custom_components.hacs_lab",
+        "custom_components.haigs.config_flow",
+        "custom_components.haigs",
     ):
         monkeypatch.setattr(
             f"{ziel}.async_get_clientsession",

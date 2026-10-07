@@ -12,7 +12,7 @@ gezogen hat. Vier Dinge kommen dazu:
   Lagerform ``custom_components/<domain>/`` in jeder Tiefe des
   Archivs. Tag-Quell-Archive der ueblichen HACS-Repo-Struktur
   installieren damit ohne gebauten Anhang, und Anhaenge, die den
-  ``custom_components``-Praefix behalten (wie der von hacs-lab
+  ``custom_components``-Praefix behalten (wie der von haigs
   selbst), ebenso.
 * **Protokoll:** die Installation vermerkt den Zielweg in der Ablage
   (``stand.pfad``). Ohne Weg keine ehrliche Deinstallation -- und mit
@@ -47,7 +47,7 @@ if TYPE_CHECKING:
 
 #: Zwischenlager unter der Konfiguration -- dasselbe Dateisystem wie das
 #: Ziel, das verlangt der atomare Tausch aus M4a.
-ZWISCHENLAGER_NAME = ".hacs_lab_zwischenlager"
+ZWISCHENLAGER_NAME = ".haigs_zwischenlager"
 
 #: Der Name der Integrations-Beschreibung im Archiv.
 _MANIFEST = "manifest.json"
@@ -176,7 +176,7 @@ def finde_lagerform(archiv: bytes, domain: str) -> str | None:
     Befund #15, Entschluss b: Tag-Quell-Archive tragen die uebliche
     HACS-Repo-Struktur ``<projekt>/custom_components/<domain>/``, und
     auch gebaute Anhaenge behalten den ``custom_components``-Praefix
-    manchmal (der von hacs-lab selbst tut es). Gesucht wird der Ordner
+    manchmal (der von haigs selbst tut es). Gesucht wird der Ordner
     ueber zwei Zeichen, die zusammen nur die echte Lagerform tragen:
     er HEISST wie die Domain, und die manifest.json IN ihm NENNT
     dieselbe. Der Ordner allein genuegt nicht -- Repokopien heissen

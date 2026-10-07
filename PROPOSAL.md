@@ -1,7 +1,7 @@
 # Ein zweiter Anbieter für HACS — ein Vorschlag
 
 > Dieses Dokument ist die nach außen gerichtete Ausarbeitung der Forge-Naht,
-> auf der HACS\*lab läuft. Es wendet sich an die Leute, die
+> auf der HAIGS läuft. Es wendet sich an die Leute, die
 > [HACS](https://github.com/hacs/integration) betreuen. Die Entscheidung, ob
 > er wirklich upstream eingereicht wird, gehört dem Besitzer des Repositories —
 > dieses Dokument ist das Material für diese Entscheidung, nicht die
@@ -26,7 +26,7 @@ Maschinerie eingewoben. Das Ergebnis ist ein Ökosystem-Merkmal, das nur eine
 Forge liefern kann — und eine lange Geschichte von Forks, die HACS-Releases
 hinterherjagen und sterben.
 
-HACS\*lab existiert, weil wir das Merkmal *jetzt* brauchten, ohne Fork. Es läuft
+HAIGS existiert, weil wir das Merkmal *jetzt* brauchten, ohne Fork. Es läuft
 als eigene Integration neben HACS. Beim Bauen wurde die Form der Naht klar —
 und genau diese Form ist es, die dieser Vorschlag zurückgibt.
 
@@ -50,7 +50,7 @@ Zwei Datenklassen überqueren die Naht: `RepositoryInfo` (Identität,
 Beschreibung, Topics, Sterne, Archiv-Flag, Web/Ticket/Release-URLs) und
 `Release` (Tag, Name, Notizen, Datum, Prerelease-Flag, Assets). Eine
 `NotFound`-Ausnahme heißt „weg oder Rechte fehlen“; alles andere ist ein
-schlichter Forge-Fehler. Der Kern von HACS\*lab kennt keine Status-Codes, keine
+schlichter Forge-Fehler. Der Kern von HAIGS kennt keine Status-Codes, keine
 HTTP-Bibliothek und kein `if provider == "gitlab"` — ein Wächter-Job in der CI
 kippt den Bau bei jedem Anbieter-Sonderfall außerhalb der Anbieterklasse.
 
@@ -66,7 +66,7 @@ sie sind. (Das ist umgesetzt und getestet; es ist das Wertvollste, was wir
 gelernt haben.)
 
 Der Anzeige-Name trägt den Anbieter als Nachsilbe — `foo/bar*lab` für GitLab —,
-nur von HACS\*lab erzeugt, nie zur Forge zurückgeschrieben. Zwei Repositories
+nur von HAIGS erzeugt, nie zur Forge zurückgeschrieben. Zwei Repositories
 mit demselben Namen auf verschiedenen Forges koexistieren, ohne sich zu
 stoßen, und ein GitHub-Repository, das zufällig auf `-lab` endet, wird nie mit
 einem verwechselt: Die Quelle ist ein Feld im Datensatz, kein Teil der
@@ -74,7 +74,7 @@ Zeichenkette.
 
 ## Validierung ist Inhalt, nicht Absicht
 
-Ein Topic ist eine Ansage; Metadaten sind eine Behauptung. HACS\*lab behandelt
+Ein Topic ist eine Ansage; Metadaten sind eine Behauptung. HAIGS behandelt
 beides als Eingaben, nicht als Urteile: Jeder Kandidat aus der Entdeckung geht
 durch Inhalts-Validierung — `hacs.json` muss parsen und ein Objekt sein,
 verbotene Schlüssel werden abgelehnt, `manifest.json` muss strukturell gesund
@@ -94,7 +94,7 @@ kontrolliert, irgendwann Mühl liefert.
    Migration des bestehenden Ladens ist ein einmaliger ID-Abruf je Eintrag.
 3. **Bei Custom Repositories einen optionalen Anbieter/eine Instanz
    akzeptieren.** Die UI-Frage — „URL einfügen, wir erkennen die Forge“ — ist
-   genau das, was der Einrichtungs-Dialog von HACS\*lab schon tut (ein
+   genau das, was der Einrichtungs-Dialog von HAIGS schon tut (ein
    eingefügter Projekt-Link wird auf seinen Host gekürzt).
 4. **Entdeckung je Forge belassen.** GitHub-Topics sind der bestehende
    Mechanismus; GitLab hat Topics, Forgejo hat Topics. `search_by_topic` ist
@@ -115,7 +115,7 @@ Laden-Format der Einträge jenseits des Identitäts-Schlüssels.
 - **Keine Rate-Limit-Gleichschaltung.** Jede Forge hat eigene Limits und
   eigenes ETag-Verhalten. Die Naht hält Anbieter-Wissen in der
   Anbieterklasse; Kontingente gleichzuschalten steht außerhalb.
-- **Keine Auslieferung von HACS selbst.** HACS\*lab ist keine
+- **Keine Auslieferung von HACS selbst.** HAIGS ist keine
   HACS-Distribution und will keine werden.
 
 ## Kosten und Risiken, ehrlich
@@ -147,7 +147,7 @@ Code ist kein Einsetzen (andre Lizenz-Herkünfte, andre innere Strukturen) —
 aber der Entwurf ist ein arbeitender, getesteter Existenz-Beweis aus zwei
 lebenden Anbietern.
 
-**Eigenständig, dauerhaft.** HACS\*lab bleibt eine schlanke
+**Eigenständig, dauerhaft.** HAIGS bleibt eine schlanke
 Begleit-Integration neben HACS. Das ist der kleinere Ökosystem-Beitrag, aber
 einer ohne jede Abstimmung: Er funktioniert heute, gegen echte GitLab- und
 Codeberg-Instanzen, und nichts an ihm wartet auf die Fahrkarte von upstream.
@@ -156,7 +156,7 @@ Der Besitzer des Repositories entscheidet. Beide Zukünfte sind ehrlich.
 
 ---
 
-*Dieses Dokument gehört zum HACS\*lab-Meilenstein M10 („Nach draußen“). Die
+*Dieses Dokument gehört zum HAIGS-Meilenstein M10 („Nach draußen“). Die
 Entwicklungs-Dokumentation — [ARCHITEKTUR.md](ARCHITEKTUR.md) für die fünf
 Struktur-Entscheidungen, [ROADMAP.md](ROADMAP.md) für Meilensteine und
 Abnahmen — trägt das ganze Denken hinter allem, was hier behauptet wird. Die

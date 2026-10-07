@@ -1,4 +1,4 @@
-# HACS*lab — Der Stand
+# HAIGS — Der Stand
 
 > Stand: 2026-09-20 (GitHub-Auftritt) — alles Wichtige auf einer Seite.
 
@@ -41,7 +41,7 @@ installieren, Updates erkennen — ein echtes Produkt für den Imker-Server
 
 ## Der GitHub-Auftritt (20.09.2026)
 
-M10 sagt „Ein Fremder kann HACS*lab nach der README installieren, ohne zu
+M10 sagt „Ein Fremder kann HAIGS nach der README installieren, ohne zu
 fragen“ — dafür fehlten drei Stücke, die jetzt liegen:
 
 - **[README.en.md](README.en.md)** — die englische Fassung auf heutigem Stand
@@ -68,15 +68,15 @@ fragen“ — dafür fehlten drei Stücke, die jetzt liegen:
   trägt nur ein. Ohne `GITHUB_TOKEN` sagt er das und bleibt grün.
 
 **Erledigt am 20.09.2026 — die Kette steht:** Repo
-[Chance-Konstruktion/ha-hacs-lab](https://github.com/Chance-Konstruktion/ha-hacs-lab)
+[Chance-Konstruktion/ha-haigs](https://github.com/Chance-Konstruktion/ha-haigs)
 (öffentlich), Push-Spiegel 16 (nur geschützte Zweige), `GITHUB_TOKEN` maskiert
-und `GITHUB_REPO=ha-hacs-lab` als CI-Variablen, Tag `v0.3.0` gesetzt. Die
+und `GITHUB_REPO=ha-haigs` als CI-Variablen, Tag `v0.3.0` gesetzt. Die
 Tag-Pipeline 10836 lief grün durch: ZIP gebaut, GitLab-Release eingetragen,
 GitHub-Release angelegt **mit dem Archiv daran** (136 KB).
 
 **Der Name drüben weicht ab, und das ist Absicht.** Das GitLab-Projekt heißt
 weiter `chance-konstruktion/hacs-lab` — kein Umbenennen im GitLab, so steht es
-in der ROADMAP. Auf GitHub heißt es `ha-hacs-lab`, passend zur ha-Familie
+in der ROADMAP. Auf GitHub heißt es `ha-haigs`, passend zur ha-Familie
 (ha-powerline, ha-kontinuum, ha-spatial-…). `GITHUB_REPO` ist die einzige
 Stelle, an der dieser Unterschied steht; ein Test hält sie fest. Den Stern
 kann GitHub ohnehin nicht: erlaubt sind dort nur Buchstaben, Ziffern, `.`,
@@ -102,7 +102,7 @@ kann GitHub ohnehin nicht: erlaubt sind dort nur Buchstaben, Ziffern, `.`,
 
 ## Arbeitsplatz (Biene)
 
-- `repos/hacs-lab` — Arbeitskopie (Zweig `flug-2098-geraete-sichtbar`, sauber)
+- `repos/haigs` — Arbeitskopie (Zweig `flug-2098-geraete-sichtbar`, sauber)
 - `repos/ha-bienentanz` — Beispiel-Integration für den Laden (**v1.3.0**, gepusht + Release)
 - `repos/stock/WABEN.md` — Flugbuch des ganzen Volks (WABEN 2106)
 - `e2e/` — echte HA-Testinstanz 2026.2.3 (VENV fällt Sandbox-Resets zum Opfer;

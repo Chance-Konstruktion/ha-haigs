@@ -17,8 +17,8 @@ Zwei dieser Faelle waren echte Fehler und sind mit Flug 2093 geheilt:
 """
 
 import pytest
-from hacs_lab.core.forge import Release
-from hacs_lab.core.versionen import (
+from haigs.core.forge import Release
+from haigs.core.versionen import (
     ist_vorabversion,
     neuer_als,
     normalisiere,
@@ -176,7 +176,7 @@ def test_sortieren_eines_grossen_haufens_ist_konsistent():
     """100 zufaellige Versionen: nach Schluessel sortiert bleibt sortiert."""
     import random
 
-    from hacs_lab.core.versionen import _schluessel
+    from haigs.core.versionen import _schluessel
 
     random.seed(2093)
     versionen = []

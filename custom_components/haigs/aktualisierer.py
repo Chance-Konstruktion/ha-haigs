@@ -66,7 +66,7 @@ def _kennung(schluessel: str) -> str:
 _TOKEN_HINWEISE = ("token", "berechtigung", "401", "403")
 
 
-class HacsLabAktualisierer(DataUpdateCoordinator[dict[str, Fund]]):
+class HaigsAktualisierer(DataUpdateCoordinator[dict[str, Fund]]):
     """Fuehrt die Liste je Takt durch den Kern-Lauf der Stufe M5."""
 
     def __init__(
@@ -349,7 +349,7 @@ async def _takt_geaendert(hass: HomeAssistant, eintrag: ConfigEntry) -> None:
 
 def hole_aktualisierer(
     hass: HomeAssistant, eintrag: ConfigEntry
-) -> HacsLabAktualisierer | None:
+) -> HaigsAktualisierer | None:
     """Die M5-Spur eines Eintrags -- entsteht beim ersten Griff.
 
     Idempotent und synchron mit Absicht: die Waben-Plattformen richten
@@ -367,7 +367,7 @@ def hole_aktualisierer(
 
     aktualisierer = getattr(laufzeit, "aktualisierer", None)
     if aktualisierer is None:
-        aktualisierer = HacsLabAktualisierer(
+        aktualisierer = HaigsAktualisierer(
             hass, eintrag, laufzeit.forge, laufzeit.eintraege, staende
         )
         laufzeit.aktualisierer = aktualisierer  # noqa: B010 - die Naht

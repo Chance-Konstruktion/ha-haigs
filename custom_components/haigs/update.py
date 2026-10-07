@@ -6,7 +6,7 @@ installierte Version, neueste Version, Release-Notizen, und einen
 ueber die Naht an den Zielort tauscht (siehe :mod:`.installation`).
 Deinstallation ist bewusst KEIN update-Dienst: Home Assistants update-
 Entities kennen kein Uninstall-Konzept -- der Befehl
-``hacs_lab/deinstallieren`` (WebSocket, das Panel ruft ihn) nimmt den
+``haigs/deinstallieren`` (WebSocket, das Panel ruft ihn) nimmt den
 verzeichneten Zielweg wieder. Integrationen bekommen danach einen
 Neustart-Hinweis aufs Reparatur-Brett (siehe :mod:`.neustart`). Neue
 Eintraege erscheinen ohne Neustart als Entity, entfernte verschwinden
@@ -25,7 +25,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .aktualisierer import HacsLabAktualisierer, hole_aktualisierer
+from .aktualisierer import HaigsAktualisierer, hole_aktualisierer
 from .const import DOMAIN
 from .core.aktualisierungen import Fund
 from .installation import InstallationsFehler, installiere_version
@@ -56,10 +56,10 @@ async def async_setup_entry(
     await laufzeit.staende.laden()
     await aktualisierer.async_config_entry_first_refresh()
 
-    entities: dict[str, HacsLabUpdateEntity] = {}
+    entities: dict[str, HaigsUpdateEntity] = {}
 
     def _anlegen(eintrag_obj: Eintrag) -> None:
-        entity = HacsLabUpdateEntity(laufzeit, aktualisierer, eintrag_obj)
+        entity = HaigsUpdateEntity(laufzeit, aktualisierer, eintrag_obj)
         entities[eintrag_obj.storage_key] = entity
         async_add_entities([entity])
 
@@ -89,7 +89,7 @@ async def async_setup_entry(
     laufzeit.eintraege.melde_aenderungen(_bei_aenderung)
 
 
-class HacsLabUpdateEntity(UpdateEntity):
+class HaigsUpdateEntity(UpdateEntity):
     """Eine ``update``-Entity je Custom Repository."""
 
     _attr_should_poll = False
@@ -97,7 +97,7 @@ class HacsLabUpdateEntity(UpdateEntity):
     def __init__(
         self,
         laufzeit: Laufzeit,
-        aktualisierer: HacsLabAktualisierer,
+        aktualisierer: HaigsAktualisierer,
         eintrag: Eintrag,
     ) -> None:
         self._forge = laufzeit.forge
@@ -133,10 +133,10 @@ class HacsLabUpdateEntity(UpdateEntity):
 
     @property
     def entity_picture(self) -> str | None:
-        """Das Zeichen des Repositorys, nicht das von HACS*lab (Flug 2101).
+        """Das Zeichen des Repositorys, nicht das von HAIGS (Flug 2101).
 
         Home Assistant malt eine update-Entity sonst mit dem Icon ihrer
-        Plattform -- und das ist hacs_lab, fuer jedes Repository gleich.
+        Plattform -- und das ist haigs, fuer jedes Repository gleich.
         Eine installierte Integration hat ihre eigene Domain im Zielweg
         (``custom_components/<domain>``); ueber denselben Marken-Proxy,
         den HA fuer seine eigenen update-Entities nutzt

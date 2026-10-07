@@ -106,7 +106,7 @@ async def verbindung_pruefen(
     return funde, anbieter
 
 
-class HacsLabFluss(config_entries.ConfigFlow, domain=DOMAIN):
+class HaigsFluss(config_entries.ConfigFlow, domain=DOMAIN):
     """Einrichten einer Instanz -- GitLab, Forgejo oder Gitea."""
 
     VERSION = 1
@@ -190,11 +190,11 @@ class HacsLabFluss(config_entries.ConfigFlow, domain=DOMAIN):
     @staticmethod
     def async_get_options_flow(
         eintrag: config_entries.ConfigEntry,
-    ) -> HacsLabOptionen:
-        return HacsLabOptionen(eintrag)
+    ) -> HaigsOptionen:
+        return HaigsOptionen(eintrag)
 
 
-class HacsLabOptionen(config_entries.OptionsFlow):
+class HaigsOptionen(config_entries.OptionsFlow):
     """Abstand des Herzschlags und die Liste der Custom Repositories.
 
     Ohne Menue kaeme Stufe M3 in einen Konflikt mit M2: beide gehoeren

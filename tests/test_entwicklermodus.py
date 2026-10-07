@@ -10,9 +10,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from hacs_lab.core.aktualisierungen import Pruefauftrag, pruefe, zweig_version
-from hacs_lab.core.forgejo_forge import ForgejoForge
-from hacs_lab.core.gitlab_forge import GitLabForge
+from haigs.core.aktualisierungen import Pruefauftrag, pruefe, zweig_version
+from haigs.core.forgejo_forge import ForgejoForge
+from haigs.core.gitlab_forge import GitLabForge
 
 from tests.attrappe_kern import FakeHttp
 
@@ -137,7 +137,7 @@ async def test_das_archiv_kommt_zum_sha() -> None:
 
 
 def test_die_option_steht_im_dialog_beider_sprachen() -> None:
-    wurzel = Path(__file__).resolve().parents[1] / "custom_components" / "hacs_lab"
+    wurzel = Path(__file__).resolve().parents[1] / "custom_components" / "haigs"
     for datei in ("strings.json", "translations/en.json", "translations/de.json"):
         text = (wurzel / datei).read_text(encoding="utf-8")
         assert '"entwickler"' in text, datei

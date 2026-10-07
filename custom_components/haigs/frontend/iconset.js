@@ -1,9 +1,9 @@
 /**
- * HACS*lab Iconset -- der Tanuki von GitLab, monochrom.
+ * HAIGS Iconset -- der Tanuki von GitLab, monochrom.
  *
  * Home Assistants Frontend kennt eigene Zeichenkollektionen: alles vor
  * dem Doppelpunkt einer Icon-Adresse nennt die Kollektion, alles dahinter
- * das Zeichen. ``mdi:hexagon-multiple`` ist MDI; ``hacs-lab:tanuki``
+ * das Zeichen. ``mdi:hexagon-multiple`` ist MDI; ``haigs:tanuki``
  * ist dieses Hier.
  *
  * Das Original ist das Markenbild von GitLab (vier farbige Pfade, vom
@@ -28,7 +28,7 @@ const TANUKI_SILHOUETTE =
 const TANUKI_VIEWBOX = "0 0 50 48";
 
 window.customIconsets = window.customIconsets || {};
-window.customIconsets["hacs-lab"] = (name) => {
+window.customIconsets["haigs"] = (name) => {
   if (name !== "tanuki") {
     return null;
   }

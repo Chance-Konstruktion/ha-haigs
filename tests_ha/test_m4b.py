@@ -10,7 +10,7 @@ HA» wird hier mit dem eigenen Release gefahren: die gleiche
 Integration, die diesen Test gerade als laufende Instanz abwickelt,
 liegt danach als Dateien im Konfigurationsverzeichnis.
 
-Deinstallation geht durch den Panel-Befehl ``hacs_lab/deinstallieren``
+Deinstallation geht durch den Panel-Befehl ``haigs/deinstallieren``
 (WebSocket): Home Assistants update-Entities kennen kein
 Uninstall-Konzept, also ist es hier ein Befehl und kein Dienst von
 ihnen.
@@ -28,11 +28,11 @@ from homeassistant.helpers import issue_registry
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from auslieferung.release_bauen import baue_release
-from custom_components.hacs_lab.aktualisierer import _kennung
-from custom_components.hacs_lab.const import CONF_HOST, CONF_TOKEN, DOMAIN
+from custom_components.haigs.aktualisierer import _kennung
+from custom_components.haigs.const import CONF_HOST, CONF_TOKEN, DOMAIN
 from tests.attrappe import Aufzeichnung, projekt
 
-SCHLUESSEL = "hacs_lab.gitlab_example_net"
+SCHLUESSEL = "haigs.gitlab_example_net"
 STORAGE_KEY = "gitlab@gitlab.example.net:789012"
 WURZEL = Path(__file__).resolve().parents[1]
 
@@ -119,7 +119,7 @@ def eigener_release_zip(tmp_path: Path) -> bytes:
 
     Mit ``release_bauen`` gebaut, echte Dateien, echt deterministisch --
     nur der Aeussere kommt ab: das Release-ZIP ist die
-    HANDinstallations-Form (``custom_components/hacs_lab/...`` an der
+    HANDinstallations-Form (``custom_components/haigs/...`` an der
     Wurzel, zum Entpacken ins Konfigurationsverzeichnis), der Installer
     will die HACS-Form (ein Ordner, alles darunter). Beide Formen sind
     Absicht: die eine spricht Menschen, die andere dem Installer. Hier
@@ -130,9 +130,9 @@ def eigener_release_zip(tmp_path: Path) -> bytes:
     archiv = io.BytesIO()
     with zipfile.ZipFile(handform) as quelle, zipfile.ZipFile(archiv, "w") as ziel:
         for name in quelle.namelist():
-            if name.startswith("custom_components/hacs_lab/"):
+            if name.startswith("custom_components/haigs/"):
                 ziel.writestr(
-                    "hacs_lab/" + name[len("custom_components/hacs_lab/") :],
+                    "haigs/" + name[len("custom_components/haigs/") :],
                     quelle.read(name),
                 )
     return archiv.getvalue()
@@ -288,7 +288,7 @@ async def test_eigener_release_installiert_sich_selbst(
             herzschlag(),
             stammdaten(),
             releases(release_objekt("v1.2.0")),
-            releases(release_objekt("v1.2.0", {"hacs-lab.zip": "https://x/eigen"})),
+            releases(release_objekt("v1.2.0", {"haigs.zip": "https://x/eigen"})),
             Aufzeichnung(rohbytes=eigenes, kopfzeilen={}),
         ]
     )
@@ -302,13 +302,13 @@ async def test_eigener_release_installiert_sich_selbst(
     )
     await hass.async_block_till_done()
 
-    ziel = Path(hass.config.config_dir) / "custom_components" / "hacs_lab"
+    ziel = Path(hass.config.config_dir) / "custom_components" / "haigs"
     assert (ziel / "manifest.json").exists()
     assert (ziel / "core" / "forge.py").exists()
-    assert json.loads((ziel / "manifest.json").read_text())["domain"] == "hacs_lab"
+    assert json.loads((ziel / "manifest.json").read_text())["domain"] == "haigs"
     assert (
         hass_storage[SCHLUESSEL]["data"]["stand"][STORAGE_KEY]["pfad"]
-        == "custom_components/hacs_lab"
+        == "custom_components/haigs"
     )
 
 
@@ -321,7 +321,7 @@ async def test_deinstallation_raeumt_genau_den_weg(
     """Installieren, deinstallieren: das Ziel ist weg, der Rest bleibt.
 
     Home Assistants update-Entities kennen kein Uninstall -- der Weg
-    hier ist der Panel-Befehl ``hacs_lab/deinstallieren``.
+    hier ist der Panel-Befehl ``haigs/deinstallieren``.
     """
     speichern(hass_storage, [eintrag_daten()])
     nachbar = Path(hass.config.config_dir) / "custom_components" / "andere"
@@ -351,7 +351,7 @@ async def test_deinstallation_raeumt_genau_den_weg(
     )
     await hass.async_block_till_done()
 
-    antwort = await frage(client, 1, "hacs_lab/deinstallieren", storage_key=STORAGE_KEY)
+    antwort = await frage(client, 1, "haigs/deinstallieren", storage_key=STORAGE_KEY)
     assert antwort["success"], antwort
     assert antwort["result"]["deinstalliert"] == "foo/bar*lab"
     await hass.async_block_till_done()
@@ -383,7 +383,7 @@ async def test_deinstallation_ohne_weg_ist_ehrlich(
     await richten(hass, mock_eintrag())
     client = await hass_ws_client(hass)
 
-    antwort = await frage(client, 1, "hacs_lab/deinstallieren", storage_key=STORAGE_KEY)
+    antwort = await frage(client, 1, "haigs/deinstallieren", storage_key=STORAGE_KEY)
     assert not antwort["success"]
     assert "kein installierter Pfad verzeichnet" in antwort["error"]["message"]
 
@@ -398,7 +398,7 @@ async def test_deinstallation_unbekannter_eintrag(
     client = await hass_ws_client(hass)
 
     antwort = await frage(
-        client, 1, "hacs_lab/deinstallieren", storage_key="gitlab@example:1"
+        client, 1, "haigs/deinstallieren", storage_key="gitlab@example:1"
     )
     assert not antwort["success"]
     assert "steht in keiner Liste" in antwort["error"]["message"]

@@ -22,11 +22,11 @@ from pytest_homeassistant_custom_component.common import (
     async_fire_time_changed,
 )
 
-from custom_components.hacs_lab.const import CONF_HOST, CONF_TOKEN, DOMAIN
-from custom_components.hacs_lab.core.identity import RepositoryIdentity
+from custom_components.haigs.const import CONF_HOST, CONF_TOKEN, DOMAIN
+from custom_components.haigs.core.identity import RepositoryIdentity
 from tests.attrappe import Aufzeichnung, projekt
 
-SCHLUESSEL = "hacs_lab.gitlab_example_net"
+SCHLUESSEL = "haigs.gitlab_example_net"
 STORAGE_KEY = "gitlab@gitlab.example.net:789012"
 
 
@@ -186,7 +186,7 @@ async def test_neues_release_erscheint_ohne_zutun(
     assert len(attrappe.abrufe) == 9
     # Das Lager hat den Scan ueberlebt: der Kandidat steht als Fund
     # darin, und er ist als vorhanden verzeichnet.
-    lager = hass_storage["hacs_lab.lager.gitlab_example_net"]["data"]
+    lager = hass_storage["haigs.lager.gitlab_example_net"]["data"]
     assert [f["full_name"] for f in lager["funde"]] == ["foo/bar"]
     assert lager["funde"][0]["vorhanden"] is True
     assert lager["eintraege"][0]["installiert"] == "1.1.0"
@@ -283,7 +283,7 @@ async def test_installations_dienst_tauscht_die_dateien(
         "beispiel_integration"
     )
     # Die Zwischenlager bleibt, die halbfertigen Reste darin nicht.
-    zwischen = Path(hass.config.config_dir) / ".hacs_lab_zwischenlager"
+    zwischen = Path(hass.config.config_dir) / ".haigs_zwischenlager"
     assert not (zwischen / "custom_components.beispiel_integration.neu").exists()
     assert not (zwischen / "custom_components.beispiel_integration.alt").exists()
 

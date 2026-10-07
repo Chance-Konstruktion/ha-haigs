@@ -6,8 +6,8 @@ traegt Commits und Tags hinueber, aber ein GitLab-Release ist ein
 GitLab-Objekt -- drueben entsteht daraus nichts von allein.
 
 Die Vorlage in ``claude/ci-vorlagen`` legt den Eintrag an, haengt aber
-nichts daran. Fuer HACS*lab reicht das nicht: beide READMEs schicken die
-Leute zu ``hacs-lab-vX.Y.Z.zip``. Ohne Anhang faende dort nur das
+nichts daran. Fuer HAIGS reicht das nicht: beide READMEs schicken die
+Leute zu ``haigs-vX.Y.Z.zip``. Ohne Anhang faende dort nur das
 automatische Quell-Archiv statt der geprueften, deterministisch gebauten
 Lieferform. Darum zwei Aufrufe:
 

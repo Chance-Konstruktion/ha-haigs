@@ -16,12 +16,12 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .aktualisierer import HacsLabAktualisierer, hole_aktualisierer
+from .aktualisierer import HaigsAktualisierer, hole_aktualisierer
 from .const import DOMAIN
 
 if TYPE_CHECKING:
     from . import Laufzeit
-    from .aktualisierer import HacsLabAktualisierer
+    from .aktualisierer import HaigsAktualisierer
     from .eintraege import Eintraege, Eintrag
     from .stand import Staende
 
@@ -43,10 +43,10 @@ async def async_setup_entry(
         return
     await laufzeit.staende.laden()
 
-    entities: dict[str, HacsLabVorabSchalter] = {}
+    entities: dict[str, HaigsVorabSchalter] = {}
 
     def _anlegen(eintrag_obj: Eintrag) -> None:
-        entity = HacsLabVorabSchalter(
+        entity = HaigsVorabSchalter(
             laufzeit.staende, laufzeit.eintraege, aktualisierer, eintrag_obj
         )
         entities[eintrag_obj.storage_key] = entity
@@ -73,7 +73,7 @@ async def async_setup_entry(
     laufzeit.eintraege.melde_aenderungen(_bei_aenderung)
 
 
-class HacsLabVorabSchalter(SwitchEntity):
+class HaigsVorabSchalter(SwitchEntity):
     """Vorabversionen eines Eintrags erlauben oder nicht."""
 
     _attr_should_poll = False
@@ -83,7 +83,7 @@ class HacsLabVorabSchalter(SwitchEntity):
         self,
         staende: Staende,
         eintraege: Eintraege,
-        aktualisierer: HacsLabAktualisierer,
+        aktualisierer: HaigsAktualisierer,
         eintrag: Eintrag,
     ) -> None:
         self._staende = staende

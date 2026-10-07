@@ -1,6 +1,6 @@
 """Flug 2100 -- der Laden traegt die Kleider von HACS.
 
-Wer HACS*lab oeffnet, soll sich fragen, ob er im Original-HACS steht.
+Wer HAIGS oeffnet, soll sich fragen, ob er im Original-HACS steht.
 Das geht nur, wenn das Panel dasselbe Material nimmt wie HACS -- nicht
 ein Nachbau, sondern die Bausteine des Hauses. Diese Pruefungen halten
 fest, dass das so bleibt; gelesen wird die Datei, nicht geraten.
@@ -11,7 +11,7 @@ from __future__ import annotations
 from pathlib import Path
 
 PANEL = Path(__file__).resolve().parents[1] / (
-    "custom_components/hacs_lab/frontend/panel.js"
+    "custom_components/haigs/frontend/panel.js"
 )
 
 
@@ -43,7 +43,7 @@ def test_die_gruppen_heissen_wie_bei_hacs() -> None:
 def test_die_detailseite_hat_eine_eigene_adresse() -> None:
     """Zurueck im Browser fuehrt zur Liste, ein Link fuehrt zum Repository."""
     text = panel_text()
-    assert '"/hacs-lab/repository/" + encodeURIComponent(z.id)' in text
+    assert '"/haigs/repository/" + encodeURIComponent(z.id)' in text
     assert "_folge_route()" in text
 
 
@@ -77,7 +77,7 @@ def test_relative_readme_adressen_zeigen_auf_die_schmiede() -> None:
 
 
 def test_icons_kommen_aus_dem_brand_ordner() -> None:
-    """HACS 2.0 fragt nur den zentralen brands-Server -- HACS*lab nimmt HAs Proxy.
+    """HACS 2.0 fragt nur den zentralen brands-Server -- HAIGS nimmt HAs Proxy.
 
     Seit 2026 bringen Integrationen ihr Icon im eigenen ``brand/``-Ordner
     mit; Home Assistant liefert es ueber ``/api/brands`` mit eigenem Token.
@@ -96,14 +96,14 @@ def test_benutzerdefinierte_repositories_wie_in_hacs() -> None:
     assert 'benutzerdefiniert: "Benutzerdefinierte Repositories"' in text
     assert 'benutzerdefiniert: "Custom repositories"' in text
     assert "_benutzerdefiniert()" in text
-    assert 'type: "hacs_lab/hinzufuegen", host: ziel.host' in text
+    assert 'type: "haigs/hinzufuegen", host: ziel.host' in text
     # Adressen aus der Adresszeile: /-/tree/main, /src/branch, .git fallen weg.
     assert ".replace(/\/-\/.*$/" in text
     assert "(src|tree|blob|releases|issues)" in text
 
 
 def test_update_entities_tragen_das_icon_des_repositorys() -> None:
-    """Nicht jedes Update mit dem HACS*lab-Zeichen: die Domain waehlt das Icon."""
+    """Nicht jedes Update mit dem HAIGS-Zeichen: die Domain waehlt das Icon."""
     text = (PANEL.parents[1] / "update.py").read_text(encoding="utf-8")
     assert "def entity_picture(self)" in text
     assert 'f"/api/brands/integration/{teile[1]}/icon.png"' in text

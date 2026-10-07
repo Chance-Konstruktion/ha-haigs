@@ -8,7 +8,7 @@ melden bei jeder Aenderung, abmelden ohne Spuren, kein Werfen.
 
 from __future__ import annotations
 
-from hacs_lab.stand import Staende, Stand
+from haigs.stand import Staende, Stand
 
 
 class AblageAttrappe:

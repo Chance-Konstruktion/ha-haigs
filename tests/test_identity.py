@@ -1,7 +1,7 @@
 """Die Identitaet ist der Kern: sie entscheidet, was doppelt ist und was nicht."""
 
 import pytest
-from hacs_lab.core.identity import (
+from haigs.core.identity import (
     GITHUB,
     GITLAB,
     RepositoryIdentity,

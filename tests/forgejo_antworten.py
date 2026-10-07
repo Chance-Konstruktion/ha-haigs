@@ -17,7 +17,7 @@ mitbringen (60 Stueck, inklusive ``owner`` und Merge-Einstellungen),
 was handgebaute Attrappen nie zeigen.
 
 Drei Befunde aus dem Material, die in
-:class:`~hacs_lab.core.forgejo_forge.ForgejoForge` eingearbeitet sind:
+:class:`~haigs.core.forgejo_forge.ForgejoForge` eingearbeitet sind:
 
 * Zehn Stichwort-Treffer fuer ``hacs``, aber nur **drei** tragen das
   Topic wirklich -- der ``topic``-Parameter der Such-API wird von
