@@ -265,3 +265,18 @@ async def _abstand_geaendert(hass: HomeAssistant, eintrag: ConfigEntry) -> None:
     if laufzeit.lager is not None:
         laufzeit.lager.update_interval = timedelta(minutes=minuten)
     _LOGGER.info("Abstand fuer %s auf %s Minuten gesetzt", laufzeit.forge.host, minuten)
+    # Flug 2101: der Entwicklermodus wechselt, was "neueste" heisst --
+    # also gleich frisch pruefen, und das Lager zieht hinterher.
+    aktualisierer = getattr(laufzeit, "aktualisierer", None)
+    if aktualisierer is not None:
+        hass.async_create_task(_frisch_nach_optionen(aktualisierer, laufzeit.lager))
+
+
+async def _frisch_nach_optionen(aktualisierer: Any, lager: Any) -> None:
+    """Ein Lauf nach dem Optionswechsel, danach das Lager."""
+    await aktualisierer.async_refresh()
+    if lager is not None:
+        try:
+            await lager.voller_lauf()
+        except Exception as fehler:  # noqa: BLE001 - der Takt holt es nach
+            _LOGGER.debug("Lager nach Optionswechsel gescheitert: %s", fehler)

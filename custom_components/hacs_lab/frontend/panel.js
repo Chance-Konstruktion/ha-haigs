@@ -625,6 +625,7 @@ const PFADE = {
   neustart: "M12,4C14.1,4 16.1,4.8 17.6,6.3C20.7,9.4 20.7,14.5 17.6,17.6C15.8,19.5 13.3,20.2 10.9,19.9L11.4,17.9C13.1,18.1 14.9,17.5 16.2,16.2C18.5,13.9 18.5,10.1 16.2,7.7C15.1,6.6 13.5,6 12,6V10.6L7,5.6L12,0.6V4M6.3,17.6C3.7,15 3.3,11 5.1,7.9L6.6,9.4C5.5,11.6 5.9,14.4 7.8,16.2C8.3,16.7 8.9,17.1 9.6,17.4L9,19.4C8,19 7.1,18.4 6.3,17.6Z",
   schliessen: "M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z",
   repo: "M6,2H18A2,2 0 0,1 20,4V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V4A2,2 0 0,1 6,2Z",
+  zweig: "M13,14C9.64,14 8.54,15.35 8.18,16.24C9.25,16.7 10,17.76 10,19A3,3 0 0,1 7,22A3,3 0 0,1 4,19C4,17.690 4.83,16.58 6,16.17V7.83C4.83,7.42 4,6.31 4,5A3,3 0 0,1 7,2A3,3 0 0,1 10,5C10,6.31 9.17,7.42 8,7.83V13.12C8.88,12.47 10.16,12 12,12C14.67,12 15.56,10.66 15.85,9.77C14.77,9.32 14,8.25 14,7A3,3 0 0,1 17,4A3,3 0 0,1 20,7C20,8.34 19.12,9.5 17.91,9.86C17.65,11.29 16.68,14 13,14M7,18A1,1 0 0,0 6,19A1,1 0 0,0 7,20A1,1 0 0,0 8,19A1,1 0 0,0 7,18M7,4A1,1 0 0,0 6,5A1,1 0 0,0 7,6A1,1 0 0,0 8,5A1,1 0 0,0 7,4M17,6A1,1 0 0,0 16,7A1,1 0 0,0 17,8A1,1 0 0,0 18,7A1,1 0 0,0 17,6Z",
   update: "M21,10.12H14.22L16.96,7.3C14.23,4.6 9.81,4.5 7.08,7.2C4.35,9.91 4.35,14.28 7.08,17C9.81,19.7 14.23,19.7 16.96,17C18.32,15.65 19,14.080 19,12.1H21C21,14.08 20.120,16.65 18.36,18.39C14.85,21.87 9.15,21.87 5.64,18.39C2.14,14.92 2.11,9.28 5.62,5.81C9.13,2.34 14.76,2.34 18.27,5.81L21,3V10.12M12.5,8V12.25L16,14.33L15.28,15.54L11,13V8H12.5Z",
 };
 
@@ -687,6 +688,10 @@ const LADEN_TEXTE = {
     neustart_knopf: "Neu starten",
     einrichten: "Einrichten",
     readme_fehlt: "Dieses Repository hat keine README.",
+    entwicklermodus: "Entwicklermodus",
+    entwicklermodus_titel: "Diese Quelle lädt den neuesten Stand des Standardzweigs statt Releases",
+    dialog_download_zweig: (v, h) =>
+      `Entwicklermodus: Der Stand ${v} des Standardzweigs wird von ${h} heruntergeladen – ungetestet, frisch vom letzten Push.`,
     kein_release: "Noch kein Release – sobald das Repository eins veröffentlicht, lässt es sich hier herunterladen.",
     lade: "Lade …",
     erfolg_download: (n) => `${n} wurde heruntergeladen.`,
@@ -752,6 +757,10 @@ const LADEN_TEXTE = {
     neustart_knopf: "Restart",
     einrichten: "Set up",
     readme_fehlt: "This repository has no README.",
+    entwicklermodus: "Developer mode",
+    entwicklermodus_titel: "This source loads the latest state of the default branch instead of releases",
+    dialog_download_zweig: (v, h) =>
+      `Developer mode: state ${v} of the default branch will be downloaded from ${h} – untested, fresh from the last push.`,
     kein_release: "No release yet – once the repository publishes one, you can download it here.",
     lade: "Loading …",
     erfolg_download: (n) => `${n} was downloaded.`,
@@ -865,6 +874,7 @@ class HacsLabPanel extends HTMLElement {
     this._funde = [];
     this._instanzen = [];
     this._anbieter = {};
+    this._entwicklung = {};
     this._laedt = true;
     this._beschaeftigt = false;
     this._erneuert_am = 0;
@@ -987,6 +997,7 @@ class HacsLabPanel extends HTMLElement {
     this._funde = antwort.funde || [];
     this._instanzen = antwort.instanzen || [];
     this._anbieter = antwort.anbieter || {};
+    this._entwicklung = antwort.entwicklermodus || {};
     this._laedt = false;
     this._zeichne_liste();
   }
@@ -1467,7 +1478,8 @@ class HacsLabPanel extends HTMLElement {
       chip(PFADE.server, this._quelle_text(z.host), t.spalte_quelle, info.web_url || z.web_url),
       chip(PFADE.stern, sterne || 0, t.spalte_sterne, info.web_url || z.web_url),
       tickets !== undefined && chip(PFADE.ticket, tickets, "Issues", info.tickets_url || z.tickets_url),
-      z.neueste && chip(PFADE.tag, z.neueste, t.version, info.releases_url || z.releases_url)
+      z.neueste && chip(PFADE.tag, z.neueste, t.version, info.releases_url || z.releases_url),
+      this._entwicklung[z.host] && chip(PFADE.zweig, t.entwicklermodus, t.entwicklermodus_titel, null)
     );
 
     const karte = knoten("ha-card", { class: "hl-detail-karte" }, chips);
@@ -1601,7 +1613,9 @@ class HacsLabPanel extends HTMLElement {
     const name = (z.anzeige || "").split("/").pop();
     this._dialog_zeigen(
       t.dialog_download(name),
-      t.dialog_download_text(z.neueste || "—", z.host),
+      this._entwicklung[z.host]
+        ? t.dialog_download_zweig(z.neueste || "—", z.host)
+        : t.dialog_download_text(z.neueste || "—", z.host),
       z.installiert && z.installiert !== z.neueste ? t.aktualisieren : t.herunterladen,
       () => this._herunterladen(z)
     );

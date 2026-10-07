@@ -32,6 +32,15 @@ class Release:
 
 
 @dataclass(frozen=True)
+class Commit:
+    """Der Kopf eines Zweigs -- was der Entwicklermodus installiert."""
+
+    sha: str
+    datum: str = ""
+    nachricht: str = ""
+
+
+@dataclass(frozen=True)
 class RepositoryInfo:
     """Was ein Anbieter ueber ein Repository verraet.
 
@@ -117,6 +126,13 @@ class Forge(Protocol):
 
         Stufe M5: die Update-Erkennung greift darauf zurueck. Wer einen
         Anbieter anbindet, liefert hier einfach die Tagnamen.
+        """
+
+    async def zweig_stand(self, pfad: str, zweig: str) -> Commit:
+        """Der juengste Commit eines Zweigs (Flug 2101, Entwicklermodus).
+
+        Wer entwickelt, will nicht auf ein Release warten: der Kopf des
+        Zweigs ist dann die Version, sein SHA der Ref fuer das Archiv.
         """
 
     async def datei(self, pfad: str, datei: str, ref: str) -> bytes:

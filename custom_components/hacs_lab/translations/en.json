@@ -31,6 +31,7 @@
       "init": {
         "menu_options": {
           "abstand": "Heartbeat interval",
+          "entwickler": "Developer mode",
           "repository": "Add a custom repository",
           "eintraege": "Watched repositories"
         }
@@ -61,6 +62,13 @@
         "data": {
           "entfernen": "Repository to remove",
           "dateien_deinstallieren": "Also remove installed files (from stage M4)"
+        }
+      },
+      "entwickler": {
+        "title": "Developer mode",
+        "description": "Instead of releases, HACS*lab installs the latest state of each repository's default branch – every push is downloadable right away. Versions then look like main@1a2b3c4. Meant for testing your own work; switch it off again for daily use.",
+        "data": {
+          "entwicklermodus": "Load the default branch instead of releases"
         }
       }
     },

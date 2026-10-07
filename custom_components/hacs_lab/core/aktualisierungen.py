@@ -38,6 +38,10 @@ class Pruefauftrag:
     pfad: str
     installiert: str = ""
     mit_vorabversionen: bool = False
+    #: Flug 2101, Entwicklermodus: statt Releases zaehlt der Kopf eines
+    #: Zweigs. Leer heisst: der Standardzweig des Projekts.
+    entwicklung: bool = False
+    zweig: str = ""
 
 
 @dataclass(frozen=True)
@@ -81,6 +85,9 @@ async def pruefe(forge: Forge, auftrag: Pruefauftrag) -> Fund:
     Der Rueckfall auf Tags gilt auch dann, wenn die Releases nicht
     gelingen: erst wenn beides scheitert, ist der Fund ein Fehler-Fund.
     """
+    if auftrag.entwicklung:
+        return await _pruefe_zweig(forge, auftrag)
+
     fehler_text: str | None = None
     try:
         releases = await forge.releases(auftrag.pfad)
@@ -116,6 +123,46 @@ async def pruefe(forge: Forge, auftrag: Pruefauftrag) -> Fund:
         notizen=_notizen_zu(releases, wahl.tag),
         quelle=quelle,
         veroeffentlicht_am=_veroeffentlicht_zu(releases, wahl.tag),
+    )
+
+
+def zweig_version(zweig: str, sha: str) -> str:
+    """Die Version eines Zweigstands, wie sie Mensch und Entity sehen."""
+    return f"{zweig}@{sha[:7]}"
+
+
+async def _pruefe_zweig(forge: Forge, auftrag: Pruefauftrag) -> Fund:
+    """Der Entwicklermodus (Flug 2101): der Kopf des Zweigs ist die Version.
+
+    Kein Release, kein Tag -- wer entwickelt, will den Stand von eben
+    testen. Die Version heisst ``zweig@sha7``, der volle SHA ist der Ref
+    fuer das Archiv. Wie :func:`pruefe` wirft auch dieser Weg nie.
+    """
+    try:
+        zweig = auftrag.zweig
+        if not zweig:
+            zweig = (await forge.repository(auftrag.pfad)).standardzweig or "main"
+        kopf = await forge.zweig_stand(auftrag.pfad, zweig)
+    except Exception as fehler:  # noqa: BLE001 - Absicht, s. Moduldoku
+        text = str(fehler) or fehler.__class__.__name__
+        _LOGGER.debug("Zweigstand zu %s gescheitert: %s", auftrag.pfad, text)
+        return Fund(
+            schluessel=auftrag.schluessel,
+            verfuegbar=False,
+            installiert=auftrag.installiert,
+            neueste="",
+            fehler=text,
+        )
+    neueste = zweig_version(zweig, kopf.sha)
+    return Fund(
+        schluessel=auftrag.schluessel,
+        verfuegbar=neueste != auftrag.installiert,
+        installiert=auftrag.installiert,
+        neueste=neueste,
+        tag=kopf.sha,
+        notizen=kopf.nachricht,
+        quelle="zweig",
+        veroeffentlicht_am=kopf.datum,
     )
 
 
