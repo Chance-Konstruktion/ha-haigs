@@ -543,39 +543,51 @@ async def test_entwicklermodus_ueber_das_menue(
 # -- Offizielle HACS-Repos als Quelle -------------------------------------
 
 
-def katalog_antworten() -> list[Aufzeichnung]:
-    """Die drei Dateien des HACS-Katalogs (Integrationen, Plugins, Themes)."""
+def katalog_einpflanzen(attrappe) -> None:
+    """Die Sitzung antwortet auf die Katalog-Adressen nach Adresse.
 
-    def datei(zeilen: dict) -> Aufzeichnung:
-        return Aufzeichnung(text=json.dumps(zeilen), kopfzeilen={})
-
-    return [
-        datei(
-            {
-                "101": {
-                    "full_name": "foo/ha-bar",
-                    "description": "Eine Integration",
-                    "domain": "bar",
-                    "stargazers_count": 5,
-                    "downloads": 1234,
-                    "last_version": "1.2.3",
-                    "last_updated": "2026-09-01T10:00:00Z",
-                    "topics": [],
-                }
+    Alles andere laeuft wie bisher aus den aufgezeichneten Antworten
+    (und danach mit einer leeren Suche) -- so ist es egal, wie viele
+    Laeufe die Optionsaenderung des anderen Eintrags auslost.
+    """
+    zeilen = {
+        "integration": {
+            "101": {
+                "full_name": "foo/ha-bar",
+                "description": "Eine Integration",
+                "domain": "bar",
+                "stargazers_count": 5,
+                "downloads": 1234,
+                "last_version": "1.2.3",
+                "last_updated": "2026-09-01T10:00:00Z",
+                "topics": [],
             }
-        ),
-        datei({}),
-        datei({}),
-    ]
+        },
+        "plugin": {},
+        "theme": {},
+    }
+    original = attrappe.get
+
+    async def get(url, params=None, headers=None):
+        for kategorie, inhalt in zeilen.items():
+            if f"data-v2.hacs.xyz/{kategorie}/" in url:
+                attrappe.abrufe.append((url, params, headers))
+                return Aufzeichnung(text=json.dumps(inhalt), kopfzeilen={})
+        if not attrappe.aufzeichnungen:
+            attrappe.aufzeichnungen.append(antwort())
+        return await original(url, params, headers)
+
+    attrappe.get = get
 
 
 async def test_katalog_ein_und_ausschalten(
     hass: HomeAssistant, sitzung_einpflanzen
 ) -> None:
     """Der Schalter legt den Katalog-Eintrag an und entfernt ihn wieder."""
-    mock, _ = await dialog_und_eintrag(
-        hass, sitzung_einpflanzen, [antwort(), antwort(), *katalog_antworten()]
+    mock, attrappe = await dialog_und_eintrag(
+        hass, sitzung_einpflanzen, [antwort(), antwort()]
     )
+    katalog_einpflanzen(attrappe)
     hass.config_entries.async_update_entry(mock, options={CONF_ABSTAND_MINUTEN: 30})
     await hass.async_block_till_done()
 
@@ -618,7 +630,7 @@ async def test_katalog_eintrag_hat_ein_eigenes_menue(
     hass: HomeAssistant, sitzung_einpflanzen
 ) -> None:
     """Der Katalog kennt weder Entwicklermodus noch freie Adressen."""
-    sitzung_einpflanzen(katalog_antworten())
+    katalog_einpflanzen(sitzung_einpflanzen([]))
     ergebnis = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": "import"}, data={}
     )
