@@ -132,6 +132,32 @@ class HacsLabUpdateEntity(UpdateEntity):
         return self._eintrag_aktuell.anzeigename
 
     @property
+    def entity_picture(self) -> str | None:
+        """Das Zeichen des Repositorys, nicht das von HACS*lab (Flug 2101).
+
+        Home Assistant malt eine update-Entity sonst mit dem Icon ihrer
+        Plattform -- und das ist hacs_lab, fuer jedes Repository gleich.
+        Eine installierte Integration hat ihre eigene Domain im Zielweg
+        (``custom_components/<domain>``); ueber denselben Marken-Proxy,
+        den HA fuer seine eigenen update-Entities nutzt
+        (``/api/brands/integration/<domain>/icon.png``), kommt ihr Icon
+        aus dem ``brand/``-Ordner.
+        Alles andere zeigt das Projektbild der Schmiede, sonst HA-Standard.
+        """
+        weg = self._staende.stand(self._eintrag.storage_key).pfad.strip("/")
+        teile = weg.split("/")
+        if len(teile) == 2 and teile[0] == "custom_components" and teile[1]:
+            return f"/api/brands/integration/{teile[1]}/icon.png"
+        if self._lager is not None:
+            for zeile in self._lager.zeilen:
+                if zeile.get("storage_key") == self._eintrag.storage_key:
+                    bild = str(zeile.get("avatar_url") or "")
+                    if bild:
+                        return bild
+                    break
+        return super().entity_picture
+
+    @property
     def in_progress(self) -> bool:
         """Eigene Fassung statt ``_attr_``: steuerbar waehrend des Laufs."""
         return self._laeuft_gerade

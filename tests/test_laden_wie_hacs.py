@@ -100,3 +100,11 @@ def test_benutzerdefinierte_repositories_wie_in_hacs() -> None:
     # Adressen aus der Adresszeile: /-/tree/main, /src/branch, .git fallen weg.
     assert ".replace(/\/-\/.*$/" in text
     assert "(src|tree|blob|releases|issues)" in text
+
+
+def test_update_entities_tragen_das_icon_des_repositorys() -> None:
+    """Nicht jedes Update mit dem HACS*lab-Zeichen: die Domain waehlt das Icon."""
+    text = (PANEL.parents[1] / "update.py").read_text(encoding="utf-8")
+    assert "def entity_picture(self)" in text
+    assert 'f"/api/brands/integration/{teile[1]}/icon.png"' in text
+    assert "avatar_url" in text
