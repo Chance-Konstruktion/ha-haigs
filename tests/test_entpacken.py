@@ -13,7 +13,7 @@ import struct
 import zipfile
 
 import pytest
-from hacs_lab.core.entpacken import (
+from haigs.core.entpacken import (
     ArchivBeschaedigt,
     BoesesArtefakt,
     EntpackErgebnis,
@@ -293,7 +293,7 @@ def test_grenzfall_genau_an_der_grenze_zieht_noch(tmp_path):
 
 def test_installieren_auf_frisches_ziel(tmp_path):
     lager = tmp_path / "lager"
-    ziel = tmp_path / "config" / "custom_components" / "hacs_lab"
+    ziel = tmp_path / "config" / "custom_components" / "haigs"
     ergebnis = installiere(baue_zip({"__init__.py": b"pass\n"}), lager, ziel)
     assert (ziel / "__init__.py").exists()
     assert ergebnis.dateien == 1
@@ -302,7 +302,7 @@ def test_installieren_auf_frisches_ziel(tmp_path):
 
 def test_installieren_ersetzt_und_hinterlaesst_keine_resten(tmp_path):
     lager = tmp_path / "lager"
-    ziel = tmp_path / "hacs_lab"
+    ziel = tmp_path / "haigs"
     ziel.mkdir()
     (ziel / "alt.txt").write_bytes(b"veraltet")
     installiere(baue_zip({"neu.txt": b"frisch"}), lager, ziel)
@@ -316,7 +316,7 @@ def test_installieren_scheitert_das_alte_ziel_bleibt(tmp_path):
     Installation. Das korrupte Archiv fliegt beim Entpacken auf, das
     bisherige Ziel bleibt unangetastet stehen."""
     lager = tmp_path / "lager"
-    ziel = tmp_path / "hacs_lab"
+    ziel = tmp_path / "haigs"
     ziel.mkdir()
     (ziel / "funktioniert.txt").write_bytes(b"weiterhin")
     boese = korrumpiere_daten(baue_zip({"riesig.bin": b"\x00" * 4096}))
@@ -333,7 +333,7 @@ def test_installieren_taucht_und_holt_zurueck(tmp_path, monkeypatch):
     import os
 
     lager = tmp_path / "lager"
-    ziel = tmp_path / "hacs_lab"
+    ziel = tmp_path / "haigs"
     ziel.mkdir()
     (ziel / "alt.txt").write_bytes(b"das bleibt")
     aufrufe = []
@@ -361,7 +361,7 @@ def test_zusammenspiel_mit_zielpfaden_vollstaendige_installation(tmp_path):
     Ausschnitt uebersetzen, den Kopierplan aus ``waehle_eintraege``
     direkt als Umbenenn-Zuordnung entpacken -- am Ziel liegt danach die
     Integration, ohne dass jemand Dateien einzeln verschiebt."""
-    from hacs_lab.core.zielpfade import Ausschnitt, waehle_eintraege
+    from haigs.core.zielpfade import Ausschnitt, waehle_eintraege
 
     archiv = baue_zip(
         {

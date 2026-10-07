@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "Connect HACS*lab to an instance",
+        "title": "Connect HAIGS to an instance",
         "description": "Address of the instance and its provider. \"auto\" asks the instance itself (two or three small requests) and is right for gitlab.com, codeberg.org, gitea.com, and self-hosted servers alike; pick a named provider if auto-detection cannot decide. The host is enough; a pasted link is shortened to it. Public instances work without a token, private ones usually need a read token.",
         "data": {
           "host": "Host of the instance",
@@ -66,7 +66,7 @@
       },
       "entwickler": {
         "title": "Developer mode",
-        "description": "Instead of releases, HACS*lab installs the latest state of each repository's default branch – every push is downloadable right away. Versions then look like main@1a2b3c4. Meant for testing your own work; switch it off again for daily use.",
+        "description": "Instead of releases, HAIGS installs the latest state of each repository's default branch – every push is downloadable right away. Versions then look like main@1a2b3c4. Meant for testing your own work; switch it off again for daily use.",
         "data": {
           "entwicklermodus": "Load the default branch instead of releases"
         }
@@ -90,7 +90,7 @@
   "issues": {
     "token_problem": {
       "title": "The token of {host} no longer works",
-      "description": "The last update runs failed with an authorization error. Check the token of this GitLab instance; HACS*lab retries on its own and clears this message when it succeeds again."
+      "description": "The last update runs failed with an authorization error. Check the token of this GitLab instance; HAIGS retries on its own and clears this message when it succeeds again."
     },
     "repo_verschwunden": {
       "title": "Repository disappeared: {name}",

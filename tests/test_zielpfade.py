@@ -5,7 +5,7 @@ ruehrt eine Datei an, das Entpacken ist Sache von test_entpacken."""
 from pathlib import PurePosixPath
 
 import pytest
-from hacs_lab.core.zielpfade import (
+from haigs.core.zielpfade import (
     Ausschnitt,
     ZielpfadFehler,
     ausschnitt,
@@ -17,8 +17,8 @@ from hacs_lab.core.zielpfade import (
 
 
 def test_integration_liegt_unter_custom_components():
-    assert zielverzeichnis("integration", "hacs_lab") == PurePosixPath(
-        "custom_components/hacs_lab"
+    assert zielverzeichnis("integration", "haigs") == PurePosixPath(
+        "custom_components/haigs"
     )
 
 

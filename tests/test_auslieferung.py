@@ -10,7 +10,7 @@ Drei Dinge muessen hier bewiesen werden:
   dieselben Bytes. Ohne das ist ein SHA-256 neben dem Anhang nur
   Dekoration und die Reproduktion eines Releases ein Gluecksspiel.
 * **Dogfooding** -- die eigene ``hacs.json`` und ``manifest.json``
-  bestehen die Validierung, die HACS*lab von fremden Repositorys
+  bestehen die Validierung, die HAIGS von fremden Repositorys
   verlangt. Wer andere prueft, muss selbst bestehen.
 
 Dazu die Fehlerfaelle als Klartext: fehlende Integration, fehlende
@@ -25,7 +25,7 @@ import zipfile
 from pathlib import Path
 
 import pytest
-from hacs_lab.core.validierung import pruefe_hacs_json, pruefe_manifest
+from haigs.core.validierung import pruefe_hacs_json, pruefe_manifest
 
 from auslieferung.release_bauen import (
     BauFehler,
@@ -58,13 +58,13 @@ def baue_test_lager(
     Integration). Muell (``tests/``, ``__pycache__``) kommt in beide
     -- gerade der muss draussen bleiben.
     """
-    integration = wurzel / "custom_components" / "hacs_lab"
+    integration = wurzel / "custom_components" / "haigs"
     for relativ, inhalt in integration_dateien.items():
         datei = integration / relativ
         datei.parent.mkdir(parents=True, exist_ok=True)
         datei.write_text(inhalt, encoding="utf-8")
     if kern_an_wurzel:
-        kern = wurzel / "hacs_lab" / "core"
+        kern = wurzel / "haigs" / "core"
         kern.mkdir(parents=True, exist_ok=True)
         (kern / "forge.py").write_text("# Kern-Attrappe\n", encoding="utf-8")
     muell = wurzel / "tests"
@@ -80,8 +80,8 @@ def baue_test_lager(
 
 MINIMAL_MANIFEST = json.dumps(
     {
-        "domain": "hacs_lab",
-        "name": "HACS*lab",
+        "domain": "haigs",
+        "name": "HAIGS",
         "version": "0.1.1",
         "codeowners": ["@chance-konstruktion", "@super-z"],
         "config_flow": True,
@@ -104,21 +104,21 @@ class TestForm:
     def test_eigene_form_packt_den_kern_mit(self, tmp_path: Path):
         """Echter Stand seit M0.5: der Kern wandert IN der Integration.
 
-        Der ZIP enthaelt keine ``hacs_lab``-Wurzel mehr -- entpackt im
+        Der ZIP enthaelt keine ``haigs``-Wurzel mehr -- entpackt im
         Konfigurationsverzeichnis entsteht genau ein Ordner, und der
         Kern liegt dort, wo die Integration ihn per relativem Import
         findet.
         """
         ziel = baue_release(WURZEL, tmp_path)
         namen = zip_namen(ziel)
-        assert "custom_components/hacs_lab/manifest.json" in namen
-        assert "custom_components/hacs_lab/__init__.py" in namen
-        assert "custom_components/hacs_lab/core/forge.py" in namen
-        assert "custom_components/hacs_lab/core/validierung.py" in namen
-        assert "custom_components/hacs_lab/core/http_aiohttp.py" in namen
-        assert "custom_components/hacs_lab/frontend/panel.js" in namen
-        assert "custom_components/hacs_lab/translations/de.json" in namen
-        assert not any(n.startswith("hacs_lab/") for n in namen)
+        assert "custom_components/haigs/manifest.json" in namen
+        assert "custom_components/haigs/__init__.py" in namen
+        assert "custom_components/haigs/core/forge.py" in namen
+        assert "custom_components/haigs/core/validierung.py" in namen
+        assert "custom_components/haigs/core/http_aiohttp.py" in namen
+        assert "custom_components/haigs/frontend/panel.js" in namen
+        assert "custom_components/haigs/translations/de.json" in namen
+        assert not any(n.startswith("haigs/") for n in namen)
 
     def test_eigene_form_wird_erkannt(self):
         """Das Lager kennt sich selbst -- die Form nach M0.5 ist verbindlich."""
@@ -147,11 +147,11 @@ class TestForm:
         ziel = baue_release(lager, tmp_path / "zip")
         namen = zip_namen(ziel)
         assert namen == [
-            "custom_components/hacs_lab/__init__.py",
-            "custom_components/hacs_lab/core/forge.py",
-            "custom_components/hacs_lab/manifest.json",
+            "custom_components/haigs/__init__.py",
+            "custom_components/haigs/core/forge.py",
+            "custom_components/haigs/manifest.json",
         ]
-        assert not any(n.startswith("hacs_lab/") for n in namen)
+        assert not any(n.startswith("haigs/") for n in namen)
 
     def test_dateien_sind_sortiert(self):
         """Sortierte Eintraege gehoeren zum Determinismus-Vertrag.
@@ -194,9 +194,9 @@ class TestDeterminismus:
         """Der ZIP spiegelt -- er schreibt nichts um. Das manifest.json im
         ZIP ist byte-identisch mit dem der Integration."""
         ziel = baue_release(WURZEL, tmp_path)
-        orig = (WURZEL / "custom_components" / "hacs_lab" / "manifest.json").read_bytes()
+        orig = (WURZEL / "custom_components" / "haigs" / "manifest.json").read_bytes()
         with zipfile.ZipFile(ziel) as archiv:
-            assert archiv.read("custom_components/hacs_lab/manifest.json") == orig
+            assert archiv.read("custom_components/haigs/manifest.json") == orig
 
 
 # ------------------------------------------------- Version
@@ -206,7 +206,7 @@ class TestVersion:
     def test_version_aus_manifest(self):
         """lies_version nennt exakt, was in der manifest.json steht."""
         roh = json.loads(
-            (WURZEL / "custom_components" / "hacs_lab" / "manifest.json").read_text(
+            (WURZEL / "custom_components" / "haigs" / "manifest.json").read_text(
                 encoding="utf-8"
             )
         )
@@ -214,11 +214,11 @@ class TestVersion:
 
     def test_name_traegt_version(self, tmp_path: Path):
         ziel = baue_release(WURZEL, tmp_path)
-        assert ziel.name == f"hacs-lab-v{lies_version(WURZEL)}.zip"
+        assert ziel.name == f"haigs-v{lies_version(WURZEL)}.zip"
 
     def test_tag_wird_normalisiert(self, tmp_path: Path):
         ziel = baue_release(WURZEL, tmp_path, version=f"v{lies_version(WURZEL)}")
-        assert ziel.name == f"hacs-lab-v{lies_version(WURZEL)}.zip"
+        assert ziel.name == f"haigs-v{lies_version(WURZEL)}.zip"
 
     def test_abweichende_version_wird_verweigert(self, tmp_path: Path):
         """Tag und manifest.json muessen dasselbe sagen. Ein Release, der
@@ -260,7 +260,7 @@ class TestFehler:
     def test_manifest_ohne_version(self, tmp_path: Path):
         lager = baue_test_lager(
             tmp_path / "lager",
-            {"manifest.json": '{"domain": "hacs_lab"}'},
+            {"manifest.json": '{"domain": "haigs"}'},
             kern_an_wurzel=False,
         )
         with pytest.raises(BauFehler, match="keine Version"):
@@ -274,7 +274,7 @@ class TestKommandozeile:
     def test_baut_in_zielverzeichnis(self, tmp_path: Path, capsys):
         ergebnis = haupt(["--version", f"v{lies_version(WURZEL)}", str(tmp_path)])
         assert ergebnis == 0
-        assert (tmp_path / f"hacs-lab-v{lies_version(WURZEL)}.zip").is_file()
+        assert (tmp_path / f"haigs-v{lies_version(WURZEL)}.zip").is_file()
         ausgabe = capsys.readouterr().out
         assert "SHA-256" in ausgabe
         assert "Dateien" in ausgabe
@@ -291,13 +291,13 @@ class TestKommandozeile:
 
 class TestDogfooding:
     def test_eigene_hacs_json_besteht_die_eigene_pruefung(self):
-        """HACS*lab verlangt von fremden Repositorys eine gueltige hacs.json
+        """HAIGS verlangt von fremden Repositorys eine gueltige hacs.json
         -- die eigene muss dasselbe bestehen."""
         roh = (WURZEL / "hacs.json").read_bytes()
         befund = pruefe_hacs_json(roh, kategorie="integration")
         assert befund, "; ".join(befund.fehler)
 
     def test_eigene_manifest_besteht_die_eigene_pruefung(self):
-        roh = (WURZEL / "custom_components" / "hacs_lab" / "manifest.json").read_bytes()
+        roh = (WURZEL / "custom_components" / "haigs" / "manifest.json").read_bytes()
         befund = pruefe_manifest(roh)
         assert befund, "; ".join(befund.fehler)

@@ -1,4 +1,4 @@
-"""Auslieferungswerkzeug fuer HACS*lab (Stufe M10: Nach draussen).
+"""Auslieferungswerkzeug fuer HAIGS (Stufe M10: Nach draussen).
 
 Was hier wohnt ist reines Standardbibliothek-Python: kein Home
 Assistant, keine Drittabhaengigkeit, kein Netz. Der ZIP entsteht aus

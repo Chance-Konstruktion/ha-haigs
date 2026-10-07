@@ -24,7 +24,7 @@ import json
 import re
 from pathlib import Path
 
-INTEGRATION = Path(__file__).resolve().parents[1] / "custom_components" / "hacs_lab"
+INTEGRATION = Path(__file__).resolve().parents[1] / "custom_components" / "haigs"
 
 #: Die Quelle (Englisch) und die angezeigten Sprachen.
 DATEIEN = {

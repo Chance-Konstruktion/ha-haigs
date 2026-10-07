@@ -12,7 +12,7 @@ from __future__ import annotations
 from pathlib import Path
 
 PANEL = Path(__file__).resolve().parents[1] / (
-    "custom_components/hacs_lab/frontend/panel.js"
+    "custom_components/haigs/frontend/panel.js"
 )
 
 

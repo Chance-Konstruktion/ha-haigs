@@ -26,9 +26,9 @@ import zipfile
 from pathlib import Path, PurePosixPath
 
 import pytest
-from hacs_lab.core.forge import Release
-from hacs_lab.core.zielpfade import ist_zielpfad
-from hacs_lab.installation import (
+from haigs.core.forge import Release
+from haigs.core.zielpfade import ist_zielpfad
+from haigs.installation import (
     InstallationsFehler,
     _deinstalliere_sync,
     _installiere_sync,
@@ -179,7 +179,7 @@ class TestDeinstallation:
         _deinstalliere_sync("custom_components/beispiel", tmp_path)
 
         assert not ziel.exists()
-        zwischen = tmp_path / ".hacs_lab_zwischenlager"
+        zwischen = tmp_path / ".haigs_zwischenlager"
         assert not list(zwischen.glob("*.weg"))  # auch das Lager ist leer
 
     def test_untauglicher_weg_wird_abgewiesen(self, tmp_path: Path):
@@ -202,7 +202,7 @@ class TestDeinstallation:
 
     def test_alte_weg_rest_werden_mit_geraeumt(self, tmp_path: Path):
         """Ein frueherer Abbruch darf beim naechsten Lauf kein Hindernis sein."""
-        zwischen = tmp_path / ".hacs_lab_zwischenlager"
+        zwischen = tmp_path / ".haigs_zwischenlager"
         zwischen.mkdir()
         (zwischen / "beispiel.weg").mkdir()
         (zwischen / "beispiel.weg" / "muell.txt").write_text("x", encoding="utf-8")
@@ -311,9 +311,9 @@ class TestFindeLagerform:
         assert finde_lagerform(archiv, "bienentanz") == "bienentanz"
 
     def test_custom_components_ohne_tag_huelle(self):
-        """Die eigene Anhang-Form von hacs-lab: Praefix ohne Tag-Ordner."""
-        archiv = _zip({"custom_components/hacs_lab/manifest.json": _manifest("hacs_lab")})
-        assert finde_lagerform(archiv, "hacs_lab") == "custom_components/hacs_lab"
+        """Die eigene Anhang-Form von haigs: Praefix ohne Tag-Ordner."""
+        archiv = _zip({"custom_components/haigs/manifest.json": _manifest("haigs")})
+        assert finde_lagerform(archiv, "haigs") == "custom_components/haigs"
 
     def test_wurzelmanifest_ist_keine_lagerform(self):
         archiv = _zip({"beispiel-v1.0.0/manifest.json": _manifest("bienentanz")})
@@ -388,18 +388,18 @@ class TestInstalliereLagerform:
         assert (ziel / "manifest.json").read_bytes() == _manifest("bienentanz", "1.1.0")
 
     def test_die_eigene_form_installiert_sich_selbst(self, tmp_path: Path):
-        """hacs-labs Anhang behaelt custom_components/ -- und geht jetzt auf."""
+        """haigss Anhang behaelt custom_components/ -- und geht jetzt auf."""
         archiv = _zip(
             {
-                "custom_components/hacs_lab/manifest.json": _manifest("hacs_lab"),
-                "custom_components/hacs_lab/__init__.py": b"# schicht",
-                "custom_components/hacs_lab/core/entpacken.py": b"# kern",
+                "custom_components/haigs/manifest.json": _manifest("haigs"),
+                "custom_components/haigs/__init__.py": b"# schicht",
+                "custom_components/haigs/core/entpacken.py": b"# kern",
             }
         )
 
-        _installiere_sync(archiv, "integration", "hacs_lab", tmp_path)
+        _installiere_sync(archiv, "integration", "haigs", tmp_path)
 
-        ziel = tmp_path / "custom_components" / "hacs_lab"
+        ziel = tmp_path / "custom_components" / "haigs"
         assert (ziel / "core" / "entpacken.py").exists()
         assert (ziel / "manifest.json").exists()
         assert not (ziel / "custom_components").exists()

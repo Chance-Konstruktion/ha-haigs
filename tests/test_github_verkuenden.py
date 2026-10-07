@@ -3,7 +3,7 @@
 GitHub ist die Ladentheke -- HACS installiert nur von dort und nur aus
 Releases. Die Vorlage in ``claude/ci-vorlagen`` legt den Eintrag an,
 haengt aber nichts daran; beide READMEs schicken die Leute aber zu
-``hacs-lab-vX.Y.Z.zip``. Hier wird bewiesen:
+``haigs-vX.Y.Z.zip``. Hier wird bewiesen:
 
 * **Was auf die Reise geht** -- Eintrag und Anhang, die Adresse aus der
   Antwort statt einer geratenen, die Bytes des gebauten ZIP.
@@ -54,11 +54,11 @@ def _fehler(code: int, koerper: str = "{}") -> GithubFehler:
 def bahn(tmp_path, monkeypatch):
     """Ein ausgeliefertes dist/ mit genau einem ZIP, wie die CI es baut."""
     (tmp_path / "dist").mkdir()
-    (tmp_path / "dist" / "hacs-lab-v0.3.0.zip").write_bytes(b"PK\x03\x04-die-bytes")
+    (tmp_path / "dist" / "haigs-v0.3.0.zip").write_bytes(b"PK\x03\x04-die-bytes")
     monkeypatch.chdir(tmp_path)
     monkeypatch.setenv("CI_COMMIT_TAG", "v0.3.0")
-    monkeypatch.setenv("CI_PROJECT_NAME", "hacs-lab")
-    monkeypatch.setenv("CI_PROJECT_URL", "https://forge.example/x/hacs-lab")
+    monkeypatch.setenv("CI_PROJECT_NAME", "haigs")
+    monkeypatch.setenv("CI_PROJECT_URL", "https://forge.example/x/haigs")
     monkeypatch.setenv("GITHUB_TOKEN", "geheim")
     monkeypatch.delenv("GITHUB_REPO", raising=False)
     return tmp_path
@@ -80,11 +80,11 @@ def test_eintrag_und_anhang(bahn):
         [
             _fehler(404),
             {
-                "html_url": "https://github.com/Chance-Konstruktion/hacs-lab/releases/tag/v0.3.0",
-                "upload_url": "https://uploads.github.com/repos/x/hacs-lab/releases/7/assets{?name,label}",
+                "html_url": "https://github.com/Chance-Konstruktion/haigs/releases/tag/v0.3.0",
+                "upload_url": "https://uploads.github.com/repos/x/haigs/releases/7/assets{?name,label}",
                 "assets": [],
             },
-            {"browser_download_url": "https://github.com/x/hacs-lab-v0.3.0.zip"},
+            {"browser_download_url": "https://github.com/x/haigs-v0.3.0.zip"},
         ]
     )
 
@@ -92,14 +92,14 @@ def test_eintrag_und_anhang(bahn):
 
     nachsehen, eintragen, anhaengen = attrappe.aufrufe
     assert nachsehen["adresse"].endswith(
-        "/repos/Chance-Konstruktion/hacs-lab/releases/tags/v0.3.0"
+        "/repos/Chance-Konstruktion/haigs/releases/tags/v0.3.0"
     )
     assert eintragen["methode"] == "POST"
     assert b'"tag_name": "v0.3.0"' in eintragen["daten"]
     # Die Upload-Adresse kommt aus der Antwort, nicht aus einer Annahme --
     # die Vorlage "{?name,label}" faellt weg, der Dateiname wird angehaengt.
     assert anhaengen["adresse"] == (
-        "https://uploads.github.com/repos/x/hacs-lab/releases/7/assets?name=hacs-lab-v0.3.0.zip"
+        "https://uploads.github.com/repos/x/haigs/releases/7/assets?name=haigs-v0.3.0.zip"
     )
     assert anhaengen["art"] == "application/zip"
     assert anhaengen["daten"] == b"PK\x03\x04-die-bytes"
@@ -113,7 +113,7 @@ def test_vorhandener_release_wird_nicht_ersetzt(bahn, capsys):
                 "upload_url": "https://uploads.github.com/r/1/assets{?name,label}",
                 "assets": [],
             },
-            {"browser_download_url": "https://github.com/x/hacs-lab-v0.3.0.zip"},
+            {"browser_download_url": "https://github.com/x/haigs-v0.3.0.zip"},
         ]
     )
 
@@ -127,7 +127,7 @@ def test_vorhandener_anhang_wird_nicht_verdoppelt(bahn, capsys):
         [
             {
                 "upload_url": "https://uploads.github.com/r/1/assets{?name,label}",
-                "assets": [{"name": "hacs-lab-v0.3.0.zip"}],
+                "assets": [{"name": "haigs-v0.3.0.zip"}],
             },
         ]
     )
@@ -163,23 +163,23 @@ def test_abgelehnter_eintrag_faellt_auf(bahn, capsys):
 def test_github_repo_sticht_den_projektnamen(bahn, monkeypatch):
     """Drueben heisst es anders -- das GitLab-Projekt wird nicht umbenannt.
 
-    Das Projekt heisst hier `hacs-lab`, auf GitHub `ha-hacs-lab` (die
+    Das Projekt heisst hier `haigs`, auf GitHub `ha-haigs` (die
     ha-Familie: ha-powerline, ha-kontinuum, ...). GITHUB_REPO ist die
     einzige Stelle, an der dieser Unterschied steht -- ohne sie liefe
     der Release gegen eine Adresse, die es drueben nicht gibt.
     """
-    monkeypatch.setenv("GITHUB_REPO", "ha-hacs-lab")
+    monkeypatch.setenv("GITHUB_REPO", "ha-haigs")
     attrappe = Attrappe(
         [
             {
                 "upload_url": "https://uploads.github.com/r/1/assets{?name,label}",
                 "assets": [],
             },
-            {"browser_download_url": "https://github.com/x/hacs-lab-v0.3.0.zip"},
+            {"browser_download_url": "https://github.com/x/haigs-v0.3.0.zip"},
         ]
     )
 
     assert main(attrappe) == 0
     assert attrappe.aufrufe[0]["adresse"].endswith(
-        "/repos/Chance-Konstruktion/ha-hacs-lab/releases/tags/v0.3.0"
+        "/repos/Chance-Konstruktion/ha-haigs/releases/tags/v0.3.0"
     )

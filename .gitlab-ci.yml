@@ -1,4 +1,4 @@
-# Pipeline fuer HACS*lab.
+# Pipeline fuer HAIGS.
 #
 # Zwei Dinge werden geprueft, die man leicht schleifen laesst:
 # der Kern muss ohne Home Assistant importierbar bleiben, und in den
@@ -59,7 +59,7 @@ tests:
 # Ort, an dem beide Pakete zusammengehoeren.
 # Das VOLLE python:3.13-Image ist Absicht: slim hat keinen gcc, und
 # lru-dict (Home-Assistant-Abhaengigkeit, C-Erweiterung) baut sonst
-# nicht -- derselbe Sturz wie einst im alten hacs-lab (Flug 0643 dort).
+# nicht -- derselbe Sturz wie einst im alten haigs (Flug 0643 dort).
 tests-homeassistant:
   <<: *ueberall
   stage: test
@@ -75,16 +75,16 @@ tests-homeassistant:
 # Der Kern haengt nicht an Home Assistant. Das ist keine Stilfrage:
 # nur so bleiben die Tests schnell und ohne HA-Installation lauffaehig.
 # Seit der Form-Entscheidung zu #11 liegt der Kern in der Integration
-# (custom_components/hacs_lab/core); die Anmeldung zum Import macht
+# (custom_components/haigs/core); die Anmeldung zum Import macht
 # tests/kern_laden.py -- bewusst registriert, nicht auf den Suchpfad.
 kern-ohne-homeassistant:
   <<: *ueberall
   stage: grenzen
   before_script: []
   script:
-    - python -c "import tests.kern_laden; import hacs_lab.core.entdeckung, hacs_lab.core.gitlab_forge, hacs_lab.core.versionen; print('Kern importiert ohne Home Assistant')"
+    - python -c "import tests.kern_laden; import haigs.core.entdeckung, haigs.core.gitlab_forge, haigs.core.versionen; print('Kern importiert ohne Home Assistant')"
     - |
-      if grep -rn "import homeassistant\|from homeassistant" custom_components/hacs_lab/core/; then
+      if grep -rn "import homeassistant\|from homeassistant" custom_components/haigs/core/; then
         echo "FEHLER: Home Assistant im Kern -- das gehoert in die HA-Schicht"
         exit 1
       fi
@@ -105,12 +105,12 @@ auslieferungsform:
   script:
     - |
       set -e
-      test -f custom_components/hacs_lab/core/__init__.py || {
-        echo "FEHLER: Kern fehlt in der Integration (custom_components/hacs_lab/core)"; exit 1; }
-      test -f custom_components/hacs_lab/core/forge.py || {
+      test -f custom_components/haigs/core/__init__.py || {
+        echo "FEHLER: Kern fehlt in der Integration (custom_components/haigs/core)"; exit 1; }
+      test -f custom_components/haigs/core/forge.py || {
         echo "FEHLER: forge.py fehlt im Kern -- halber Umzug?"; exit 1; }
-      test ! -e hacs_lab || {
-        echo "FEHLER: hacs_lab/ an der Wurzel -- zweite Kopie, Form gekippt"; exit 1; }
+      test ! -e haigs || {
+        echo "FEHLER: haigs/ an der Wurzel -- zweite Kopie, Form gekippt"; exit 1; }
       if grep -rn "sys\.path" custom_components/; then
         echo "FEHLER: Suchpfad-Griff in der Integration -- genau das war Befund a aus #11"
         exit 1
@@ -130,7 +130,7 @@ kein-anbieter-sonderpfad:
       treffer=$(grep -rnE 'if .*provider *== *"(gitlab|github)"' \
         --include="*.py" custom_components/ \
         | grep -v '``' \
-        | grep -v "custom_components/hacs_lab/core/gitlab_forge.py" || true)
+        | grep -v "custom_components/haigs/core/gitlab_forge.py" || true)
       if [ -n "$treffer" ]; then
         echo "$treffer"
         echo "FEHLER: Anbieter-Sonderpfad ausserhalb der Anbieterklasse"

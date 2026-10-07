@@ -1,11 +1,11 @@
 """Flug 2098 -- die Sichtbarkeit installierter Integrationen (HA-Bahn).
 
-Der Befund des Imkers: ueber HACS*lab installierte Repos sind unter
+Der Befund des Imkers: ueber HAIGS installierte Repos sind unter
 «Geräte & Dienste» nicht zu finden. Die Antwort hat zwei Haelften:
 
 * die WAHRHEIT je Karte -- der Zustands-Chip aus
-  :mod:`custom_components.hacs_lab.sichtbarkeit`, der hier ueber den
-  echten Befehl ``hacs_lab/eintraege`` geprueft wird: Neustart noch
+  :mod:`custom_components.haigs.sichtbarkeit`, der hier ueber den
+  echten Befehl ``haigs/eintraege`` geprueft wird: Neustart noch
   ausstehend, nicht geladen, bereit zum Hinzufuegen, eingerichtet,
   YAML-Weg, ungewiss;
 * die BENACHRICHTIGUNG -- die dauerhafte Meldung, die Installation und
@@ -27,9 +27,9 @@ from homeassistant.helpers import issue_registry
 from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.hacs_lab.aktualisierer import _kennung
-from custom_components.hacs_lab.const import DOMAIN
-from custom_components.hacs_lab.neustart import neustart_hinweis
+from custom_components.haigs.aktualisierer import _kennung
+from custom_components.haigs.const import DOMAIN
+from custom_components.haigs.neustart import neustart_hinweis
 
 from .test_m5 import (
     eintrag_daten,
@@ -69,7 +69,7 @@ async def richten_mit_installation(
 
 async def zeile_holen(hass: HomeAssistant, client) -> dict:
     """Die (einzige) Zeile der Liste, wie das Panel sie bekommt."""
-    antwort = await frage(client, 1, "hacs_lab/eintraege")
+    antwort = await frage(client, 1, "haigs/eintraege")
     assert antwort["success"], antwort
     zeilen = antwort["result"]["eintraege"]
     assert len(zeilen) == 1, zeilen
@@ -123,7 +123,7 @@ async def test_nach_der_installation_steht_der_neustart_an(
     hass.config.language = "de"
     neustart_hinweis(hass, eintrag, "1.2.0", "installation", mit_dialog=True)
     meldungen = hass.data["persistent_notification"]
-    eintrag_id = "hacs_lab_neustart_" + _kennung(STORAGE_KEY)
+    eintrag_id = "haigs_neustart_" + _kennung(STORAGE_KEY)
     assert eintrag_id in meldungen
     assert "Geräte & Dienste" in meldungen[eintrag_id]["message"]
     assert "neu starten" in meldungen[eintrag_id]["message"]
@@ -141,7 +141,7 @@ async def test_ohne_dialog_nennt_die_meldung_den_yaml_weg(
     hass.config.language = "de"
     neustart_hinweis(hass, eintrag, "1.2.0", "installation", mit_dialog=False)
     meldung = hass.data["persistent_notification"][
-        "hacs_lab_neustart_" + _kennung(STORAGE_KEY)
+        "haigs_neustart_" + _kennung(STORAGE_KEY)
     ]
     assert "configuration.yaml" in meldung["message"]
     assert "Integration hinzufügen" not in meldung["message"]
@@ -278,7 +278,7 @@ async def test_deinstallation_meldet_sich_ohne_dialog_frage(
     hass.config.language = "de"
     neustart_hinweis(hass, eintrag, "1.1.0", "deinstallation")
     meldung = hass.data["persistent_notification"][
-        "hacs_lab_neustart_" + _kennung(STORAGE_KEY)
+        "haigs_neustart_" + _kennung(STORAGE_KEY)
     ]
     assert "deinstalliert" in meldung["title"]
     assert "bis zum nächsten Start" in meldung["message"]
@@ -321,7 +321,7 @@ async def test_installation_zieht_das_lager_und_die_glocke_mit(
     assert zeile["integration"]["zustand"] == "neustart"
 
     meldung = hass.data["persistent_notification"][
-        "hacs_lab_neustart_" + _kennung(STORAGE_KEY)
+        "haigs_neustart_" + _kennung(STORAGE_KEY)
     ]
     assert "1.2.0" in meldung["title"]
     assert "configuration.yaml" in meldung["message"]

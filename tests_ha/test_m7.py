@@ -29,7 +29,7 @@ from pytest_homeassistant_custom_component.common import (
     async_fire_time_changed,
 )
 
-from custom_components.hacs_lab.const import CONF_HOST, CONF_TOKEN, DOMAIN
+from custom_components.haigs.const import CONF_HOST, CONF_TOKEN, DOMAIN
 from tests.attrappe import Aufzeichnung
 
 from .test_m5 import (
@@ -154,21 +154,21 @@ async def test_panel_ist_ohne_yaml_angemeldet(
     await richten(hass, mock_eintrag())
 
     karten = hass.data[frontend.DATA_PANELS]
-    assert "hacs-lab" in karten
-    karte = karten["hacs-lab"]
-    assert karte.sidebar_title == "HACS*lab"
-    assert karte.sidebar_icon == "hacs-lab:tanuki"
+    assert "haigs" in karten
+    karte = karten["haigs"]
+    assert karte.sidebar_title == "HAIGS"
+    assert karte.sidebar_icon == "haigs:tanuki"
     assert karte.require_admin is True
     angepasst = karte.config["_panel_custom"]
-    assert angepasst["name"] == "hacs-lab-panel"
-    assert angepasst["module_url"] == "/hacs_lab/panel.js"
+    assert angepasst["name"] == "haigs-panel"
+    assert angepasst["module_url"] == "/haigs/panel.js"
 
     client = await hass_client()
-    antwort = await client.get("/hacs_lab/panel.js")
+    antwort = await client.get("/haigs/panel.js")
     assert antwort.status == 200
     koerper = await antwort.text()
     assert "customElements.define" in koerper
-    assert "hacs-lab-panel" in koerper
+    assert "haigs-panel" in koerper
     # Die Sprachen, die das Panel kennt, stehen in der Datei selbst.
     assert '"de"' in koerper or "de:" in koerper
 
@@ -176,8 +176,8 @@ async def test_panel_ist_ohne_yaml_angemeldet(
     # Datentabelle des Hauses, das Erneuern beim Betreten, das Ereignis
     # des Lagers, die Zeichen der Projekte und die Gruppen nach Status.
     assert "hass-tabs-subpage-data-table" in koerper
-    assert "hacs_lab/erneuern" in koerper
-    assert "hacs_lab_aktualisiert" in koerper
+    assert "haigs/erneuern" in koerper
+    assert "haigs_aktualisiert" in koerper
     assert "avatar" in koerper
     for schlussel in ("aktualisierbar", "installiert", "neu", "downloadbar"):
         assert schlussel in koerper
@@ -185,7 +185,7 @@ async def test_panel_ist_ohne_yaml_angemeldet(
     # Der Weg zu einer weiteren Quelle fuehrt in die Integration --
     # endlos viele Server; die Buchstaben-Zeichen in GitLabs Pastell.
     assert "location-changed" in koerper
-    assert "/config/integrations/integration/hacs_lab" in koerper
+    assert "/config/integrations/integration/haigs" in koerper
     assert "#FFD599" in koerper  # die Pastell-Palette der Buchstaben
 
     # Flug 2092: die Fusszeile -- Fuchs und Geluebde, in beiden
@@ -198,11 +198,11 @@ async def test_panel_ist_ohne_yaml_angemeldet(
     assert "hl-fuchs-tanz" in koerper  # der Fuchs tanzt bei Streicheln
 
     # Das Iconset wird neben der Panel-Datei eigenen Weg geliefert.
-    antwort = await client.get("/hacs_lab/iconset.js")
+    antwort = await client.get("/haigs/iconset.js")
     assert antwort.status == 200
     iconset = await antwort.text()
     assert "customIconsets" in iconset
-    assert '"hacs-lab"' in iconset
+    assert '"haigs"' in iconset
     assert "#E24329" not in iconset  # die Silhouette traegt keine Farbe
 
 
@@ -225,7 +225,7 @@ async def test_iconset_haengt_an_jeder_seite(
     await richten(hass, mock_eintrag())
 
     urls = hass.data[frontend.DATA_EXTRA_MODULE_URL].urls
-    assert "/hacs_lab/iconset.js" in urls
+    assert "/haigs/iconset.js" in urls
 
 
 async def test_erneuern_auf_leerer_instanz(
@@ -239,7 +239,7 @@ async def test_erneuern_auf_leerer_instanz(
     Lager-Lauf (Flug 2084) die Instanz -- eine leere Suche ist eine
     Antwort, kein Fehler.
     """
-    hass_storage["hacs_lab." + HOST.replace(".", "_")] = {
+    hass_storage["haigs." + HOST.replace(".", "_")] = {
         "version": 1,
         "data": {"eintraege": [], "stand": {}},
     }
@@ -252,7 +252,7 @@ async def test_erneuern_auf_leerer_instanz(
     await richten(hass, mock_eintrag())
     client = await hass_ws_client(hass)
 
-    antwort = await frage(client, 1, "hacs_lab/erneuern")
+    antwort = await frage(client, 1, "haigs/erneuern")
     assert antwort["success"]
     assert antwort["result"]["eintraege"] == []
     assert antwort["result"]["funde"] == []
@@ -301,11 +301,11 @@ async def test_erneuern_liefert_den_frischen_fund(
     client = await hass_ws_client(hass)
 
     # Vorher: die Liste sagt 1.2.0 -- der Takt hat noch nicht geschlagen.
-    antwort = await frage(client, 1, "hacs_lab/eintraege")
+    antwort = await frage(client, 1, "haigs/eintraege")
     assert antwort["result"]["eintraege"][0]["neueste"] == "1.2.0"
 
     # Der Betritt: frischer Lauf, neuer Fund sofort.
-    antwort = await frage(client, 2, "hacs_lab/erneuern")
+    antwort = await frage(client, 2, "haigs/erneuern")
     assert antwort["success"]
     zeile = antwort["result"]["eintraege"][0]
     assert zeile["neueste"] == "1.3.0"
@@ -324,7 +324,7 @@ async def test_erneuern_liefert_den_frischen_fund(
     assert len(attrappe.abrufe) == 10  # alle Aufzeichnungen, keine mehr, keine weniger
 
     # Nach dem Lauf kommt die Frage aus dem Speicher -- ohne Netzruf.
-    antwort = await frage(client, 3, "hacs_lab/eintraege")
+    antwort = await frage(client, 3, "haigs/eintraege")
     assert antwort["result"]["eintraege"][0]["neueste"] == "1.3.0"
     assert len(attrappe.abrufe) == 10
 
@@ -357,7 +357,7 @@ async def test_erneuern_meldet_die_gescheiterte_instanz(
     await richten(hass, mock_eintrag())
     client = await hass_ws_client(hass)
 
-    antwort = await frage(client, 1, "hacs_lab/erneuern")
+    antwort = await frage(client, 1, "haigs/erneuern")
     assert antwort["success"]
     assert HOST in antwort["result"]["gescheitert"]
     assert "500" in antwort["result"]["gescheitert"][HOST]
@@ -370,7 +370,7 @@ async def test_eintraege_nennt_instanzen_und_kategorien(
     hass: HomeAssistant, sitzung_einpflanzen, hass_storage, hass_ws_client
 ) -> None:
     """Leere Liste, aber Instanz und Kategorien sind brauchbar."""
-    hass_storage["hacs_lab." + HOST.replace(".", "_")] = {
+    hass_storage["haigs." + HOST.replace(".", "_")] = {
         "version": 1,
         "data": {"eintraege": [], "stand": {}},
     }
@@ -378,7 +378,7 @@ async def test_eintraege_nennt_instanzen_und_kategorien(
     await richten(hass, mock_eintrag())
     client = await hass_ws_client(hass)
 
-    antwort = await frage(client, 1, "hacs_lab/eintraege")
+    antwort = await frage(client, 1, "haigs/eintraege")
     assert antwort["success"]
     assert antwort["result"]["eintraege"] == []
     assert antwort["result"]["instanzen"] == [HOST]
@@ -418,11 +418,11 @@ async def test_der_laden_teilt_unendlich_viele_instanzen(
         }
 
     for host in (HOST, zweiter):
-        hass_storage["hacs_lab." + host.replace(".", "_")] = {
+        hass_storage["haigs." + host.replace(".", "_")] = {
             "version": 1,
             "data": {"eintraege": [], "stand": {}},
         }
-        hass_storage["hacs_lab.lager." + host.replace(".", "_")] = {
+        hass_storage["haigs.lager." + host.replace(".", "_")] = {
             "version": 1,
             "data": {
                 "eintraege": [
@@ -450,7 +450,7 @@ async def test_der_laden_teilt_unendlich_viele_instanzen(
     )
     client = await hass_ws_client(hass)
 
-    antwort = await frage(client, 1, "hacs_lab/eintraege")
+    antwort = await frage(client, 1, "haigs/eintraege")
     assert antwort["success"]
     # Beide Instanzen stehen da -- sortiert, wie die Bedienung sie sieht.
     assert antwort["result"]["instanzen"] == sorted([HOST, zweiter])
@@ -481,7 +481,7 @@ async def test_voller_durchgang_ohne_yaml(
     Oberflaeche kann, sind die Befehle hier plus die Dienste der
     update-Entities. Kein YAML, kein Neustart, kein Zutun dazwischen.
     """
-    hass_storage["hacs_lab." + HOST.replace(".", "_")] = {
+    hass_storage["haigs." + HOST.replace(".", "_")] = {
         "version": 1,
         "data": {"eintraege": [], "stand": {}},
     }
@@ -521,7 +521,7 @@ async def test_voller_durchgang_ohne_yaml(
     antwort = await frage(
         client,
         1,
-        "hacs_lab/hinzufuegen",
+        "haigs/hinzufuegen",
         host=HOST,
         pfad="foo/bar",
         kategorie="integration",
@@ -538,7 +538,7 @@ async def test_voller_durchgang_ohne_yaml(
     update_id = update_ids[0]
 
     # -- Die Liste zeigt den Eintrag mit allem ---------------------
-    antwort = await frage(client, 2, "hacs_lab/eintraege")
+    antwort = await frage(client, 2, "haigs/eintraege")
     assert antwort["success"]
     zeile = antwort["result"]["eintraege"][0]
     assert zeile["name"] == "foo/bar*lab"
@@ -578,18 +578,18 @@ async def test_voller_durchgang_ohne_yaml(
     assert hass.states.get(update_id).attributes["installed_version"] == "1.3.0"
 
     # -- Entfernen ueber die Oberflaeche ----------------------------
-    antwort = await frage(client, 3, "hacs_lab/entfernen", storage_key=STORAGE_KEY)
+    antwort = await frage(client, 3, "haigs/entfernen", storage_key=STORAGE_KEY)
     assert antwort["success"]
     assert antwort["result"]["entfernt"] == "foo/bar*lab"
 
-    antwort = await frage(client, 4, "hacs_lab/eintraege")
+    antwort = await frage(client, 4, "haigs/eintraege")
     assert antwort["result"]["eintraege"] == []
 
-    gespeichert = hass_storage["hacs_lab." + HOST.replace(".", "_")]["data"]
+    gespeichert = hass_storage["haigs." + HOST.replace(".", "_")]["data"]
     assert gespeichert["eintraege"] == []
     # Das Lager ist dem Eintrag gefolgt -- die Zeile ist weg, der Fund
     # bleibt (als nicht mehr vorhanden) und wartet auf den naechsten Lauf.
-    lager = hass_storage["hacs_lab.lager." + HOST.replace(".", "_")]["data"]
+    lager = hass_storage["haigs.lager." + HOST.replace(".", "_")]["data"]
     assert lager["eintraege"] == []
     assert [f["full_name"] for f in lager["funde"]] == ["foo/bar"]
     assert lager["funde"][0]["vorhanden"] is False
@@ -608,7 +608,7 @@ async def test_entdecken_liefert_die_liste(
     hass: HomeAssistant, sitzung_einpflanzen, hass_storage, hass_ws_client
 ) -> None:
     """Gemischte Gruppe: Treffer mit allem, Fehlschuesse mit Gruenden."""
-    hass_storage["hacs_lab." + HOST.replace(".", "_")] = {
+    hass_storage["haigs." + HOST.replace(".", "_")] = {
         "version": 1,
         "data": {"eintraege": [], "stand": {}},
     }
@@ -647,7 +647,7 @@ async def test_entdecken_liefert_die_liste(
     await richten(hass, mock_eintrag())
     client = await hass_ws_client(hass)
 
-    antwort = await frage(client, 1, "hacs_lab/entdecken", host=HOST, gruppe="foo")
+    antwort = await frage(client, 1, "haigs/entdecken", host=HOST, gruppe="foo")
     assert antwort["success"]
     funde = antwort["result"]["funde"]
     assert [f["full_name"] for f in funde] == ["foo/bar", "foo/ohne"]
@@ -668,7 +668,7 @@ async def test_entdecken_liefert_die_liste(
     await frage(
         client,
         2,
-        "hacs_lab/hinzufuegen",
+        "haigs/hinzufuegen",
         host=HOST,
         pfad="foo/bar",
         kategorie="integration",
@@ -685,7 +685,7 @@ async def test_entdecken_ohne_instanz_meldet_klar(
     await richten(hass, mock_eintrag())
     client = await hass_ws_client(hass)
 
-    antwort = await frage(client, 1, "hacs_lab/entdecken", host="gitlab.woanders")
+    antwort = await frage(client, 1, "haigs/entdecken", host="gitlab.woanders")
     assert not antwort["success"]
     assert antwort["error"]["code"] == "unbekannte_instanz"
 
@@ -695,7 +695,7 @@ async def test_entdecken_reist_mit_stichwort(
 ) -> None:
     """Flug 2091: die Kopfsuche -- das Wort reist als search-Parameter
     bis zum Anbieter, die Funde kommen wie gehabt zurueck."""
-    hass_storage["hacs_lab." + HOST.replace(".", "_")] = {
+    hass_storage["haigs." + HOST.replace(".", "_")] = {
         "version": 1,
         "data": {"eintraege": [], "stand": {}},
     }
@@ -713,7 +713,7 @@ async def test_entdecken_reist_mit_stichwort(
     await richten(hass, mock_eintrag())
     client = await hass_ws_client(hass)
 
-    antwort = await frage(client, 1, "hacs_lab/entdecken", host=HOST, stichwort="zigbee")
+    antwort = await frage(client, 1, "haigs/entdecken", host=HOST, stichwort="zigbee")
     assert antwort["success"]
     funde = antwort["result"]["funde"]
     assert [f["full_name"] for f in funde] == ["foo/zigbee"]
@@ -725,7 +725,7 @@ async def test_entdecken_ohne_fund_ist_kein_fehler(
     """Flug 2091: eine Gruppe, die niemand kennt, zahlt leere Funde --
     die Kopfsuche darf falsch getippte Worte nicht als Stoerung der
     Instanz melden."""
-    hass_storage["hacs_lab." + HOST.replace(".", "_")] = {
+    hass_storage["haigs." + HOST.replace(".", "_")] = {
         "version": 1,
         "data": {"eintraege": [], "stand": {}},
     }
@@ -738,7 +738,7 @@ async def test_entdecken_ohne_fund_ist_kein_fehler(
     await richten(hass, mock_eintrag())
     client = await hass_ws_client(hass)
 
-    antwort = await frage(client, 1, "hacs_lab/entdecken", host=HOST, gruppe="niemand")
+    antwort = await frage(client, 1, "haigs/entdecken", host=HOST, gruppe="niemand")
     assert antwort["success"]
     assert antwort["result"]["funde"] == []
 
@@ -765,7 +765,7 @@ async def test_detail_liefert_readme_releases_und_verweise(
     await richten(hass, mock_eintrag())
     client = await hass_ws_client(hass)
 
-    antwort = await frage(client, 1, "hacs_lab/detail", host=HOST, pfad="foo/bar")
+    antwort = await frage(client, 1, "haigs/detail", host=HOST, pfad="foo/bar")
     assert antwort["success"]
     ergebnis = antwort["result"]
 
@@ -798,7 +798,7 @@ async def test_detail_ohne_readme_gnadenvoll(
     await richten(hass, mock_eintrag())
     client = await hass_ws_client(hass)
 
-    antwort = await frage(client, 1, "hacs_lab/detail", host=HOST, pfad="foo/bar")
+    antwort = await frage(client, 1, "haigs/detail", host=HOST, pfad="foo/bar")
     assert antwort["success"]
     assert antwort["result"]["readme"] is None
     assert antwort["result"]["readme_datei"] == ""
@@ -812,7 +812,7 @@ async def test_detail_ohne_readme_gnadenvoll(
 async def test_hinzufuegen_lehnt_fehler_ab(
     hass: HomeAssistant, sitzung_einpflanzen, hass_storage, hass_ws_client
 ) -> None:
-    hass_storage["hacs_lab." + HOST.replace(".", "_")] = {
+    hass_storage["haigs." + HOST.replace(".", "_")] = {
         "version": 1,
         "data": {"eintraege": [], "stand": {}},
     }
@@ -836,7 +836,7 @@ async def test_hinzufuegen_lehnt_fehler_ab(
     antwort = await frage(
         client,
         1,
-        "hacs_lab/hinzufuegen",
+        "haigs/hinzufuegen",
         host=HOST,
         pfad="gibt/es/nicht",
         kategorie="integration",
@@ -845,7 +845,7 @@ async def test_hinzufuegen_lehnt_fehler_ab(
     assert antwort["error"]["code"] == "nicht_gefunden"
 
     antwort = await frage(
-        client, 2, "hacs_lab/hinzufuegen", host=HOST, pfad="foo/bar", kategorie="quatsch"
+        client, 2, "haigs/hinzufuegen", host=HOST, pfad="foo/bar", kategorie="quatsch"
     )
     assert not antwort["success"]
     assert antwort["error"]["code"] == "kategorie_unbekannt"
@@ -853,7 +853,7 @@ async def test_hinzufuegen_lehnt_fehler_ab(
     antwort = await frage(
         client,
         3,
-        "hacs_lab/hinzufuegen",
+        "haigs/hinzufuegen",
         host=HOST,
         pfad="foo/bar",
         kategorie="integration",
@@ -863,7 +863,7 @@ async def test_hinzufuegen_lehnt_fehler_ab(
     antwort = await frage(
         client,
         4,
-        "hacs_lab/hinzufuegen",
+        "haigs/hinzufuegen",
         host=HOST,
         pfad="foo/bar",
         kategorie="integration",
@@ -879,7 +879,7 @@ async def test_entfernen_wenn_weg(
     await richten(hass, mock_eintrag())
     client = await hass_ws_client(hass)
 
-    antwort = await frage(client, 1, "hacs_lab/entfernen", storage_key="gitlab@x:1")
+    antwort = await frage(client, 1, "haigs/entfernen", storage_key="gitlab@x:1")
     assert not antwort["success"]
     assert antwort["error"]["code"] == "nicht_mehr_da"
 
@@ -915,7 +915,7 @@ async def test_erster_fund_reist_mit(
     antwort = await frage(
         client,
         1,
-        "hacs_lab/hinzufuegen",
+        "haigs/hinzufuegen",
         host=HOST,
         pfad="foo/bar",
         kategorie="integration",

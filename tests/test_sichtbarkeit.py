@@ -1,6 +1,6 @@
 """Flug 2098 -- die reine Entscheidung des Integrations-Zustands.
 
-Der Befund des Imkers: ueber HACS*lab installierte Repos sind unter
+Der Befund des Imkers: ueber HAIGS installierte Repos sind unter
 «Geräte & Dienste» nicht zu finden. Die Physik hat drei Schichten
 (Neustart fehlt, kein Konfigurationseintrag -- oder prinzipiell kein
 Dialog, oder das Manifest ist dem System gar nicht bekannt), und der
@@ -15,7 +15,7 @@ hier zaehlt nur die Logik, und die ist reine Mathematik auf Worten.
 from __future__ import annotations
 
 import pytest
-from hacs_lab.core.sichtbarkeit import ZUSTAENDE, integrations_zustand
+from haigs.core.sichtbarkeit import ZUSTAENDE, integrations_zustand
 
 
 def basis(**anders: object) -> dict[str, object]:

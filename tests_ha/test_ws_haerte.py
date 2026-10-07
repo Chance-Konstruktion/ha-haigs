@@ -23,11 +23,11 @@ import pytest
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.hacs_lab.const import DOMAIN
+from custom_components.haigs.const import DOMAIN
 from tests.attrappe import Aufzeichnung
 
 HOST = "gitlab.example.net"
-SPEICHER = "hacs_lab." + HOST.replace(".", "_")
+SPEICHER = "haigs." + HOST.replace(".", "_")
 
 # -- Helfer, die hier bewusst klein bleiben (kein Import aus den
 # -- Schwesterdateien: jede Suite traegt ihr eigenes Werkzeug). ------
@@ -107,7 +107,7 @@ async def test_serverfehler_500_im_dialog(
         ]
     )
 
-    from custom_components.hacs_lab.const import DOMAIN
+    from custom_components.haigs.const import DOMAIN
 
     ergebnis = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": "user"}
@@ -160,7 +160,7 @@ async def test_html_vor_gitlab_dahinter_gitea(
         ]
     )
 
-    from custom_components.hacs_lab.const import DOMAIN
+    from custom_components.haigs.const import DOMAIN
 
     ergebnis = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": "user"}
@@ -220,7 +220,7 @@ async def test_stichwort_mit_script_html_reist_und_kommt_zurueck(
     )
     wort = '<script>alert("bee")</script> & <img src=x onerror=alert(1)>'
     await client.send_json(
-        {"id": 1, "type": "hacs_lab/entdecken", "host": HOST, "stichwort": wort}
+        {"id": 1, "type": "haigs/entdecken", "host": HOST, "stichwort": wort}
     )
     antwort = await client.receive_json()
     assert antwort["success"]
@@ -236,7 +236,7 @@ async def test_stichwort_mit_zehntausend_zeichen(
 
     wort = "b" * 10_000
     await client.send_json(
-        {"id": 1, "type": "hacs_lab/entdecken", "host": HOST, "stichwort": wort}
+        {"id": 1, "type": "haigs/entdecken", "host": HOST, "stichwort": wort}
     )
     antwort = await client.receive_json()
     assert antwort["success"]
@@ -252,7 +252,7 @@ async def test_stichwort_mit_emoji_und_hieroglyphen(
 
     wort = "🐝bienentanz—日本語—𓂀—🦊"
     await client.send_json(
-        {"id": 1, "type": "hacs_lab/entdecken", "host": HOST, "stichwort": wort}
+        {"id": 1, "type": "haigs/entdecken", "host": HOST, "stichwort": wort}
     )
     antwort = await client.receive_json()
     assert antwort["success"]
@@ -299,7 +299,7 @@ async def test_kaputter_speicher_tarnt_sich_nicht_als_absturz(
     await hass.async_block_till_done()
 
     client = await hass_ws_client(hass)
-    await client.send_json({"id": 1, "type": "hacs_lab/eintraege"})
+    await client.send_json({"id": 1, "type": "haigs/eintraege"})
     antwort = await client.receive_json()
     assert antwort["success"]
     # Die Zeilen sind Karten oder nichts -- nie Muell nach draussen.
@@ -332,7 +332,7 @@ async def test_speicher_ohne_version_und_daten(
     await hass.async_block_till_done()
 
     client = await hass_ws_client(hass)
-    await client.send_json({"id": 1, "type": "hacs_lab/eintraege"})
+    await client.send_json({"id": 1, "type": "haigs/eintraege"})
     antwort = await client.receive_json()
     assert antwort["success"]
 
@@ -388,7 +388,7 @@ async def test_giften_eintrag_mit_html_namen(
     await hass.async_block_till_done()
 
     client = await hass_ws_client(hass)
-    await client.send_json({"id": 1, "type": "hacs_lab/eintraege"})
+    await client.send_json({"id": 1, "type": "haigs/eintraege"})
     antwort = await client.receive_json()
     assert antwort["success"]
     # Der Name kommt roh als DATEN an -- escaping ist des Panels Pflicht

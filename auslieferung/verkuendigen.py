@@ -142,7 +142,7 @@ def verkuendigen(
 
     eintrag = {
         "tag_name": tag,
-        "name": f"HACS*lab {tag}",
+        "name": f"HAIGS {tag}",
         "description": (
             f"Deterministischer Bau aus dem getaggten Stand. SHA-256 des Anhangs: {sha}"
         ),
@@ -207,7 +207,7 @@ def haupt(
         return 1
 
     print(f"Paket hochgeladen: {protokoll['paket']}")
-    print(f"Release eingetragen: HACS*lab {protokoll['tag']}")
+    print(f"Release eingetragen: HAIGS {protokoll['tag']}")
     print(f"SHA-256 des Anhangs: {protokoll['sha']}")
     return 0
 

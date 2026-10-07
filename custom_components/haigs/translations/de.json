@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "HACS*lab mit einer Instanz verbinden",
+        "title": "HAIGS mit einer Instanz verbinden",
         "description": "Adresse der Instanz und ihr Anbieter. „auto“ fragt die Instanz selbst ab (zwei, drei kleine Anfragen) und passt auf gitlab.com, codeberg.org, gitea.com und eigene Server gleichermaßen; einen genannten Anbieter wählt man, wenn die Erkennung nicht entscheiden kann. Der Host genügt; ein eingefügter Link wird darauf gekürzt. Öffentliche Instanzen kommen ohne Token aus, eigene brauchen meist eins mit Leserecht.",
         "data": {
           "host": "Host der Instanz",
@@ -66,7 +66,7 @@
       },
       "entwickler": {
         "title": "Entwicklermodus",
-        "description": "Statt Releases lädt HACS*lab den neuesten Stand des Standardzweigs jedes Repositorys – jeder Push ist sofort herunterladbar. Versionen heißen dann zum Beispiel main@1a2b3c4. Gedacht zum Testen eigener Arbeit; für den Alltag wieder ausschalten.",
+        "description": "Statt Releases lädt HAIGS den neuesten Stand des Standardzweigs jedes Repositorys – jeder Push ist sofort herunterladbar. Versionen heißen dann zum Beispiel main@1a2b3c4. Gedacht zum Testen eigener Arbeit; für den Alltag wieder ausschalten.",
         "data": {
           "entwicklermodus": "Standardzweig statt Releases laden"
         }
@@ -90,7 +90,7 @@
   "issues": {
     "token_problem": {
       "title": "Das Token von {host} funktioniert nicht mehr",
-      "description": "Die letzten Update-Läufe scheiterten an der Berechtigung. Prüfe das Token dieser GitLab-Instanz; HACS*lab versucht es von selbst weiter und räumt diese Meldung weg, sobald es wieder klappt."
+      "description": "Die letzten Update-Läufe scheiterten an der Berechtigung. Prüfe das Token dieser GitLab-Instanz; HAIGS versucht es von selbst weiter und räumt diese Meldung weg, sobald es wieder klappt."
     },
     "repo_verschwunden": {
       "title": "Repository verschwunden: {name}",

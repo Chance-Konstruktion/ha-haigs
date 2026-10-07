@@ -14,7 +14,7 @@ haelt. Drei Kraefte halten es frisch:
   Speicher und ist trotzdem sofort voll);
 * der Takt -- im selben Abstand wie Herzschlag und Aktualisierer
   (Option ``abstand_minuten``) laeuft der volle Lauf erneut;
-* der Betritt -- ``hacs_lab/erneuern`` (Panel-Oeffnung und Knopf)
+* der Betritt -- ``haigs/erneuern`` (Panel-Oeffnung und Knopf)
   dreht alles sofort herum, siehe ``websocket_api.py``.
 
 Ein scheiternder Teil reisst den Lauf nicht um: Stammdaten, die nicht
@@ -76,7 +76,7 @@ class LagerFehler(Exception):
 def _entity_id(hass: HomeAssistant, storage_key: str) -> str | None:
     """Die update-Entity eines Eintrags, wie Home Assistant sie nennt."""
     registry = er.async_get(hass)
-    return registry.async_get_entity_id("update", "hacs_lab", storage_key)
+    return registry.async_get_entity_id("update", "haigs", storage_key)
 
 
 def _fund_anteil(laufzeit: Laufzeit, storage_key: str) -> dict[str, str]:

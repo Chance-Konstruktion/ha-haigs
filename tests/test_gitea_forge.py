@@ -9,10 +9,10 @@ ausserdem die echten Aufzeichnungen durch die Gitea-Schmiede.
 """
 
 import pytest
-from hacs_lab.core.forge import NichtGefunden
-from hacs_lab.core.gitea_forge import GiteaForge
-from hacs_lab.core.identity import GITEA, RepositoryIdentity, strip_suffix
-from hacs_lab.core.schmiede import schmiede
+from haigs.core.forge import NichtGefunden
+from haigs.core.gitea_forge import GiteaForge
+from haigs.core.identity import GITEA, RepositoryIdentity, strip_suffix
+from haigs.core.schmiede import schmiede
 
 from tests.attrappe_kern import FakeHttp
 from tests.forgejo_antworten import (

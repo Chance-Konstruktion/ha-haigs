@@ -6,7 +6,7 @@ nebenbei im Code.
 
 ## 1. Kein Fork
 
-HACS*lab steht **neben** HACS, nicht darin. Kein kopierter HACS-Code,
+HAIGS steht **neben** HACS, nicht darin. Kein kopierter HACS-Code,
 keine gepatchte Kopie, keine Abhaengigkeit auf HACS-Interna.
 
 *Warum:* Ein Fork muss jeder HACS-Version hinterherlaufen und bleibt
@@ -51,7 +51,7 @@ eine Abfrage geraet: `foo/bar*lab` existiert im GitLab nicht.
 
 ## 3. Eine Schnittstelle je Anbieter, kein Sonderpfad
 
-`core/forge.py` beschreibt, was HACS*lab braucht: Stammdaten,
+`core/forge.py` beschreibt, was HAIGS braucht: Stammdaten,
 Releases, eine Datei, eine Archiv-Adresse, eine Topic-Suche -- und seit
 M8 die Stammdatenfrage über die ID, denn der Name eines Projekts ist
 die Adresse des Menschen und damit vergänglich: Projekte werden
@@ -87,14 +87,14 @@ Kategorie. Ohne Zusatz-Topic gilt `integration`.
 ## 5. Der Kern wohnt in der Integration
 
 ```
-custom_components/hacs_lab/      die Integration -- importiert Home Assistant
+custom_components/haigs/      die Integration -- importiert Home Assistant
   core/                           der Kern -- pures Python, kein HA-Import
     forge.py                      Schnittstelle (Anbieter, Fehlerarten, …)
     gitlab_forge.py, forgejo_forge.py
     http_aiohttp.py               aiohttp-Umsetzung des HttpClient
 ```
 
-Bis M0.5 lag der Kern als eigenstaendiges ``hacs_lab`` neben
+Bis M0.5 lag der Kern als eigenstaendiges ``haigs`` neben
 ``custom_components`` -- verbunden durch einen Suchpfad-Fallback. Das
 brach in der echten Handinstallation (Issue #11, Befund a): der
 Fallback zeigte ins Konfigurationsverzeichnis, dorthin kopiert
@@ -133,4 +133,4 @@ seinem echten Namen; keine Bahn teilt Objekte mit der anderen.
 * Home Assistant importieren
 * eine HTTP-Bibliothek importieren
 * Dateien schreiben (das macht ab M4 die HA-Schicht)
-* auf der Forge schreiben -- HACS*lab liest, immer
+* auf der Forge schreiben -- HAIGS liest, immer

@@ -26,7 +26,7 @@ Antwortet weder GitLab noch die Familie, gibt es
 :class:`AnbieterUnbekannt` -- der Dialog nennt den Menschen die
 Wahrheit und bittet ihn um die Auswahl von Hand. Das ist kein
 Fehlerfall zum Verstecken: eine Adresse, hinter der keiner der drei
-Anbieter steht, ist keine Instanz, die HACS*lab bedienen kann.
+Anbieter steht, ist keine Instanz, die HAIGS bedienen kann.
 """
 
 from __future__ import annotations

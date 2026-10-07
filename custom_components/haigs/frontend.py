@@ -1,9 +1,9 @@
-"""Das Panel von HACS*lab -- Stufe M7: Bedienung ohne YAML.
+"""Das Panel von HAIGS -- Stufe M7: Bedienung ohne YAML.
 
 Zwei Schritte, beide ohne Eintrag in ``configuration.yaml``:
 
 * die JavaScript-Datei wird ueber einen statischen Weg ausgeliefert
-  (``/hacs_lab/panel.js``)
+  (``/haigs/panel.js``)
 * das Panel selbst meldet sich ueber die oeffentliche Hilfe von
   ``panel_custom`` an -- dieselbe Stelle, die sonst die YAML-Sektion
   ``panel_custom:`` bedient, nur eben aus der Integration heraus
@@ -11,7 +11,7 @@ Zwei Schritte, beide ohne Eintrag in ``configuration.yaml``:
 Sichtbar wird der Eintrag, sobald die erste Instanz eingerichtet ist
 (eine Integration laedt nur mit Konfigurationseintrag). Die Web-
 Oberflaeche laedt die Datei als ES-Modul und findet darin das
-Element ``hacs-lab-panel``; der Rest des Bedienens laeuft ueber die
+Element ``haigs-panel``; der Rest des Bedienens laeuft ueber die
 WebSocket-Befehle aus :mod:`.websocket_api` und die ganz normalen
 Home-Assistant-Dienste.
 """
@@ -29,25 +29,25 @@ from homeassistant.core import HomeAssistant
 _LOGGER = logging.getLogger(__name__)
 
 #: Der Weg, unter dem der Browser die Panel-Datei bekommt.
-PANEL_URL = "/hacs_lab/panel.js"
+PANEL_URL = "/haigs/panel.js"
 
 #: Der Weg zum Iconset -- jede Seite des Frontends laedt es, denn die
 #: Seitenleiste zeichnet ihr Zeichen schon bevor das Panel offen ist.
-ICONSET_URL = "/hacs_lab/iconset.js"
+ICONSET_URL = "/haigs/iconset.js"
 
 #: Der Name des Web-Components -- muss zur Definition in panel.js passen.
-PANEL_ELEMENT = "hacs-lab-panel"
+PANEL_ELEMENT = "haigs-panel"
 
-#: Die Adresse im Frontend (Sidebar): ``/hacs-lab``.
-PANEL_PFAD = "hacs-lab"
+#: Die Adresse im Frontend (Sidebar): ``/haigs``.
+PANEL_PFAD = "haigs"
 
 #: Wie das Panel in der Sidebar heisst -- ein Name, kein uebersetzbarer Satz.
-PANEL_TITEL = "HACS*lab"
+PANEL_TITEL = "HAIGS"
 
 #: Der Tanuki von GitLab -- monochrom, aus ``iconset.js``. Das Zeichen
-#: lebt in der eigenen Kollektion ``hacs-lab``, nicht in MDI: das
+#: lebt in der eigenen Kollektion ``haigs``, nicht in MDI: das
 #: Markenbild gehoert dem Imker-Server, dem die Integration dient.
-PANEL_ICON = "hacs-lab:tanuki"
+PANEL_ICON = "haigs:tanuki"
 
 
 async def richten(hass: HomeAssistant) -> None:

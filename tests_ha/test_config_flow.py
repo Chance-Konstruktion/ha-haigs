@@ -12,14 +12,14 @@ from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.hacs_lab.const import (
+from custom_components.haigs.const import (
     CONF_ABSTAND_MINUTEN,
     CONF_HOST,
     CONF_PROVIDER,
     CONF_TOKEN,
     DOMAIN,
 )
-from custom_components.hacs_lab.eintraege import (
+from custom_components.haigs.eintraege import (
     CONF_ADRESSE,
     CONF_DATEIEN_DEINSTALLIEREN,
     CONF_ENTFERNEN,
@@ -575,7 +575,7 @@ async def test_repository_hinzufuegen(
     laufzeit = hass.data[DOMAIN][mock.entry_id]
     assert len(laufzeit.eintraege) == 1
     assert laufzeit.eintraege.alle()[0].anzeigename == "foo/bar*lab"
-    gespeichert = hass_storage["hacs_lab.gitlab_example_net"]["data"]["eintraege"]
+    gespeichert = hass_storage["haigs.gitlab_example_net"]["data"]["eintraege"]
     assert gespeichert[0]["storage_key"] == "gitlab@gitlab.example.net:789012"
     assert gespeichert[0]["kategorie"] == "integration"
 
@@ -724,10 +724,10 @@ async def test_doppeltes_repository_wird_abgewiesen(
 async def test_repository_entfernen(
     hass: HomeAssistant, sitzung_einpflanzen, hass_storage
 ) -> None:
-    hass_storage["hacs_lab.gitlab_example_net"] = {
+    hass_storage["haigs.gitlab_example_net"] = {
         "version": 1,
         "minor_version": 1,
-        "key": "hacs_lab.gitlab_example_net",
+        "key": "haigs.gitlab_example_net",
         "data": {"eintraege": [dict(EINTRAG)]},
     }
     sitzung_einpflanzen([antwort(), antwort()])
@@ -757,7 +757,7 @@ async def test_repository_entfernen(
 
     assert ergebnis["type"] is FlowResultType.CREATE_ENTRY
     assert len(hass.data[DOMAIN][mock.entry_id].eintraege) == 0
-    assert hass_storage["hacs_lab.gitlab_example_net"]["data"]["eintraege"] == []
+    assert hass_storage["haigs.gitlab_example_net"]["data"]["eintraege"] == []
 
 
 async def test_entfernen_ohne_eintraege_bricht_ab(

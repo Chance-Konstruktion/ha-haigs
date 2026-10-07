@@ -10,10 +10,10 @@ Jetzt sagt die Schmiede: kein JSON, kein Anbieter, Hand-Wahl.
 import json
 
 import pytest
-from hacs_lab.core.forge import ForgeFehler
-from hacs_lab.core.http_aiohttp import AiohttpClient, KeinJson
-from hacs_lab.core.identity import FORGEJO, GITEA, GITLAB
-from hacs_lab.core.schmiede import AnbieterUnbekannt, erkenne
+from haigs.core.forge import ForgeFehler
+from haigs.core.http_aiohttp import AiohttpClient, KeinJson
+from haigs.core.identity import FORGEJO, GITEA, GITLAB
+from haigs.core.schmiede import AnbieterUnbekannt, erkenne
 
 from tests.attrappe import Aufzeichnung, SitzungsAttrappe
 

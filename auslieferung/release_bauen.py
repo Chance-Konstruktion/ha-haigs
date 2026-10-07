@@ -1,6 +1,6 @@
-"""Baut den Auslieferungs-ZIP fuer HACS*lab -- deterministisch.
+"""Baut den Auslieferungs-ZIP fuer HAIGS -- deterministisch.
 
-Stufe M10 (Nach draussen): Wer HACS*lab haben will, bekommt es aus
+Stufe M10 (Nach draussen): Wer HAIGS haben will, bekommt es aus
 einem Release -- nicht aus einem Git-Clone in sein Konfigurations-
 verzeichnis. Der ZIP spiegelt das Lager: entpackt im Home-Assistant-
 Konfigurationsverzeichnis landet jeder Ordner dort, wo er hingehoert.
@@ -16,9 +16,9 @@ Warum ein eigenes Werkzeug und nicht ``git archive``:
   Eintraege, feste Rechte. Zwei Bauten aus demselben Stand ergeben
   dieselbe Datei -- pruefbar per SHA-256, ohne ''glauben''.
 
-Form-adaptiv, bewusst: der Kern von HACS*lab wohnt seit M0.5 in der
-Integration (``custom_components/hacs_lab/core``). Aeltere Staende
-tragen ihn noch als eigenstaendiges ``hacs_lab`` an der Wurzel. Der
+Form-adaptiv, bewusst: der Kern von HAIGS wohnt seit M0.5 in der
+Integration (``custom_components/haigs/core``). Aeltere Staende
+tragen ihn noch als eigenstaendiges ``haigs`` an der Wurzel. Der
 Bauer erkennt die Form am ausgecheckten Stand und packt, was da ist
 -- so bleibt die Merge-Reihenfolge mit jener Umstellung gleichgueltig,
 und die Entpack-Anleitung stimmt in beiden Formen: ZIP ins
@@ -34,16 +34,16 @@ import zipfile
 from pathlib import Path
 
 #: Anzeigename fuer die Datei -- der Domain-Name mit Bindestrich,
-#: so nennen Menschen das Projekt (der Stern aus ``HACS*lab`` ist
+#: so nennen Menschen das Projekt (der Stern aus ``HAIGS`` ist
 #: kein erlaubter Dateiname-Bestandteil auf jedem Dateisystem).
-ANZEIGENAME = "hacs-lab"
+ANZEIGENAME = "haigs"
 
 #: Die Home-Assistant-Schicht -- immer im ZIP.
-INTEGRATION = Path("custom_components/hacs_lab")
+INTEGRATION = Path("custom_components/haigs")
 
 #: Der Kern in der ALTEN Form (vor M0.5): eigenstaendig an der Wurzel.
 #: Existiert das Verzeichnis, gehoert es mit in den ZIP.
-KERN_ALT = Path("hacs_lab")
+KERN_ALT = Path("haigs")
 
 #: Fester Zeitstempel fuer jeden Eintrag: 1980-01-01 00:00:00.
 #: ZIP-Zeitstempel leben im MS-DOS-Format, und dieses Datum ist die

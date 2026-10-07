@@ -1,7 +1,7 @@
 """Gemeinsame Ausstattung der Kern-Suite (``tests/``).
 
 Diese Bahn laeuft ohne Home-Assistant-Installation -- schnell und
-trocken. Der Kern wird dazu von ``tests/kern_laden`` unter ``hacs_lab``
+trocken. Der Kern wird dazu von ``tests/kern_laden`` unter ``haigs``
 angemeldet; die Begruendung steht dort.
 
 Die Home-Assistant-Bahn (``tests_ha/``) hat ihre eigene Ausstattung in

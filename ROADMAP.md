@@ -1,4 +1,4 @@
-# Fahrplan HACS*lab
+# Fahrplan HAIGS
 
 Ohne Zeitangaben. Die Reihenfolge ist die Abhaengigkeit, nicht der
 Kalender. Jede Stufe hat ein Ziel, einen Umfang und eine **Abnahme** --
@@ -6,12 +6,12 @@ solange die Abnahme nicht erfuellt ist, gilt die Stufe als offen.
 
 Grundregeln, die fuer jede Stufe gelten:
 
-* **Kein Fork von HACS.** HACS*lab ist eine eigene Integration neben
+* **Kein Fork von HACS.** HAIGS ist eine eigene Integration neben
   HACS. Nichts in diesem Repo ist eine geaenderte Kopie von HACS-Code.
 * **Kein `if provider == "gitlab":` im Ablauf.** Anbieterwissen steckt
-  hinter `custom_components/hacs_lab/core/forge.py`, sonst nirgends.
+  hinter `custom_components/haigs/core/forge.py`, sonst nirgends.
 * **Der Kern bleibt frei von Home Assistant.** Alles unter
-  `custom_components/hacs_lab/core/` laeuft ohne HA und ist ohne Netz
+  `custom_components/haigs/core/` laeuft ohne HA und ist ohne Netz
   testbar (Form-Entscheidung zu #11).
 * **Jede Stufe endet gruen.** Neue Funktion ohne Test ist keine
   fertige Stufe.
@@ -40,7 +40,7 @@ Grundregeln, die fuer jede Stufe gelten:
 
 **Ziel:** Der Kern spricht mit einer echten GitLab-Instanz.
 
-* `hacs_lab/http_aiohttp.py`: Umsetzung von `HttpClient` auf der
+* `haigs/http_aiohttp.py`: Umsetzung von `HttpClient` auf der
   aiohttp-Sitzung von Home Assistant
 * Uebersetzung der Statuscodes in `NichtGefunden` / `ForgeFehler`
   (404 -> `NichtGefunden`, 401/403 -> eigene Meldung mit Klartext
@@ -62,7 +62,7 @@ Netzanfrage in der CI). Zusaetzlich ein Handlauf gegen
 
 **Ziel:** Die Integration laesst sich installieren und einrichten.
 
-* `custom_components/hacs_lab/`: `manifest.json`, `__init__.py`,
+* `custom_components/haigs/`: `manifest.json`, `__init__.py`,
   `const.py`, `config_flow.py`, `strings.json` + `translations/de.json`
 * Einrichtungsdialog: Host, optionaler Token, Pruefverbindung
   (schlaegt fehl mit verstaendlicher Meldung, nicht mit Stacktrace)
@@ -219,14 +219,14 @@ Meilenstein, sondern die Wiederholung eines bestandenen.
 
 **Ziel:** Nicht nur bei uns nuetzlich.
 
-* Eigenes `hacs.json` und Release-Prozess fuer HACS*lab selbst
+* Eigenes `hacs.json` und Release-Prozess fuer HAIGS selbst
 * README auf Englisch, Installationsweg von Hand beschrieben
   (HACS selbst kann uns nicht ausliefern -- es kennt nur GitHub)
 * Die Forge-Schnittstelle als Vorschlag aufbereiten: was HACS
   uebernehmen muesste, damit ein zweiter Anbieter moeglich wird
 * Entscheidung dann: Vorschlag einreichen oder eigenstaendig bleiben
 
-**Abnahme:** Ein Fremder kann HACS*lab nach der README installieren und
+**Abnahme:** Ein Fremder kann HAIGS nach der README installieren und
 ein GitLab-Repository hinzufuegen, ohne zu fragen.
 
 ---
@@ -234,7 +234,7 @@ ein GitLab-Repository hinzufuegen, ohne zu fragen.
 ## Was ausdruecklich nicht geplant ist
 
 * **Kein Nachbau des HACS-Katalogs.** Der Standardkatalog liegt selbst
-  auf GitHub. HACS*lab arbeitet mit Custom Repositories und
+  auf GitHub. HAIGS arbeitet mit Custom Repositories und
   Topic-Entdeckung, nicht mit einer kuratierten Liste.
 * **Kein Umbenennen im GitLab.** `*lab` entsteht in der Erweiterung.
-* **Keine Schreibzugriffe auf die Forge.** HACS*lab liest.
+* **Keine Schreibzugriffe auf die Forge.** HAIGS liest.

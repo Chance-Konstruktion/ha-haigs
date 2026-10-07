@@ -111,7 +111,7 @@ class TestHerangang:
         assert post["inhaltstyp"] == "application/json"
         eintrag = json.loads(post["inhalt"])
         assert eintrag["tag_name"] == TAG
-        assert eintrag["name"] == f"HACS*lab {TAG}"
+        assert eintrag["name"] == f"HAIGS {TAG}"
         assert fingerabdruck(zip_pfad) in eintrag["description"]
         (link,) = eintrag["assets"]["links"]
         assert link["name"] == f"{ANZEIGENAME}-{TAG}.zip -- Hand-Installation"
@@ -198,7 +198,7 @@ class TestKommandozeile:
         ausgabe = capsys.readouterr().out
         assert f"/packages/generic/{ANZEIGENAME}/{VERSION}/" in ausgabe
         assert "SHA-256" in ausgabe
-        assert f"HACS*lab {TAG}" in ausgabe
+        assert f"HAIGS {TAG}" in ausgabe
         assert len(attrappe.aufrufe) == 2
 
     def test_haupt_ohne_alles(self):

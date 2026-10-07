@@ -4,26 +4,26 @@ Das Panel (``frontend/panel.js``) redet mit Home Assistant, nicht mit
 der Welt: Diese Datei ist die ganze Schnittstelle zwischen beiden.
 Sieben Befehle, mehr braucht kein Laden:
 
-* ``hacs_lab/eintraege`` -- die Liste der beobachteten Repositories,
+* ``haigs/eintraege`` -- die Liste der beobachteten Repositories,
   aus dem Lager gelesen (Flug 2084): sofort, ohne einen einzigen
   Netzruf. Steht das Lager noch leer (frische Einrichtung, der Start-
   Lauf noch nicht geschehen), wird es einmal live gebaut und danach
   ebenfalls aus dem Speicher gereicht. Funde, Stand und Instanzen
   reisen mit.
-* ``hacs_lab/erneuern`` -- der frische Lauf: jeder Aktualisierer wird
+* ``haigs/erneuern`` -- der frische Lauf: jeder Aktualisierer wird
   herumgedreht, dann das Lager neu befuellt (Zeilen und Scan). Die
   Bedienung ruft das, sobald der Laden betreten wird -- die Liste
   haengt dann nicht am Takt. Scheiternde Teile reissen die Antwort
   nicht um: die Instanz steht mit Grund in ``gescheitert``, die Liste
   kommt trotzdem (aus dem letzten erfolgreichen Stand).
-* ``hacs_lab/entdecken`` -- der Scan aus Stufe M6: ganze Instanz oder
+* ``haigs/entdecken`` -- der Scan aus Stufe M6: ganze Instanz oder
   Gruppe, Ergebnisliste mit allem, was die Oberflaeche zeigt
-* ``hacs_lab/detail`` -- Stammdaten, README und Releases eines
+* ``haigs/detail`` -- Stammdaten, README und Releases eines
   Repositorys
-* ``hacs_lab/hinzufuegen`` -- ein Fund aufnehmen (derselbe Weg wie der
+* ``haigs/hinzufuegen`` -- ein Fund aufnehmen (derselbe Weg wie der
   Dialog: Identitaet klaeren, Kategorie pruefen, Eintrag anlegen)
-* ``hacs_lab/entfernen`` -- einen Eintrag aus der Liste nehmen
-* ``hacs_lab/deinstallieren`` -- Stufe M4b: die installierten Dateien
+* ``haigs/entfernen`` -- einen Eintrag aus der Liste nehmen
+* ``haigs/deinstallieren`` -- Stufe M4b: die installierten Dateien
   wegnehmen, den verzeichneten Weg entlang. Home Assistants
   update-Entities kennen kein Uninstall -- deshalb ist das hier ein
   Befehl, nicht ein Dienst von ihnen.
@@ -90,7 +90,7 @@ def _laufzeiten(hass: HomeAssistant) -> dict[str, Laufzeit]:
     bekommt sie alle zu sehen.
     """
     karte: dict[str, Laufzeit] = {}
-    for laufzeit in hass.data.get("hacs_lab", {}).values():
+    for laufzeit in hass.data.get("haigs", {}).values():
         forge = getattr(laufzeit, "forge", None)
         if forge is not None:
             karte[forge.host] = laufzeit
@@ -161,7 +161,7 @@ async def _liste(hass: HomeAssistant) -> dict[str, Any]:
 
 
 @websocket_api.require_admin
-@websocket_api.websocket_command({vol.Required("type"): "hacs_lab/eintraege"})
+@websocket_api.websocket_command({vol.Required("type"): "haigs/eintraege"})
 @websocket_api.async_response
 async def ws_eintraege(
     hass: HomeAssistant,
@@ -180,7 +180,7 @@ async def ws_eintraege(
 
 
 @websocket_api.require_admin
-@websocket_api.websocket_command({vol.Required("type"): "hacs_lab/erneuern"})
+@websocket_api.websocket_command({vol.Required("type"): "haigs/erneuern"})
 @websocket_api.async_response
 async def ws_erneuern(
     hass: HomeAssistant,
@@ -242,7 +242,7 @@ async def ws_erneuern(
 @websocket_api.require_admin
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "hacs_lab/entdecken",
+        vol.Required("type"): "haigs/entdecken",
         vol.Required("host"): str,
         vol.Optional("gruppe", default=""): str,
         vol.Optional("stichwort", default=""): str,
@@ -293,7 +293,7 @@ async def ws_entdecken(
 @websocket_api.require_admin
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "hacs_lab/detail",
+        vol.Required("type"): "haigs/detail",
         vol.Required("host"): str,
         vol.Required("pfad"): str,
     }
@@ -427,7 +427,7 @@ async def _erster_fund(
 @websocket_api.require_admin
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "hacs_lab/hinzufuegen",
+        vol.Required("type"): "haigs/hinzufuegen",
         vol.Required("host"): str,
         vol.Required("pfad"): str,
         vol.Required("kategorie"): str,
@@ -519,7 +519,7 @@ async def ws_hinzufuegen(
 @websocket_api.require_admin
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "hacs_lab/entfernen",
+        vol.Required("type"): "haigs/entfernen",
         vol.Required("storage_key"): str,
     }
 )
@@ -564,7 +564,7 @@ async def ws_entfernen(
 @websocket_api.require_admin
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "hacs_lab/deinstallieren",
+        vol.Required("type"): "haigs/deinstallieren",
         vol.Required("storage_key"): str,
     }
 )
