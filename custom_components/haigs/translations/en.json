@@ -33,7 +33,8 @@
           "abstand": "Heartbeat interval",
           "entwickler": "Developer mode",
           "repository": "Add a custom repository",
-          "eintraege": "Watched repositories"
+          "eintraege": "Watched repositories",
+          "katalog": "Show official HACS repositories"
         }
       },
       "abstand": {
@@ -64,6 +65,13 @@
           "dateien_deinstallieren": "Also remove installed files (from stage M4)"
         }
       },
+      "katalog": {
+        "title": "Official HACS repositories",
+        "description": "Shows the repositories of the official HACS catalog (integrations, plugins, themes) in the HAIGS store, so a single store in the sidebar is enough. No token needed; the catalog is read from data-v2.hacs.xyz. The developer mode does not apply to it.",
+        "data": {
+          "katalog_anzeigen": "Show official HACS repositories"
+        }
+      },
       "entwickler": {
         "title": "Developer mode",
         "description": "Instead of releases, HAIGS installs the latest state of each repository's default branch – every push is downloadable right away. Versions then look like main@1a2b3c4. Meant for testing your own work; switch it off again for daily use.",
@@ -84,7 +92,8 @@
       "nicht_mehr_da": "This repository was already removed"
     },
     "abort": {
-      "liste_leer": "No repositories are being watched yet"
+      "liste_leer": "No repositories are being watched yet",
+      "katalog_entfernt": "The HACS catalog entry was removed."
     }
   },
   "issues": {

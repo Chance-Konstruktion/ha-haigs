@@ -17,6 +17,11 @@ CONF_PROVIDER = "provider"
 #: eine Wort, das kein Anbieter ist.
 ANBIETER_AUTO = "auto"
 
+#: Option im Optionsfluss: die offiziellen HACS-Repositories als eigene
+#: Quelle anzeigen (Katalog-Eintrag anlegen oder entfernen). Der Wert
+#: lebt nicht in den Optionen, sondern darin, ob der Eintrag existiert.
+CONF_KATALOG = "katalog_anzeigen"
+
 #: Option des Herzschlags: Abstand in Minuten (ROADMAP M2:
 #: "DataUpdateCoordinator mit einstellbarem Abstand").
 CONF_ABSTAND_MINUTEN = "abstand_minuten"

@@ -107,6 +107,13 @@ Ein Lese-Token brauchst du nur für private Repositories (GitLab-Scope
   des Panels — mit Beschreibung, Sternen und neuester Version. Ein zweites
   Topic (`hacs-plugin`, `hacs-theme`, …) legt die Kategorie fest, ohne zu
   fragen.
+- **Offizielle HACS-Repos:** Einstellungen → Geräte & Dienste → HAIGS →
+  *Konfigurieren* → *Offizielle HACS-Repos anzeigen*. Das legt eine eigene
+  Quelle „HACS" an (Katalog von `data-v2.hacs.xyz`, kein Token nötig): rund
+  4000 Integrationen, Plugins und Themes erscheinen im Bereich *Neu*, samt
+  Downloads. So genügt ein einziger Store in der Seitenleiste. Derselbe
+  Schalter entfernt die Quelle wieder; den Entwicklermodus gibt es für sie
+  nicht.
 - **Updates:** jeder Eintrag bekommt eine Update-Entity und einen Herzschlag,
   dessen Takt du je Eintrag einstellen kannst. Ein neues Release oder Tag
   hebt das Update, der Installations-Dienst tauscht die Dateien sicher — erst

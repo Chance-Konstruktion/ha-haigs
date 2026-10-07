@@ -138,6 +138,7 @@ def zeile_aus_eintrag(
                 "tickets_url": info.tickets_url,
                 "releases_url": info.releases_url,
                 "avatar_url": info.avatar_url,
+                "downloads": info.downloads,
             }
         )
     elif alt is not None:
@@ -150,6 +151,7 @@ def zeile_aus_eintrag(
             "tickets_url",
             "releases_url",
             "avatar_url",
+            "downloads",
         ):
             if feld in alt:
                 zeile[feld] = alt[feld]
@@ -177,6 +179,8 @@ def zeile_aus_fund(laufzeit: Laufzeit, fund: Any) -> dict[str, Any]:
         "tickets_url": info.tickets_url,
         "releases_url": info.releases_url,
         "avatar_url": info.avatar_url,
+        "downloads": info.downloads,
+        "zuletzt_aktiv": info.zuletzt_aktiv,
         "host": laufzeit.forge.host,
     }
 

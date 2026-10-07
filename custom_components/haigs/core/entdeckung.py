@@ -86,6 +86,11 @@ async def entdecke(
     raus -- was als Treffer gilt, entscheidet der Kern, nicht die
     Gnade der API.
     """
+    # Ein Anbieter, der seine Funde schon geprueft liefert (der HACS-
+    # Katalog), braucht weder Topic-Scan noch hacs.json je Kandidat.
+    katalog_funde = getattr(forge, "katalog_funde", None)
+    if katalog_funde is not None:
+        return await katalog_funde(stichwort)
     funde: list[Fund] = []
     kandidaten = await forge.suche_nach_topic(
         topic,
