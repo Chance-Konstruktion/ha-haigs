@@ -39,6 +39,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from .const import (
     ANBIETER_AUTO,
     CONF_ABSTAND_MINUTEN,
+    CONF_ENTWICKLERMODUS,
     CONF_HOST,
     CONF_PROVIDER,
     CONF_TOKEN,
@@ -214,7 +215,8 @@ class HacsLabOptionen(config_entries.OptionsFlow):
         self, benutzereingabe: dict[str, Any] | None = None
     ) -> FlowResult:
         return self.async_show_menu(
-            step_id="init", menu_options=["abstand", "repository", "eintraege"]
+            step_id="init",
+            menu_options=["abstand", "entwickler", "repository", "eintraege"],
         )
 
     # -- Bahn M2: Abstand ---------------------------------------------
@@ -222,9 +224,15 @@ class HacsLabOptionen(config_entries.OptionsFlow):
         self, benutzereingabe: dict[str, Any] | None = None
     ) -> FlowResult:
         if benutzereingabe is not None:
+            # Die anderen Optionen bleiben stehen -- ein Formular schreibt
+            # nur sein eigenes Feld (Flug 2101: sonst loeschte der Abstand
+            # den Entwicklermodus).
             return self.async_create_entry(
                 title="",
-                data={CONF_ABSTAND_MINUTEN: int(benutzereingabe[CONF_ABSTAND_MINUTEN])},
+                data={
+                    **self._eintrag.options,
+                    CONF_ABSTAND_MINUTEN: int(benutzereingabe[CONF_ABSTAND_MINUTEN]),
+                },
             )
 
         aktuell = self._eintrag.options.get(
@@ -238,6 +246,27 @@ class HacsLabOptionen(config_entries.OptionsFlow):
                         int, vol.Range(min=1)
                     )
                 }
+            ),
+        )
+
+    # -- Flug 2101: Entwicklermodus -----------------------------------
+    async def async_step_entwickler(
+        self, benutzereingabe: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Statt Releases den juengsten Stand des Standardzweigs laden."""
+        if benutzereingabe is not None:
+            return self.async_create_entry(
+                title="",
+                data={
+                    **self._eintrag.options,
+                    CONF_ENTWICKLERMODUS: bool(benutzereingabe[CONF_ENTWICKLERMODUS]),
+                },
+            )
+        aktuell = bool(self._eintrag.options.get(CONF_ENTWICKLERMODUS, False))
+        return self.async_show_form(
+            step_id="entwickler",
+            data_schema=vol.Schema(
+                {vol.Required(CONF_ENTWICKLERMODUS, default=aktuell): bool}
             ),
         )
 

@@ -36,6 +36,7 @@ from homeassistant.helpers.update_coordinator import (
 
 from .const import (
     CONF_ABSTAND_MINUTEN,
+    CONF_ENTWICKLERMODUS,
     DOMAIN,
     STANDARD_ABSTAND_MINUTEN,
 )
@@ -118,6 +119,8 @@ class HacsLabAktualisierer(DataUpdateCoordinator[dict[str, Fund]]):
                 mit_vorabversionen=(
                     self.staende.stand(eintrag.storage_key).vorabversionen
                 ),
+                entwicklung=self.entwicklermodus,
+                zweig=self._zweig_fuer(eintrag, stammdaten),
             )
             for eintrag in self.eintraege.alle()
         ]
@@ -175,6 +178,19 @@ class HacsLabAktualisierer(DataUpdateCoordinator[dict[str, Fund]]):
                 info = None
             stammdaten[eintrag.storage_key] = info
         return stammdaten
+
+    @property
+    def entwicklermodus(self) -> bool:
+        """Steht die Instanz im Entwicklermodus (Flug 2101)?"""
+        eintrag = self.config_entry
+        return bool(eintrag is not None and eintrag.options.get(CONF_ENTWICKLERMODUS))
+
+    def _zweig_fuer(
+        self, eintrag: Eintrag, stammdaten: dict[str, RepositoryInfo | None]
+    ) -> str:
+        """Der Standardzweig aus den Stammdaten -- leer, wenn sie fehlen."""
+        info = stammdaten.get(eintrag.storage_key)
+        return info.standardzweig if info is not None else ""
 
     def _pfad_fuer(
         self, eintrag: Eintrag, stammdaten: dict[str, RepositoryInfo | None]

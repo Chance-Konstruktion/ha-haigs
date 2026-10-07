@@ -31,6 +31,7 @@
       "init": {
         "menu_options": {
           "abstand": "Herzschlag-Abstand",
+          "entwickler": "Entwicklermodus",
           "repository": "Custom Repository hinzufügen",
           "eintraege": "Beobachtete Repositories"
         }
@@ -61,6 +62,13 @@
         "data": {
           "entfernen": "Zu entfernendes Repository",
           "dateien_deinstallieren": "Installierte Dateien ebenfalls entfernen (ab Stufe M4)"
+        }
+      },
+      "entwickler": {
+        "title": "Entwicklermodus",
+        "description": "Statt Releases lädt HACS*lab den neuesten Stand des Standardzweigs jedes Repositorys – jeder Push ist sofort herunterladbar. Versionen heißen dann zum Beispiel main@1a2b3c4. Gedacht zum Testen eigener Arbeit; für den Alltag wieder ausschalten.",
+        "data": {
+          "entwicklermodus": "Standardzweig statt Releases laden"
         }
       }
     },

@@ -74,3 +74,37 @@ def test_relative_readme_adressen_zeigen_auf_die_schmiede() -> None:
     assert "/-/raw/${zweig}/" in text
     assert "/raw/branch/${zweig}/" in text
     assert "replace(/^\\uFEFF/" in text
+
+
+def test_icons_kommen_aus_dem_brand_ordner() -> None:
+    """HACS 2.0 fragt nur den zentralen brands-Server -- HACS*lab nimmt HAs Proxy.
+
+    Seit 2026 bringen Integrationen ihr Icon im eigenen ``brand/``-Ordner
+    mit; Home Assistant liefert es ueber ``/api/brands`` mit eigenem Token.
+    """
+    text = panel_text()
+    assert '"brands/access_token"' in text
+    assert "/api/brands/integration/" in text
+    marke = PANEL.parents[1] / "brand"
+    for datei in ("icon.png", "icon@2x.png", "logo.png", "logo@2x.png"):
+        assert (marke / datei).read_bytes()[:8] == b"\x89PNG\r\n\x1a\n", datei
+
+
+def test_benutzerdefinierte_repositories_wie_in_hacs() -> None:
+    """Hinzufuegen im Laden selbst, nicht ueber den Optionsfluss."""
+    text = panel_text()
+    assert 'benutzerdefiniert: "Benutzerdefinierte Repositories"' in text
+    assert 'benutzerdefiniert: "Custom repositories"' in text
+    assert "_benutzerdefiniert()" in text
+    assert 'type: "hacs_lab/hinzufuegen", host: ziel.host' in text
+    # Adressen aus der Adresszeile: /-/tree/main, /src/branch, .git fallen weg.
+    assert ".replace(/\/-\/.*$/" in text
+    assert "(src|tree|blob|releases|issues)" in text
+
+
+def test_update_entities_tragen_das_icon_des_repositorys() -> None:
+    """Nicht jedes Update mit dem HACS*lab-Zeichen: die Domain waehlt das Icon."""
+    text = (PANEL.parents[1] / "update.py").read_text(encoding="utf-8")
+    assert "def entity_picture(self)" in text
+    assert 'f"/api/brands/integration/{teile[1]}/icon.png"' in text
+    assert "avatar_url" in text

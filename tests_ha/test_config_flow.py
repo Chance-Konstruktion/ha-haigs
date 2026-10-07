@@ -487,7 +487,12 @@ async def test_options_menue_erscheint(hass: HomeAssistant, sitzung_einpflanzen)
 
     assert ergebnis["type"] is FlowResultType.MENU
     assert ergebnis["step_id"] == "init"
-    assert set(ergebnis["menu_options"]) == {"abstand", "repository", "eintraege"}
+    assert set(ergebnis["menu_options"]) == {
+        "abstand",
+        "entwickler",
+        "repository",
+        "eintraege",
+    }
 
 
 async def test_abstand_ueber_das_menue(hass: HomeAssistant, sitzung_einpflanzen) -> None:
@@ -508,6 +513,30 @@ async def test_abstand_ueber_das_menue(hass: HomeAssistant, sitzung_einpflanzen)
     assert ergebnis["type"] is FlowResultType.CREATE_ENTRY
     koordinator = hass.data[DOMAIN][mock.entry_id].koordinator
     assert koordinator.update_interval == timedelta(minutes=30)
+
+
+async def test_entwicklermodus_ueber_das_menue(
+    hass: HomeAssistant, sitzung_einpflanzen
+) -> None:
+    """Flug 2101: der Schalter steht im Menue und laesst den Abstand stehen."""
+    mock, _ = await dialog_und_eintrag(
+        hass, sitzung_einpflanzen, [antwort(), antwort(), antwort(), antwort()]
+    )
+    hass.config_entries.async_update_entry(mock, options={CONF_ABSTAND_MINUTEN: 30})
+    await hass.async_block_till_done()
+
+    ergebnis = await menue_waehlen(hass, mock, "entwickler")
+    assert ergebnis["type"] is FlowResultType.FORM
+    assert ergebnis["step_id"] == "entwickler"
+
+    ergebnis = await hass.config_entries.options.async_configure(
+        ergebnis["flow_id"], {"entwicklermodus": True}
+    )
+    await hass.async_block_till_done()
+
+    assert ergebnis["type"] is FlowResultType.CREATE_ENTRY
+    assert mock.options["entwicklermodus"] is True
+    assert mock.options[CONF_ABSTAND_MINUTEN] == 30
 
 
 # -- Repository hinzufuegen ---------------------------------------------

@@ -21,6 +21,11 @@ ANBIETER_AUTO = "auto"
 #: "DataUpdateCoordinator mit einstellbarem Abstand").
 CONF_ABSTAND_MINUTEN = "abstand_minuten"
 
+#: Option des Entwicklermodus (Flug 2101): statt Releases installiert
+#: HACS*lab den juengsten Stand des Standardzweigs -- fuer alle
+#: Repositories dieser Instanz. Aus ist die Voreinstellung.
+CONF_ENTWICKLERMODUS = "entwicklermodus"
+
 #: Standardabstand des Herzschlags -- ein halber Tag. GitLab bemerkt
 #: das nicht, Menschen bekommen Updates am gleichen Tag noch mit.
 STANDARD_ABSTAND_MINUTEN = 720

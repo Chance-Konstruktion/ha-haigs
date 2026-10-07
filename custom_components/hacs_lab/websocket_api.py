@@ -126,8 +126,13 @@ async def _liste(hass: HomeAssistant) -> dict[str, Any]:
     funde: list[dict[str, Any]] = []
     staende_am: dict[str, str] = {}
     anbieter: dict[str, str] = {}
+    entwicklung: dict[str, bool] = {}
     for host, laufzeit in sorted(_laufzeiten(hass).items()):
         anbieter[host] = laufzeit.forge.provider
+        aktualisierer = getattr(laufzeit, "aktualisierer", None)
+        entwicklung[host] = bool(
+            aktualisierer is not None and getattr(aktualisierer, "entwicklermodus", False)
+        )
         lager = getattr(laufzeit, "lager", None)
         if lager is None:
             continue
@@ -149,6 +154,7 @@ async def _liste(hass: HomeAssistant) -> dict[str, Any]:
         "funde": funde,
         "instanzen": sorted(_laufzeiten(hass)),
         "anbieter": anbieter,
+        "entwicklermodus": entwicklung,
         "kategorien": list(KATEGORIEN),
         "aktualisiert_am": staende_am,
     }
@@ -399,6 +405,7 @@ async def _erster_fund(
         pfad=pfad,
         installiert=stand.installiert,
         mit_vorabversionen=stand.vorabversionen,
+        entwicklung=aktualisierer.entwicklermodus,
     )
     try:
         funde = await kern_lauf(laufzeit.forge, [auftrag])

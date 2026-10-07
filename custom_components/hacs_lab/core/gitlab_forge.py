@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from urllib.parse import quote
 
-from .forge import ForgeFehler, HttpClient, NichtGefunden, Release, RepositoryInfo
+from .forge import Commit, ForgeFehler, HttpClient, NichtGefunden, Release, RepositoryInfo
 from .identity import GITLAB, RepositoryIdentity, strip_suffix
 
 #: Das Topic, mit dem ein Besitzer sagt: dieses Projekt darf gefunden werden.
@@ -127,6 +127,26 @@ class GitLabForge:
             {"per_page": "30"},
         )
         return [t["name"] for t in roh or [] if t.get("name")]
+
+    async def zweig_stand(self, pfad: str, zweig: str) -> Commit:
+        """Kopf eines Zweigs ueber die Branches-API (Flug 2101)."""
+        roh = await self._json(
+            self.api
+            + "/projects/"
+            + _kodiere(pfad)
+            + "/repository/branches/"
+            + quote(zweig, safe="")
+        )
+        kopf = (roh or {}).get("commit") if isinstance(roh, dict) else None
+        if not isinstance(kopf, dict) or not kopf.get("id"):
+            raise NichtGefunden(
+                "kein Zweig " + zweig + " in " + pfad + " auf " + self.host
+            )
+        return Commit(
+            sha=str(kopf["id"]),
+            datum=str(kopf.get("committed_date") or kopf.get("created_at") or ""),
+            nachricht=str(kopf.get("title") or kopf.get("message") or "").strip(),
+        )
 
     # -- Inhalte ------------------------------------------------------
     async def datei(self, pfad: str, datei: str, ref: str) -> bytes:

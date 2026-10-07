@@ -25,7 +25,7 @@ from __future__ import annotations
 
 from urllib.parse import quote
 
-from .forge import ForgeFehler, HttpClient, NichtGefunden, Release, RepositoryInfo
+from .forge import Commit, ForgeFehler, HttpClient, NichtGefunden, Release, RepositoryInfo
 from .identity import FORGEJO, RepositoryIdentity, strip_suffix
 
 #: Das Topic, mit dem ein Besitzer sagt: dieses Projekt darf gefunden werden.
@@ -164,6 +164,23 @@ class ForgejoForge:
             {"limit": str(SEITENGROESSE)},
         )
         return [t["name"] for t in roh or [] if t.get("name")]
+
+    async def zweig_stand(self, pfad: str, zweig: str) -> Commit:
+        """Kopf eines Zweigs ueber ``/repos/{pfad}/branches/{zweig}`` (Flug 2101)."""
+        roh = await self._json(
+            self.api + "/repos/" + _kodiere(pfad) + "/branches/" + quote(zweig, safe="")
+        )
+        kopf = (roh or {}).get("commit") if isinstance(roh, dict) else None
+        if not isinstance(kopf, dict) or not kopf.get("id"):
+            raise NichtGefunden(
+                "kein Zweig " + zweig + " in " + pfad + " auf " + self.host
+            )
+        nachricht = (str(kopf.get("message") or "").strip().splitlines() or [""])[0]
+        return Commit(
+            sha=str(kopf["id"]),
+            datum=str(kopf.get("timestamp") or ""),
+            nachricht=nachricht,
+        )
 
     # -- Inhalte ------------------------------------------------------
     async def datei(self, pfad: str, datei: str, ref: str) -> bytes:
