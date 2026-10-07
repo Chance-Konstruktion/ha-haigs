@@ -33,7 +33,8 @@
           "abstand": "Herzschlag-Abstand",
           "entwickler": "Entwicklermodus",
           "repository": "Custom Repository hinzufügen",
-          "eintraege": "Beobachtete Repositories"
+          "eintraege": "Beobachtete Repositories",
+          "katalog": "Offizielle HACS-Repos anzeigen"
         }
       },
       "abstand": {
@@ -64,6 +65,13 @@
           "dateien_deinstallieren": "Installierte Dateien ebenfalls entfernen (ab Stufe M4)"
         }
       },
+      "katalog": {
+        "title": "Offizielle HACS-Repos",
+        "description": "Zeigt die Repositories des offiziellen HACS-Katalogs (Integrationen, Plugins, Themes) im HAIGS-Laden an, damit ein einziger Store in der Seitenleiste genügt. Kein Token nötig; der Katalog kommt von data-v2.hacs.xyz. Der Entwicklermodus gilt dafür nicht.",
+        "data": {
+          "katalog_anzeigen": "Offizielle HACS-Repos anzeigen"
+        }
+      },
       "entwickler": {
         "title": "Entwicklermodus",
         "description": "Statt Releases lädt HAIGS den neuesten Stand des Standardzweigs jedes Repositorys – jeder Push ist sofort herunterladbar. Versionen heißen dann zum Beispiel main@1a2b3c4. Gedacht zum Testen eigener Arbeit; für den Alltag wieder ausschalten.",
@@ -84,7 +92,8 @@
       "nicht_mehr_da": "Dieses Repository war bereits entfernt"
     },
     "abort": {
-      "liste_leer": "Noch keine Repositories in Beobachtung"
+      "liste_leer": "Noch keine Repositories in Beobachtung",
+      "katalog_entfernt": "Der Eintrag für den HACS-Katalog wurde entfernt."
     }
   },
   "issues": {

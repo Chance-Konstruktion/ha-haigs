@@ -96,6 +96,12 @@ read-only token on Gitea/Forgejo).
   GitLab, Gitea, or Forgejo project show up in the panel's *New* section
   — with description, stars, and the latest version. A second topic
   (`hacs-plugin`, `hacs-theme`, …) fixes the category without asking.
+- **Official HACS repositories:** Settings → Devices & services → HAIGS →
+  *Configure* → *Show official HACS repositories*. This adds a separate
+  "HACS" source (the catalog from `data-v2.hacs.xyz`, no token needed):
+  about 4000 integrations, plugins, and themes appear in the *New* section,
+  with download counts, so one store in the sidebar is enough. The same
+  switch removes the source again; developer mode does not apply to it.
 - **Updates:** every entry gets an update entity and a heartbeat whose
   interval you can tune per entry. A new release or tag raises the update,
   the install service swaps the files safely — staged in a temporary

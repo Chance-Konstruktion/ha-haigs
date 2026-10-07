@@ -35,8 +35,9 @@ from .forge import Forge, ForgeFehler, HttpClient, NichtGefunden
 from .forgejo_forge import ForgejoForge
 from .gitea_forge import GiteaForge
 from .gitlab_forge import GitLabForge
+from .hacs_katalog_forge import HacsKatalogForge
 from .http_aiohttp import KeinJson, TorVerriegelt
-from .identity import FORGEJO, GITEA, GITLAB
+from .identity import FORGEJO, GITEA, GITHUB, GITLAB
 
 #: Der Name, unter dem die Familien-API (Gitea wie Forgejo) erreicht wird.
 FAMILIE_API = "https://{host}/api/v1/version"
@@ -55,6 +56,8 @@ KLASSEN: dict[str, type] = {
     GITLAB: GitLabForge,
     FORGEJO: ForgejoForge,
     GITEA: GiteaForge,
+    # Der offizielle HACS-Katalog (github.com) -- nur ueber den Optionsfluss.
+    GITHUB: HacsKatalogForge,
 }
 
 

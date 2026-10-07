@@ -41,6 +41,7 @@ from .const import (
     CONF_ABSTAND_MINUTEN,
     CONF_ENTWICKLERMODUS,
     CONF_HOST,
+    CONF_KATALOG,
     CONF_PROVIDER,
     CONF_TOKEN,
     DOMAIN,
@@ -48,8 +49,9 @@ from .const import (
     host_normalisieren,
 )
 from .core.forge import ForgeFehler, NichtGefunden, RepositoryInfo
+from .core.hacs_katalog_forge import KATALOG_HOST
 from .core.http_aiohttp import AiohttpClient
-from .core.identity import FORGEJO, GITEA, GITLAB, RepositoryIdentity
+from .core.identity import FORGEJO, GITEA, GITHUB, GITLAB, RepositoryIdentity
 from .core.schmiede import AnbieterUnbekannt, erkenne, schmiede
 from .core.validierung import KATEGORIEN
 from .eintraege import (
@@ -187,6 +189,22 @@ class HaigsFluss(config_entries.ConfigFlow, domain=DOMAIN):
             description_placeholders=platzhalter,
         )
 
+    async def async_step_import(
+        self, benutzereingabe: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Der HACS-Katalog als eigener Eintrag (aus dem Optionsfluss).
+
+        Kein Dialog, keine Pruefverbindung, kein Token: der Katalog ist
+        oeffentlich, und ein erster Fehlschlag soll den Eintrag nicht
+        verhindern -- Home Assistant versucht das Richten erneut.
+        """
+        await self.async_set_unique_id(KATALOG_HOST)
+        self._abort_if_unique_id_configured()
+        return self.async_create_entry(
+            title=KATALOG_HOST + " (HACS)",
+            data={CONF_HOST: KATALOG_HOST, CONF_TOKEN: "", CONF_PROVIDER: GITHUB},
+        )
+
     @staticmethod
     def async_get_options_flow(
         eintrag: config_entries.ConfigEntry,
@@ -214,9 +232,43 @@ class HaigsOptionen(config_entries.OptionsFlow):
     async def async_step_init(
         self, benutzereingabe: dict[str, Any] | None = None
     ) -> FlowResult:
-        return self.async_show_menu(
-            step_id="init",
-            menu_options=["abstand", "entwickler", "repository", "eintraege"],
+        if self._eintrag.data.get(CONF_PROVIDER) == GITHUB:
+            # Der Katalog kennt weder Entwicklermodus noch freie Adressen.
+            optionen = ["abstand", "katalog", "eintraege"]
+        else:
+            optionen = ["abstand", "entwickler", "repository", "eintraege", "katalog"]
+        return self.async_show_menu(step_id="init", menu_options=optionen)
+
+    # -- Offizielle HACS-Repos als Quelle -----------------------------
+    def _katalog_eintrag(self) -> config_entries.ConfigEntry | None:
+        for eintrag in self.hass.config_entries.async_entries(DOMAIN):
+            if eintrag.data.get(CONF_PROVIDER) == GITHUB:
+                return eintrag
+        return None
+
+    async def async_step_katalog(
+        self, benutzereingabe: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Schalter: den HACS-Katalog als eigene Quelle ein- oder ausschalten."""
+        katalog = self._katalog_eintrag()
+        if benutzereingabe is not None:
+            an = bool(benutzereingabe[CONF_KATALOG])
+            if an and katalog is None:
+                await self.hass.config_entries.flow.async_init(
+                    DOMAIN, context={"source": config_entries.SOURCE_IMPORT}, data={}
+                )
+            elif not an and katalog is not None:
+                await self.hass.config_entries.async_remove(katalog.entry_id)
+                if katalog.entry_id == self._eintrag.entry_id:
+                    # Der eigene Eintrag ist weg: es gibt keine Optionen
+                    # mehr, die man speichern koennte.
+                    return self.async_abort(reason="katalog_entfernt")
+            return self.async_create_entry(title="", data={**self._eintrag.options})
+        return self.async_show_form(
+            step_id="katalog",
+            data_schema=vol.Schema(
+                {vol.Required(CONF_KATALOG, default=katalog is not None): bool}
+            ),
         )
 
     # -- Bahn M2: Abstand ---------------------------------------------

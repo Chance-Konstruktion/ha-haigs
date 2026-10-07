@@ -492,6 +492,7 @@ async def test_options_menue_erscheint(hass: HomeAssistant, sitzung_einpflanzen)
         "entwickler",
         "repository",
         "eintraege",
+        "katalog",
     }
 
 
@@ -537,6 +538,114 @@ async def test_entwicklermodus_ueber_das_menue(
     assert ergebnis["type"] is FlowResultType.CREATE_ENTRY
     assert mock.options["entwicklermodus"] is True
     assert mock.options[CONF_ABSTAND_MINUTEN] == 30
+
+
+# -- Offizielle HACS-Repos als Quelle -------------------------------------
+
+
+def katalog_einpflanzen(attrappe) -> None:
+    """Die Sitzung antwortet auf die Katalog-Adressen nach Adresse.
+
+    Alles andere laeuft wie bisher aus den aufgezeichneten Antworten
+    (und danach mit einer leeren Suche) -- so ist es egal, wie viele
+    Laeufe die Optionsaenderung des anderen Eintrags auslost.
+    """
+    zeilen = {
+        "integration": {
+            "101": {
+                "full_name": "foo/ha-bar",
+                "description": "Eine Integration",
+                "domain": "bar",
+                "stargazers_count": 5,
+                "downloads": 1234,
+                "last_version": "1.2.3",
+                "last_updated": "2026-09-01T10:00:00Z",
+                "topics": [],
+            }
+        },
+        "plugin": {},
+        "theme": {},
+    }
+    original = attrappe.get
+
+    async def get(url, params=None, headers=None):
+        for kategorie, inhalt in zeilen.items():
+            if f"data-v2.hacs.xyz/{kategorie}/" in url:
+                attrappe.abrufe.append((url, params, headers))
+                return Aufzeichnung(text=json.dumps(inhalt), kopfzeilen={})
+        if not attrappe.aufzeichnungen:
+            attrappe.aufzeichnungen.append(antwort())
+        return await original(url, params, headers)
+
+    attrappe.get = get
+
+
+async def test_katalog_ein_und_ausschalten(
+    hass: HomeAssistant, sitzung_einpflanzen
+) -> None:
+    """Der Schalter legt den Katalog-Eintrag an und entfernt ihn wieder."""
+    mock, attrappe = await dialog_und_eintrag(
+        hass, sitzung_einpflanzen, [antwort(), antwort()]
+    )
+    katalog_einpflanzen(attrappe)
+    hass.config_entries.async_update_entry(mock, options={CONF_ABSTAND_MINUTEN: 30})
+    await hass.async_block_till_done()
+
+    ergebnis = await menue_waehlen(hass, mock, "katalog")
+    assert ergebnis["type"] is FlowResultType.FORM
+    assert ergebnis["step_id"] == "katalog"
+    ergebnis = await hass.config_entries.options.async_configure(
+        ergebnis["flow_id"], {"katalog_anzeigen": True}
+    )
+    await hass.async_block_till_done()
+
+    assert ergebnis["type"] is FlowResultType.CREATE_ENTRY
+    # Die anderen Optionen bleiben stehen.
+    assert mock.options[CONF_ABSTAND_MINUTEN] == 30
+    katalog = [
+        e
+        for e in hass.config_entries.async_entries(DOMAIN)
+        if e.entry_id != mock.entry_id
+    ]
+    assert len(katalog) == 1
+    assert katalog[0].data[CONF_HOST] == "github.com"
+    assert katalog[0].data[CONF_PROVIDER] == "github"
+    assert katalog[0].state is ConfigEntryState.LOADED
+    assert hass.data[DOMAIN][katalog[0].entry_id].forge.provider == "github"
+
+    # Zweiter Durchgang: der Schalter steht auf "an", ausschalten entfernt.
+    ergebnis = await menue_waehlen(hass, mock, "katalog")
+    assert ergebnis["data_schema"]({})["katalog_anzeigen"] is True
+    ergebnis = await hass.config_entries.options.async_configure(
+        ergebnis["flow_id"], {"katalog_anzeigen": False}
+    )
+    await hass.async_block_till_done()
+    assert ergebnis["type"] is FlowResultType.CREATE_ENTRY
+    assert [e.entry_id for e in hass.config_entries.async_entries(DOMAIN)] == [
+        mock.entry_id
+    ]
+
+
+async def test_katalog_eintrag_hat_ein_eigenes_menue(
+    hass: HomeAssistant, sitzung_einpflanzen
+) -> None:
+    """Der Katalog kennt weder Entwicklermodus noch freie Adressen."""
+    katalog_einpflanzen(sitzung_einpflanzen([]))
+    ergebnis = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": "import"}, data={}
+    )
+    assert ergebnis["type"] is FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
+    eintrag = hass.config_entries.async_entries(DOMAIN)[0]
+
+    menue = await hass.config_entries.options.async_init(eintrag.entry_id)
+    assert set(menue["menu_options"]) == {"abstand", "katalog", "eintraege"}
+
+    # Ein zweiter Import legt keinen zweiten Eintrag an.
+    nochmal = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": "import"}, data={}
+    )
+    assert nochmal["type"] is FlowResultType.ABORT
 
 
 # -- Repository hinzufuegen ---------------------------------------------

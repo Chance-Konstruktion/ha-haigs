@@ -528,6 +528,8 @@ const ANBIETER_NAMEN = {
   gitlab: "GitLab",
   forgejo: "Forgejo",
   gitea: "Gitea",
+  // Der offizielle HACS-Katalog laeuft unter dem Anbieter "github".
+  github: "HACS",
 };
 
 /** Das Ereignis, das der Server feuert, sobald ein Lager frisch liegt. */
@@ -637,6 +639,7 @@ const LADEN_TEXTE = {
     spalte_name: "Repository-Name",
     spalte_quelle: "Quelle",
     spalte_sterne: "Sterne",
+    spalte_downloads: "Downloads",
     spalte_aktivitaet: "Aktivität",
     spalte_typ: "Typ",
     spalte_status: "Status",
@@ -712,6 +715,7 @@ const LADEN_TEXTE = {
     spalte_name: "Repository name",
     spalte_quelle: "Source",
     spalte_sterne: "Stars",
+    spalte_downloads: "Downloads",
     spalte_aktivitaet: "Activity",
     spalte_typ: "Type",
     spalte_status: "Status",
@@ -838,11 +842,15 @@ function readme_adressen(text, info, anbieter) {
   if (!info || !info.web_url) return text;
   const zweig = info.standardzweig || "main";
   const roh =
-    anbieter === "gitlab"
+    anbieter === "github"
+      ? `https://raw.githubusercontent.com/${info.web_url.replace("https://github.com/", "")}/${zweig}/`
+      : anbieter === "gitlab"
       ? `${info.web_url}/-/raw/${zweig}/`
       : `${info.web_url}/raw/branch/${zweig}/`;
   const seite =
-    anbieter === "gitlab"
+    anbieter === "github"
+      ? `${info.web_url}/blob/${zweig}/`
+      : anbieter === "gitlab"
       ? `${info.web_url}/-/blob/${zweig}/`
       : `${info.web_url}/src/branch/${zweig}/`;
   const absolut = (u) => /^([a-z]+:|#|\/\/)/i.test(u);
@@ -1113,6 +1121,7 @@ class HaigsPanel extends HTMLElement {
         typ_text: t.typen[e.kategorie] || e.kategorie,
         quelle: this._quelle_text(e.host),
         sterne: e.sterne || 0,
+        downloads: e.downloads || 0,
         aktivitaet: e.veroeffentlicht_am || e.hinzugefuegt_am || "",
       });
     }
@@ -1129,6 +1138,7 @@ class HaigsPanel extends HTMLElement {
         typ_text: t.typen[f.kategorie] || f.kategorie,
         quelle: this._quelle_text(f.host),
         sterne: f.sterne || 0,
+        downloads: f.downloads || 0,
         neueste: f.letzte_version,
         aktivitaet: f.zuletzt_aktiv || "",
       });
@@ -1236,6 +1246,14 @@ class HaigsPanel extends HTMLElement {
         hidden: schmal,
         width: "80px",
         template: (z) => String(z.sterne),
+      },
+      downloads: {
+        title: t.spalte_downloads,
+        sortable: true,
+        type: "numeric",
+        hidden: schmal,
+        width: "100px",
+        template: (z) => (z.downloads ? z.downloads.toLocaleString() : "—"),
       },
       aktivitaet: {
         title: t.spalte_aktivitaet,
@@ -1521,6 +1539,7 @@ class HaigsPanel extends HTMLElement {
       besitzer && chip(PFADE.person, besitzer, "", null),
       chip(PFADE.server, this._quelle_text(z.host), t.spalte_quelle, info.web_url || z.web_url),
       chip(PFADE.stern, sterne || 0, t.spalte_sterne, info.web_url || z.web_url),
+      z.downloads > 0 && chip(PFADE.download, z.downloads.toLocaleString(), t.spalte_downloads, null),
       tickets !== undefined && chip(PFADE.ticket, tickets, "Issues", info.tickets_url || z.tickets_url),
       z.neueste && chip(PFADE.tag, z.neueste, t.version, info.releases_url || z.releases_url),
       this._entwicklung[z.host] && chip(PFADE.zweig, t.entwicklermodus, t.entwicklermodus_titel, null)

@@ -67,6 +67,12 @@ class RepositoryInfo:
     #: das Feld leer; die Oberflaeche faellt auf einen Buchstaben
     #: zurueck, nicht auf ein kaputtes Bild.
     avatar_url: str = ""
+    #: Zahl der Downloads, wo der Anbieter sie kennt (HACS-Katalog);
+    #: sonst 0 -- die Oberflaeche zeigt dann nichts.
+    downloads: int = 0
+    #: Zeitpunkt der letzten Aktivitaet (ISO), wo der Anbieter ihn
+    #: ohne Zusatzabruf kennt; sonst leer.
+    zuletzt_aktiv: str = ""
 
 
 class HttpClient(Protocol):
