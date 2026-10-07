@@ -172,33 +172,26 @@ async def test_panel_ist_ohne_yaml_angemeldet(
     # Die Sprachen, die das Panel kennt, stehen in der Datei selbst.
     assert '"de"' in koerper or "de:" in koerper
 
-    # Flug 2083: der Laden traegt GitLabs Tracht -- der Tanuki im Balken
-    # (vier farbige Pfade), der Rueckhalt fuer die Seitenleiste, die
-    # einklappbaren Abschnitte und das Erneuern beim Betreten.
-    # Flug 2084: das Lager malt sofort (eintraege ohne Netzruf), die
-    # Karten tragen Zeichen, und der Hintergrund feuert sein Ereignis.
-    assert "#E24329" in koerper
-    assert "#FC6D26" in koerper
-    assert "customIconsets" in koerper
+    # Flug 2100: der Laden traegt die Kleider von HACS -- die
+    # Datentabelle des Hauses, das Erneuern beim Betreten, das Ereignis
+    # des Lagers, die Zeichen der Projekte und die Gruppen nach Status.
+    assert "hass-tabs-subpage-data-table" in koerper
     assert "hacs_lab/erneuern" in koerper
     assert "hacs_lab_aktualisiert" in koerper
     assert "avatar" in koerper
     for schlussel in ("aktualisierbar", "installiert", "neu", "downloadbar"):
         assert schlussel in koerper
 
-    # Flug 2085: der Laden ist unendlich und farbig -- Instanz-Plättchen
-    # mit dem Weg in den Einrichtungsdialog (endlos viele Server), und
-    # die Buchstaben-Zeichen in GitLabs Pastell.
-    assert "hl-instanz" in koerper
+    # Der Weg zu einer weiteren Quelle fuehrt in die Integration --
+    # endlos viele Server; die Buchstaben-Zeichen in GitLabs Pastell.
     assert "location-changed" in koerper
-    assert "/config/integrations/dashboard/add?domain=hacs_lab" in koerper
     assert "/config/integrations/integration/hacs_lab" in koerper
     assert "#FFD599" in koerper  # die Pastell-Palette der Buchstaben
 
-    # Flug 2092: die Fusszeile -- Fuchs und Geluebde am unteren Rand,
-    # in beiden Sprachen (das Wort duerfen die Imker selber lesen:
-    # deutsch bleibt derb, englisch nennt den Grund -- Single Point
-    # of Failure).
+    # Flug 2092: die Fusszeile -- Fuchs und Geluebde, in beiden
+    # Sprachen; der Tanuki traegt seine vier Farben.
+    assert "#E24329" in koerper
+    assert "#FC6D26" in koerper
     assert "hl-fuss" in koerper
     assert "fuss_zeile" in koerper
     assert "single point of failure" in koerper
