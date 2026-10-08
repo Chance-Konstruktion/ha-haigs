@@ -83,7 +83,7 @@ Ein Lese-Token brauchst du nur für private Repositories (GitLab-Scope
   *Herunterladen*. Der eigene Ton: GitLab-Orange als Akzent und die Spalte
   **Quelle** (Schmiede und Host), wo HACS die Downloads zählt. Jede
   Detailseite hat ihre eigene Adresse – Zurück im Browser und geteilte Links
-  funktionieren. Unten unterschreibt die Fuchskralle: *„Für die Freiheit gebaut —
+  funktionieren. Unten unterschreibt der Fuchs: *„Für die Freiheit gebaut —
   deine Forge, deine Regeln.“*
 - **Icons wie in Home Assistant:** Integrationen bringen ihr Icon seit 2026 im
   eigenen `brand/`-Ordner mit. HAIGS zeigt es über den Marken-Proxy von
@@ -222,7 +222,7 @@ custom_components/haigs/   die Integration — dünne Home-Assistant-Schicht
   lager.py                    der Laden-Cache: gehaltene Liste + Bestandslauf,
                               Hintergrund-Takt, `haigs_aktualisiert`
   frontend/panel.js           das Seitenleisten-Panel (ohne YAML) — GitLab-Stil
-  frontend/iconset.js         die Fuchskralle als Seitenleisten-Icon (eigene
+  frontend/iconset.js         der Fuchskopf als Seitenleisten-Icon (eigene
                               Icon-Sammlung `haigs`, auf jeder Seite)
   translations/               Dialog-Texte
   core/                       der Kern — reines Python, ohne Home Assistant,

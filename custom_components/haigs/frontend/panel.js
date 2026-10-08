@@ -568,15 +568,15 @@ function zeichen_farbe(name) {
 }
 
 
-/** Die Fuchskralle (dieselbe wie in ``iconset.js``), im Orange des Akzents. */
-const KRALLE_PFAD =
-  "M3.50 6.39C1.50 11.05 2.69 16.42 6.05 18.16C4.06 15.23 4.97 11.44 6.75 7.45Q5.44 5.96 3.50 6.39ZM8.58 5.84C7.85 11.58 10.85 17.09 15.08 17.95C11.97 15.36 11.77 10.92 12.48 5.98Q10.57 4.76 8.58 5.84ZM14.11 7.50C14.87 12.51 18.73 16.43 22.50 16.13C19.26 14.70 18.02 11.01 17.42 6.68Q15.52 6.11 14.11 7.50Z";
+/** Der Fuchskopf (derselbe wie in ``iconset.js``), im Orange des Akzents. */
+const FUCHS_PFAD =
+  "M4.2 0.8L9 6.6L15 6.6L19.8 0.8L20.8 9.6L22.6 13L17.6 15.2L13.4 21.6L12 22.6L10.6 21.6L6.4 15.2L1.4 13L3.2 9.6ZM5.6 9L8 7.4L5 3.6ZM19 3.6L16 7.4L18.4 9ZM7.6 13L9.4 13.7L10.2 12.8L7 11.6ZM17 11.6L13.8 12.8L14.6 13.7L16.4 13Z";
 
-/** Die Kralle als fertiges SVG-Stueck (Groesse via CSS). */
-function kralle_svg(klassenname) {
+/** Der Fuchs als fertiges SVG-Stueck (Groesse via CSS). */
+function fuchs_svg(klassenname) {
   return (
     `<svg class="${klassenname}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">` +
-    `<path fill="#FC6D26" d="${KRALLE_PFAD}"/>` +
+    `<path fill="#FC6D26" d="${FUCHS_PFAD}"/>` +
     `</svg>`
   );
 }
@@ -1615,7 +1615,7 @@ class HaigsPanel extends HTMLElement {
   _fusszeile() {
     const alt = TEXTE[sprache(this._hass)] || TEXTE.en;
     const fuss = knoten("footer", { class: "hl-fuss", role: "contentinfo" });
-    fuss.innerHTML = kralle_svg("hl-fuss-kralle");
+    fuss.innerHTML = fuchs_svg("hl-fuss-fuchs");
     fuss.append(knoten("span", { class: "hl-fuss-wort" }, alt.fuss_zeile));
     return fuss;
   }
@@ -1950,9 +1950,9 @@ const LADEN_STIL = `
     padding: 20px 16px 8px; color: var(--secondary-text-color);
     font-size: 12px; text-align: center; transition: color .2s;
   }
-  .hl-fuss-kralle { height: 18px; width: auto; flex: 0 0 auto; }
+  .hl-fuss-fuchs { height: 18px; width: auto; flex: 0 0 auto; }
   .hl-fuss:hover { color: var(--primary-text-color); }
-  .hl-fuss:hover .hl-fuss-kralle { animation: hl-fuchs-tanz .6s ease; }
+  .hl-fuss:hover .hl-fuss-fuchs { animation: hl-fuchs-tanz .6s ease; }
   @keyframes hl-fuchs-tanz {
     25% { transform: rotate(-9deg); }
     60% { transform: rotate(7deg); }

@@ -74,7 +74,7 @@ read-only token on Gitea/Forgejo).
   and version, and the *Download* button. Its own touch: GitLab orange as the
   accent and a **Source** column (forge and host) where HACS counts
   downloads. Every detail page has its own address – browser back and shared
-  links work. At the bottom the fox claw signs: *“Made for freedom — your forge,
+  links work. At the bottom the fox signs: *“Made for freedom — your forge,
   your rules.”*
 - **Icons like Home Assistant:** since 2026 integrations ship their icon in
   their own `brand/` folder. HAIGS shows it through Home Assistant's
@@ -205,7 +205,7 @@ custom_components/haigs/   the integration — thin Home Assistant layer
   lager.py                    the store cache: persisted list + scan,
                               background interval, `haigs_aktualisiert`
   frontend/panel.js           the sidebar panel (no YAML) — GitLab-style
-  frontend/iconset.js         the fox claw as sidebar icon (own icon
+  frontend/iconset.js         the fox head as sidebar icon (own icon
                               collection `haigs`, on every page)
   translations/               dialog texts
   core/                       the core — pure Python, no Home Assistant,

@@ -157,7 +157,7 @@ async def test_panel_ist_ohne_yaml_angemeldet(
     assert "haigs" in karten
     karte = karten["haigs"]
     assert karte.sidebar_title == "HAIGS"
-    assert karte.sidebar_icon == "haigs:kralle"
+    assert karte.sidebar_icon == "haigs:fuchs"
     assert karte.require_admin is True
     angepasst = karte.config["_panel_custom"]
     assert angepasst["name"] == "haigs-panel"
@@ -189,8 +189,8 @@ async def test_panel_ist_ohne_yaml_angemeldet(
     assert "#FFD599" in koerper  # die Pastell-Palette der Buchstaben
 
     # Flug 2092: die Fusszeile -- Fuchs und Geluebde, in beiden
-    # Sprachen; unterschrieben mit der Fuchskralle im Akzent-Orange.
-    assert "kralle_svg" in koerper
+    # Sprachen; unterschrieben mit dem Fuchskopf im Akzent-Orange.
+    assert "fuchs_svg" in koerper
     assert "#FC6D26" in koerper
     assert "hl-fuss" in koerper
     assert "fuss_zeile" in koerper
@@ -203,14 +203,14 @@ async def test_panel_ist_ohne_yaml_angemeldet(
     iconset = await antwort.text()
     assert "customIconsets" in iconset
     assert '"haigs"' in iconset
-    assert '"kralle"' in iconset
-    assert "fill" not in iconset  # die Kralle traegt keine Farbe, die Seitenleiste faerbt
+    assert '"fuchs"' in iconset
+    assert "fill" not in iconset  # der Fuchs traegt keine Farbe, die Seitenleiste faerbt
 
 
 async def test_iconset_haengt_an_jeder_seite(
     hass: HomeAssistant, sitzung_einpflanzen, hass_ws_client
 ) -> None:
-    """Die Seitenleiste kennt die Kralle, bevor jemand das Panel oeffnet.
+    """Die Seitenleiste kennt den Fuchs, bevor jemand das Panel oeffnet.
 
     add_extra_js_url haengt das Iconset an das Grundgeruest des Frontends
     -- dieselbe Stelle, deren sich HACS fuer sein eigenes Zeichen bedient.

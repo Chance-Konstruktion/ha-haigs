@@ -44,10 +44,10 @@ PANEL_PFAD = "haigs"
 #: Wie das Panel in der Sidebar heisst -- ein Name, kein uebersetzbarer Satz.
 PANEL_TITEL = "HAIGS"
 
-#: Die Fuchskralle -- monochrom, aus ``iconset.js``. Das Zeichen lebt in
+#: Der Fuchskopf -- monochrom, aus ``iconset.js``. Das Zeichen lebt in
 #: der eigenen Kollektion ``haigs``, nicht in MDI. Ein eigenes Zeichen:
 #: GitLabs Tanuki ist dessen Markenzeichen und gehoert nicht in fremde Logos.
-PANEL_ICON = "haigs:kralle"
+PANEL_ICON = "haigs:fuchs"
 
 
 async def richten(hass: HomeAssistant) -> None:
