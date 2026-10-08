@@ -74,6 +74,7 @@ async def test_token_reist_in_der_kopfzeile_und_nie_in_der_url():
     url, _, kopfzeilen = sitzung.abrufe[0]
     assert "geheimer-lese-token" not in url
     assert kopfzeilen["Authorization"] == "Bearer geheimer-lese-token"
+    assert kopfzeilen["User-Agent"].startswith("HAIGS ")  # wer abfragt, nennt sich
 
 
 @pytest.mark.asyncio

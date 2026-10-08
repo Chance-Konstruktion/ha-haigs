@@ -1,36 +1,29 @@
 /**
- * HAIGS Iconset -- der Tanuki von GitLab, monochrom.
+ * HAIGS Iconset -- der Fuchskopf (Kitsune), monochrom.
  *
  * Home Assistants Frontend kennt eigene Zeichenkollektionen: alles vor
  * dem Doppelpunkt einer Icon-Adresse nennt die Kollektion, alles dahinter
- * das Zeichen. ``mdi:hexagon-multiple`` ist MDI; ``haigs:tanuki``
+ * das Zeichen. ``mdi:hexagon-multiple`` ist MDI; ``haigs:fuchs``
  * ist dieses Hier.
  *
- * Das Original ist das Markenbild von GitLab (vier farbige Pfade, vom
- * Imker-Server geholt). Die Seitenleiste zeichnet aber nur EINEN Pfad
- * in der Schreibfarbe -- darum steht hier die Silhouette, der große
- * Körperrand des Tanuki, und die Wange bleibt Wange: erkennbar bleibt
- * das Tier auch einfarbig.
+ * Hohe Spitzohren mit Ohrmuschel, schmale Schnauze -- der Fuchs aus dem
+ * Logo, ein einziger Pfad in der Schreibfarbe der Seitenleiste. Eigenes Zeichen: bis 0.6.2 stand
+ * hier der Tanuki von GitLab, und der ist GitLabs Markenzeichen.
+ * ``haigs:tanuki`` und ``haigs:kralle`` liefern weiter den Fuchs, damit alte Verweise nicht
+ * ins Leere zeigen.
  *
  * Die Datei laeuft als ES-Modul auf JEDER Seite des Frontends (Angemeldet
  * ueber ``add_extra_js_url`` in ``frontend.py``) -- die Seitenleiste
  * braucht das Zeichen schon, bevor jemand das Panel oeffnet.
  */
 
-const TANUKI_SILHOUETTE =
-  "m49.014 19-.067-.18-6.784-17.696a1.792 1.792 0 0 0-3.389.182l-4.579 14.02H15.651" +
-  "l-4.58-14.02a1.795 1.795 0 0 0-3.388-.182l-6.78 17.7-.071.175" +
-  "A12.595 12.595 0 0 0 5.01 33.556l.026.02.057.044 10.32 7.734 5.12 3.87 3.11 2.351" +
-  "a2.102 2.102 0 0 0 2.535 0l3.11-2.352 5.12-3.869 10.394-7.779.029-.022" +
-  "a12.595 12.595 0 0 0 4.182-14.554Z";
-
-/** viewBox des Originalzeichens (0 0 50 48) -- mitgeliefert, passt sonst nicht. */
-const TANUKI_VIEWBOX = "0 0 50 48";
+const FUCHS =
+  "M4.2 0.8L9 6.6L15 6.6L19.8 0.8L20.8 9.6L22.6 13L17.6 15.2L13.4 21.6L12 22.6L10.6 21.6L6.4 15.2L1.4 13L3.2 9.6ZM5.6 9L8 7.4L5 3.6ZM19 3.6L16 7.4L18.4 9ZM7.6 13L9.4 13.7L10.2 12.8L7 11.6ZM17 11.6L13.8 12.8L14.6 13.7L16.4 13Z";
 
 window.customIconsets = window.customIconsets || {};
 window.customIconsets["haigs"] = (name) => {
-  if (name !== "tanuki") {
+  if (name !== "fuchs" && name !== "kralle" && name !== "tanuki") {
     return null;
   }
-  return { path: TANUKI_SILHOUETTE, viewBox: TANUKI_VIEWBOX };
+  return { path: FUCHS, viewBox: "0 0 24 24" };
 };

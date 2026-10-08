@@ -568,23 +568,15 @@ function zeichen_farbe(name) {
 }
 
 
-const TANUKI_PFAD_KOERPER =
-  "m49.014 19-.067-.18-6.784-17.696a1.792 1.792 0 0 0-3.389.182l-4.579 14.02H15.651l-4.58-14.02a1.795 1.795 0 0 0-3.388-.182l-6.78 17.7-.071.175A12.595 12.595 0 0 0 5.01 33.556l.026.02.057.044 10.32 7.734 5.12 3.87 3.11 2.351a2.102 2.102 0 0 0 2.535 0l3.11-2.352 5.12-3.869 10.394-7.779.029-.022a12.595 12.595 0 0 0 4.182-14.554Z";
-const TANUKI_PFAD_WANGE_RECHTS =
-  "m49.014 19-.067-.18a22.88 22.88 0 0 0-9.12 4.103L24.931 34.187l9.485 7.167 10.393-7.779.03-.022a12.595 12.595 0 0 0 4.175-14.554Z";
-const TANUKI_PFAD_KINN =
-  "m15.414 41.354 5.12 3.87 3.11 2.351a2.102 2.102 0 0 0 2.535 0l3.11-2.352 5.12-3.869-9.484-7.167-9.51 7.167Z";
-const TANUKI_PFAD_WANGE_LINKS =
-  "M10.019 22.923a22.86 22.86 0 0 0-9.117-4.1L.832 19A12.595 12.595 0 0 0 5.01 33.556l.026.02.057.044 10.32 7.734 9.491-7.167L10.02 22.923Z";
+/** Der Fuchskopf (derselbe wie in ``iconset.js``), im Orange des Akzents. */
+const FUCHS_PFAD =
+  "M4.2 0.8L9 6.6L15 6.6L19.8 0.8L20.8 9.6L22.6 13L17.6 15.2L13.4 21.6L12 22.6L10.6 21.6L6.4 15.2L1.4 13L3.2 9.6ZM5.6 9L8 7.4L5 3.6ZM19 3.6L16 7.4L18.4 9ZM7.6 13L9.4 13.7L10.2 12.8L7 11.6ZM17 11.6L13.8 12.8L14.6 13.7L16.4 13Z";
 
-/** Der farbige Tanuki als fertiges SVG-Stueck (Groesse via CSS). */
-function tanuki_svg(klassenname) {
+/** Der Fuchs als fertiges SVG-Stueck (Groesse via CSS). */
+function fuchs_svg(klassenname) {
   return (
-    `<svg class="${klassenname}" viewBox="0 0 50 48" aria-hidden="true" focusable="false">` +
-    `<path fill="#E24329" d="${TANUKI_PFAD_KOERPER}"/>` +
-    `<path fill="#FC6D26" d="${TANUKI_PFAD_WANGE_RECHTS}"/>` +
-    `<path fill="#FCA326" d="${TANUKI_PFAD_KINN}"/>` +
-    `<path fill="#FC6D26" d="${TANUKI_PFAD_WANGE_LINKS}"/>` +
+    `<svg class="${klassenname}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">` +
+    `<path fill="#FC6D26" d="${FUCHS_PFAD}"/>` +
     `</svg>`
   );
 }
@@ -1623,7 +1615,7 @@ class HaigsPanel extends HTMLElement {
   _fusszeile() {
     const alt = TEXTE[sprache(this._hass)] || TEXTE.en;
     const fuss = knoten("footer", { class: "hl-fuss", role: "contentinfo" });
-    fuss.innerHTML = tanuki_svg("hl-fuss-tanuki");
+    fuss.innerHTML = fuchs_svg("hl-fuss-fuchs");
     fuss.append(knoten("span", { class: "hl-fuss-wort" }, alt.fuss_zeile));
     return fuss;
   }
@@ -1958,9 +1950,9 @@ const LADEN_STIL = `
     padding: 20px 16px 8px; color: var(--secondary-text-color);
     font-size: 12px; text-align: center; transition: color .2s;
   }
-  .hl-fuss-tanuki { height: 18px; width: auto; flex: 0 0 auto; }
+  .hl-fuss-fuchs { height: 18px; width: auto; flex: 0 0 auto; }
   .hl-fuss:hover { color: var(--primary-text-color); }
-  .hl-fuss:hover .hl-fuss-tanuki { animation: hl-fuchs-tanz .6s ease; }
+  .hl-fuss:hover .hl-fuss-fuchs { animation: hl-fuchs-tanz .6s ease; }
   @keyframes hl-fuchs-tanz {
     25% { transform: rotate(-9deg); }
     60% { transform: rotate(7deg); }
