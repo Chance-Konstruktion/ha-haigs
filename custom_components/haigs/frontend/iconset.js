@@ -1,36 +1,29 @@
 /**
- * HAIGS Iconset -- der Tanuki von GitLab, monochrom.
+ * HAIGS Iconset -- die Fuchskralle, monochrom.
  *
  * Home Assistants Frontend kennt eigene Zeichenkollektionen: alles vor
  * dem Doppelpunkt einer Icon-Adresse nennt die Kollektion, alles dahinter
- * das Zeichen. ``mdi:hexagon-multiple`` ist MDI; ``haigs:tanuki``
+ * das Zeichen. ``mdi:hexagon-multiple`` ist MDI; ``haigs:kralle``
  * ist dieses Hier.
  *
- * Das Original ist das Markenbild von GitLab (vier farbige Pfade, vom
- * Imker-Server geholt). Die Seitenleiste zeichnet aber nur EINEN Pfad
- * in der Schreibfarbe -- darum steht hier die Silhouette, der große
- * Körperrand des Tanuki, und die Wange bleibt Wange: erkennbar bleibt
- * das Tier auch einfarbig.
+ * Drei Sichelkrallen wie die des Fuchses im Logo, ein einziger Pfad in
+ * der Schreibfarbe der Seitenleiste. Eigenes Zeichen: bis 0.6.2 stand
+ * hier der Tanuki von GitLab, und der ist GitLabs Markenzeichen.
+ * ``haigs:tanuki`` liefert weiter die Kralle, damit alte Verweise nicht
+ * ins Leere zeigen.
  *
  * Die Datei laeuft als ES-Modul auf JEDER Seite des Frontends (Angemeldet
  * ueber ``add_extra_js_url`` in ``frontend.py``) -- die Seitenleiste
  * braucht das Zeichen schon, bevor jemand das Panel oeffnet.
  */
 
-const TANUKI_SILHOUETTE =
-  "m49.014 19-.067-.18-6.784-17.696a1.792 1.792 0 0 0-3.389.182l-4.579 14.02H15.651" +
-  "l-4.58-14.02a1.795 1.795 0 0 0-3.388-.182l-6.78 17.7-.071.175" +
-  "A12.595 12.595 0 0 0 5.01 33.556l.026.02.057.044 10.32 7.734 5.12 3.87 3.11 2.351" +
-  "a2.102 2.102 0 0 0 2.535 0l3.11-2.352 5.12-3.869 10.394-7.779.029-.022" +
-  "a12.595 12.595 0 0 0 4.182-14.554Z";
-
-/** viewBox des Originalzeichens (0 0 50 48) -- mitgeliefert, passt sonst nicht. */
-const TANUKI_VIEWBOX = "0 0 50 48";
+const KRALLE =
+  "M3.50 6.39C1.50 11.05 2.69 16.42 6.05 18.16C4.06 15.23 4.97 11.44 6.75 7.45Q5.44 5.96 3.50 6.39ZM8.58 5.84C7.85 11.58 10.85 17.09 15.08 17.95C11.97 15.36 11.77 10.92 12.48 5.98Q10.57 4.76 8.58 5.84ZM14.11 7.50C14.87 12.51 18.73 16.43 22.50 16.13C19.26 14.70 18.02 11.01 17.42 6.68Q15.52 6.11 14.11 7.50Z";
 
 window.customIconsets = window.customIconsets || {};
 window.customIconsets["haigs"] = (name) => {
-  if (name !== "tanuki") {
+  if (name !== "kralle" && name !== "tanuki") {
     return null;
   }
-  return { path: TANUKI_SILHOUETTE, viewBox: TANUKI_VIEWBOX };
+  return { path: KRALLE, viewBox: "0 0 24 24" };
 };

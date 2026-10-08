@@ -568,23 +568,15 @@ function zeichen_farbe(name) {
 }
 
 
-const TANUKI_PFAD_KOERPER =
-  "m49.014 19-.067-.18-6.784-17.696a1.792 1.792 0 0 0-3.389.182l-4.579 14.02H15.651l-4.58-14.02a1.795 1.795 0 0 0-3.388-.182l-6.78 17.7-.071.175A12.595 12.595 0 0 0 5.01 33.556l.026.02.057.044 10.32 7.734 5.12 3.87 3.11 2.351a2.102 2.102 0 0 0 2.535 0l3.11-2.352 5.12-3.869 10.394-7.779.029-.022a12.595 12.595 0 0 0 4.182-14.554Z";
-const TANUKI_PFAD_WANGE_RECHTS =
-  "m49.014 19-.067-.18a22.88 22.88 0 0 0-9.12 4.103L24.931 34.187l9.485 7.167 10.393-7.779.03-.022a12.595 12.595 0 0 0 4.175-14.554Z";
-const TANUKI_PFAD_KINN =
-  "m15.414 41.354 5.12 3.87 3.11 2.351a2.102 2.102 0 0 0 2.535 0l3.11-2.352 5.12-3.869-9.484-7.167-9.51 7.167Z";
-const TANUKI_PFAD_WANGE_LINKS =
-  "M10.019 22.923a22.86 22.86 0 0 0-9.117-4.1L.832 19A12.595 12.595 0 0 0 5.01 33.556l.026.02.057.044 10.32 7.734 9.491-7.167L10.02 22.923Z";
+/** Die Fuchskralle (dieselbe wie in ``iconset.js``), im Orange des Akzents. */
+const KRALLE_PFAD =
+  "M3.50 6.39C1.50 11.05 2.69 16.42 6.05 18.16C4.06 15.23 4.97 11.44 6.75 7.45Q5.44 5.96 3.50 6.39ZM8.58 5.84C7.85 11.58 10.85 17.09 15.08 17.95C11.97 15.36 11.77 10.92 12.48 5.98Q10.57 4.76 8.58 5.84ZM14.11 7.50C14.87 12.51 18.73 16.43 22.50 16.13C19.26 14.70 18.02 11.01 17.42 6.68Q15.52 6.11 14.11 7.50Z";
 
-/** Der farbige Tanuki als fertiges SVG-Stueck (Groesse via CSS). */
-function tanuki_svg(klassenname) {
+/** Die Kralle als fertiges SVG-Stueck (Groesse via CSS). */
+function kralle_svg(klassenname) {
   return (
-    `<svg class="${klassenname}" viewBox="0 0 50 48" aria-hidden="true" focusable="false">` +
-    `<path fill="#E24329" d="${TANUKI_PFAD_KOERPER}"/>` +
-    `<path fill="#FC6D26" d="${TANUKI_PFAD_WANGE_RECHTS}"/>` +
-    `<path fill="#FCA326" d="${TANUKI_PFAD_KINN}"/>` +
-    `<path fill="#FC6D26" d="${TANUKI_PFAD_WANGE_LINKS}"/>` +
+    `<svg class="${klassenname}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">` +
+    `<path fill="#FC6D26" d="${KRALLE_PFAD}"/>` +
     `</svg>`
   );
 }
@@ -1623,7 +1615,7 @@ class HaigsPanel extends HTMLElement {
   _fusszeile() {
     const alt = TEXTE[sprache(this._hass)] || TEXTE.en;
     const fuss = knoten("footer", { class: "hl-fuss", role: "contentinfo" });
-    fuss.innerHTML = tanuki_svg("hl-fuss-tanuki");
+    fuss.innerHTML = kralle_svg("hl-fuss-kralle");
     fuss.append(knoten("span", { class: "hl-fuss-wort" }, alt.fuss_zeile));
     return fuss;
   }
@@ -1958,9 +1950,9 @@ const LADEN_STIL = `
     padding: 20px 16px 8px; color: var(--secondary-text-color);
     font-size: 12px; text-align: center; transition: color .2s;
   }
-  .hl-fuss-tanuki { height: 18px; width: auto; flex: 0 0 auto; }
+  .hl-fuss-kralle { height: 18px; width: auto; flex: 0 0 auto; }
   .hl-fuss:hover { color: var(--primary-text-color); }
-  .hl-fuss:hover .hl-fuss-tanuki { animation: hl-fuchs-tanz .6s ease; }
+  .hl-fuss:hover .hl-fuss-kralle { animation: hl-fuchs-tanz .6s ease; }
   @keyframes hl-fuchs-tanz {
     25% { transform: rotate(-9deg); }
     60% { transform: rotate(7deg); }

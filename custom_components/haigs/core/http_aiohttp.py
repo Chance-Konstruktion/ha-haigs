@@ -103,6 +103,10 @@ def _kopie(daten):
     return daten
 
 
+#: So meldet sich HAIGS bei jedem Abruf.
+BENUTZERKENNUNG = "HAIGS (+https://github.com/Chance-Konstruktion/ha-haigs)"
+
+
 class AiohttpClient:
     """HttpClient auf einer hereingereichten aiohttp-Sitzung.
 
@@ -123,7 +127,9 @@ class AiohttpClient:
         max_seiten: int = 200,
     ) -> None:
         self.sitzung = sitzung
-        self._kopfzeilen: dict[str, str] = {}
+        # Wer abfragt, nennt sich: die Betreiber von Katalog und Forges
+        # sehen sonst nur "HomeAssistant/aiohttp" und keinen Absender.
+        self._kopfzeilen: dict[str, str] = {"User-Agent": BENUTZERKENNUNG}
         if token:
             self._kopfzeilen["Authorization"] = "Bearer " + token
         self._warte = warte or asyncio.sleep
