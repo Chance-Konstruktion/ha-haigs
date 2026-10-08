@@ -225,6 +225,9 @@ class Lager(DataUpdateCoordinator[dict[str, Any]]):
         self.zeilen: list[dict[str, Any]] = []
         #: Die Funde des letzten Scans (funde) -- die ganze Instanz.
         self.funde: list[dict[str, Any]] = []
+        #: Welche Funde der Nutzer schon geoeffnet hat (full_name) -- wie
+        #: bei HACS faellt das new-Flag beim Oeffnen, dauerhaft.
+        self.gesehen: set[str] = set()
         #: Wann das Lager zuletzt geschrieben wurde (ISO).
         self.aktualisiert_am: str = ""
         self.data = self.antwort()
@@ -259,6 +262,12 @@ class Lager(DataUpdateCoordinator[dict[str, Any]]):
             return
         self.zeilen = _zeilen_roh(roh.get("eintraege"))
         self.funde = _zeilen_roh(roh.get("funde"))
+        gesehen = roh.get("gesehen")
+        self.gesehen = (
+            {str(n) for n in gesehen if isinstance(n, str)}
+            if isinstance(gesehen, list)
+            else set()
+        )
         self.aktualisiert_am = str(roh.get("aktualisiert_am") or "")
         self.data = self.antwort()
 
@@ -277,6 +286,7 @@ class Lager(DataUpdateCoordinator[dict[str, Any]]):
             {
                 "eintraege": self.zeilen,
                 "funde": self.funde,
+                "gesehen": sorted(self.gesehen),
                 "aktualisiert_am": self.aktualisiert_am,
             }
         )
@@ -285,6 +295,27 @@ class Lager(DataUpdateCoordinator[dict[str, Any]]):
             EREIGNIS_AKTUALISIERT,
             {"host": self._laufzeit.forge.host, "aktualisiert_am": self.aktualisiert_am},
         )
+
+    async def fund_gesehen(self, full_name: str) -> bool:
+        """Merkt einen geoeffneten Fund -- er ist danach nicht mehr "neu".
+
+        Gibt False zurueck, wenn der Scan diesen Fund nicht kennt.
+        Geschrieben wird still, ohne Ereignis: die Oberflaeche sortiert
+        die Zeile selbst um.
+        """
+        if not any(f.get("full_name") == full_name for f in self.funde):
+            return False
+        if full_name not in self.gesehen:
+            self.gesehen.add(full_name)
+            await self._store.async_save(
+                {
+                    "eintraege": self.zeilen,
+                    "funde": self.funde,
+                    "gesehen": sorted(self.gesehen),
+                    "aktualisiert_am": self.aktualisiert_am,
+                }
+            )
+        return True
 
     def _finde(self, storage_key: str) -> dict[str, Any] | None:
         for zeile in self.zeilen:

@@ -135,3 +135,16 @@ def test_integrations_domain_aus_dem_zielweg() -> None:
     assert modul.integrations_domain("/custom_components/powerline/") == "powerline"
     assert modul.integrations_domain("www/community/karte") is None
     assert modul.integrations_domain("") is None
+
+
+def test_ein_geoeffneter_fund_faellt_aus_neu_wie_bei_hacs() -> None:
+    """Das new-Flag faellt beim Oeffnen; der Fund bleibt ein Fund (_fund)."""
+    text = panel_text()
+    assert 'if (e._fund) return e.gesehen ? "downloadbar" : "neu";' in text
+    assert 'type: "haigs/gesehen"' in text
+    # Das Oeffnen der Detailansicht meldet den Fund; Herunterladen bleibt am _fund-Pfad.
+    assert "this._fund_gesehen(z);" in text
+    assert (
+        'if (z._fund) {\n        await this._hass.callWS({ type: "haigs/hinzufuegen"'
+        in text
+    )

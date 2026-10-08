@@ -262,3 +262,41 @@ async def test_deinstallation_zieht_den_stand_nach(
     assert lager["eintraege"][0]["name"] == "foo/bar*lab"
     # Kein weiterer Abruf: das Lager folgte der Ablage, nicht dem Netz.
     assert len(attrappe.abrufe) == 5
+
+
+async def test_geoeffneter_fund_wird_dauerhaft_gesehen(
+    hass: HomeAssistant, sitzung_einpflanzen, hass_storage, hass_ws_client
+) -> None:
+    """haigs/gesehen merkt den Fund im Lager; eintraege liefert gesehen je Fund."""
+    from .test_m5 import releases as m5_releases
+    from .test_m5 import speichern
+    from .test_m7 import richten
+
+    daten = lager_daten()
+    daten["funde"][0]["vorhanden"] = False
+    speichern(hass_storage, [eintrag_daten()])
+    hass_storage[LAGER_KEY] = {"version": 1, "data": daten}
+    sitzung_einpflanzen(
+        [
+            Aufzeichnung(text="[]", kopfzeilen={}),
+            stammdaten(),
+            m5_releases(release_objekt("v1.2.0")),
+        ]
+    )
+    await richten(hass, mock_eintrag())
+    client = await hass_ws_client(hass)
+
+    vorher = await frage(client, 1, "haigs/eintraege")
+    assert vorher["result"]["funde"][0]["gesehen"] is False
+
+    antwort = await frage(client, 2, "haigs/gesehen", host=HOST, pfad="foo/bar")
+    assert antwort["success"]
+    nachher = await frage(client, 3, "haigs/eintraege")
+    assert nachher["result"]["funde"][0]["gesehen"] is True
+    assert hass_storage[LAGER_KEY]["data"]["gesehen"] == ["foo/bar"]
+
+    # Unbekannter Fund und unbekannte Instanz werden abgewiesen.
+    fremd = await frage(client, 4, "haigs/gesehen", host=HOST, pfad="x/y")
+    assert not fremd["success"]
+    fremd = await frage(client, 5, "haigs/gesehen", host="gibt.es.nicht", pfad="foo/bar")
+    assert not fremd["success"]

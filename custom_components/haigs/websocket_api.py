@@ -144,7 +144,10 @@ async def _liste(hass: HomeAssistant) -> dict[str, Any]:
         # Takt sie schrieb; die Antwort traegt die Wahrheit des Augen-
         # blicks dazu.
         zeilen.extend(dict(zeile) for zeile in lager.zeilen)
-        funde.extend(lager.funde)
+        funde.extend(
+            dict(fund, gesehen=fund.get("full_name") in lager.gesehen)
+            for fund in lager.funde
+        )
         if lager.aktualisiert_am:
             staende_am[host] = lager.aktualisiert_am
 
@@ -628,6 +631,32 @@ async def ws_deinstallieren(
     )
 
 
+@websocket_api.require_admin
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "haigs/gesehen",
+        vol.Required("host"): str,
+        vol.Required("pfad"): str,
+    }
+)
+@websocket_api.async_response
+async def ws_gesehen(
+    hass: HomeAssistant,
+    connection: ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Ein Fund wurde geoeffnet -- er faellt aus "Neu" (wie das new-Flag bei HACS)."""
+    laufzeit = _laufzeit_nach_host(hass, str(msg["host"]))
+    lager = getattr(laufzeit, "lager", None) if laufzeit is not None else None
+    if lager is None:
+        connection.send_error(msg["id"], "unbekannte_instanz", str(msg["host"]))
+        return
+    if not await lager.fund_gesehen(str(msg["pfad"])):
+        connection.send_error(msg["id"], "nicht_gefunden", str(msg["pfad"]))
+        return
+    connection.send_result(msg["id"], {"host": msg["host"], "pfad": msg["pfad"]})
+
+
 #: Alle Befehle dieser Datei -- ``__init__.py`` meldet sie der Reihe nach an.
 BEFEHLE = (
     ws_eintraege,
@@ -637,4 +666,5 @@ BEFEHLE = (
     ws_hinzufuegen,
     ws_entfernen,
     ws_deinstallieren,
+    ws_gesehen,
 )

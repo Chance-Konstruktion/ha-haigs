@@ -1100,7 +1100,7 @@ class HaigsPanel extends HTMLElement {
   /* ---------------- Zeilen ---------------- */
 
   _status(e) {
-    if (e._fund) return "neu";
+    if (e._fund) return e.gesehen ? "downloadbar" : "neu";
     if (e.installiert && e.neueste && e.installiert !== e.neueste) return "aktualisierbar";
     if (e.installiert) return "installiert";
     return "downloadbar";
@@ -1132,8 +1132,8 @@ class HaigsPanel extends HTMLElement {
         id: "fund|" + f.host + "|" + f.full_name,
         pfad: f.full_name,
         anzeige: this._kurzname(f.name),
-        status: "neu",
-        status_text: t.gruppen.neu,
+        status: this._status({ _fund: true, gesehen: f.gesehen }),
+        status_text: t.gruppen[this._status({ _fund: true, gesehen: f.gesehen })],
         typ_text: t.typen[f.kategorie] || f.kategorie,
         quelle: this._quelle_text(f.host),
         sterne: f.sterne || 0,
@@ -1465,6 +1465,7 @@ class HaigsPanel extends HTMLElement {
       this._gehe("/haigs/repository/" + encodeURIComponent(z.id));
       return;
     }
+    this._fund_gesehen(z);
     this._detail = { zeile: z, daten: null, laedt: true };
     this._listenseite.hidden = true;
     this._detailseite.hidden = false;
@@ -1483,6 +1484,19 @@ class HaigsPanel extends HTMLElement {
         this._zeichne_detail();
       }
     }
+  }
+
+  // Wie HACS: Wer einen neuen Fund oeffnet, nimmt ihm das "neu". Lokal sofort,
+  // serverseitig dauerhaft; die Zeile bleibt ein Fund (Herunterladen geht weiter ueber _fund).
+  _fund_gesehen(z) {
+    if (!z._fund || z.gesehen) return;
+    z.gesehen = true;
+    const f = this._funde.find((x) => x.host === z.host && x.full_name === z.full_name);
+    if (f) f.gesehen = true;
+    this._hass
+      .callWS({ type: "haigs/gesehen", host: z.host, pfad: z.full_name })
+      .catch(() => {});
+    this._zeichne_liste();
   }
 
   _schliesse_detail(von_route) {
