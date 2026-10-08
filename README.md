@@ -33,6 +33,12 @@ Versionen, lädt das Versions-Archiv herunter und installiert es sicher.
 
 **Über HACS (empfohlen)**
 
+Dieser Knopf öffnet das Repository in deiner eigenen HACS-Installation und trägt es dabei automatisch als benutzerdefiniertes Repository ein:
+
+[![Öffne deine Home-Assistant-Instanz und dieses Repository in HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Chance-Konstruktion&repository=ha-haigs&category=integration)
+
+Oder von Hand:
+
 1. HACS → ⋮ → *Benutzerdefinierte Repositories* →
    `https://github.com/Chance-Konstruktion/ha-haigs`, Typ *Integration*.
 2. **HAIGS** herunterladen und Home Assistant neu starten.
@@ -40,6 +46,8 @@ Versionen, lädt das Versions-Archiv herunter und installiert es sicher.
    Host deiner Instanz eintragen (gitlab.com, codeberg.org, gitea.com oder
    selbst gehostet), optional ein Lese-Token. Der Anbieter bleibt auf **auto** –
    HAIGS erkennt selbst, ob GitLab, Forgejo oder Gitea antwortet.
+
+   [![Öffne deine Home-Assistant-Instanz und starte die Einrichtung der Integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=haigs)
 4. In der Seitenleiste erscheint **HAIGS**. Weitere Instanzen richtest du
    genauso ein – so viele du willst, in beliebiger Mischung.
 
