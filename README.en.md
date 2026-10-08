@@ -32,6 +32,12 @@ downloads the version archive, and installs it safely.
 
 **Via HACS (recommended)**
 
+This button opens the repository in your own HACS and adds it as a custom repository automatically:
+
+[![Open your Home Assistant instance and open this repository in HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Chance-Konstruktion&repository=ha-haigs&category=integration)
+
+Or by hand:
+
 1. HACS → ⋮ → *Custom repositories* →
    `https://github.com/Chance-Konstruktion/ha-haigs`, type *Integration*.
 2. Download **HAIGS** and restart Home Assistant.
@@ -39,6 +45,8 @@ downloads the version archive, and installs it safely.
    your instance's host (gitlab.com, codeberg.org, gitea.com or self-hosted)
    and optionally a read token. Leave the provider on **auto** – HAIGS
    detects whether GitLab, Forgejo or Gitea answers.
+
+   [![Open your Home Assistant instance and start setting up the integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=haigs)
 4. **HAIGS** appears in the sidebar. Add more instances the same way – as
    many as you like, in any mix.
 
