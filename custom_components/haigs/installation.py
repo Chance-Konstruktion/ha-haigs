@@ -32,6 +32,7 @@ import json
 import os
 import shutil
 import zipfile
+from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from typing import TYPE_CHECKING
 
@@ -54,6 +55,21 @@ _MANIFEST = "manifest.json"
 
 #: Der Name der HACS-Beschreibung im Archiv.
 _HACS_JSON = "hacs.json"
+
+
+@dataclass(frozen=True)
+class InstallationsErgebnis:
+    """Weg und Dateiliste einer gelandeten Installation.
+
+    ``pfad`` (relativ zur Konfiguration) ist das Protokoll fuer die
+    Deinstallation seit M4b. ``dateien`` (Befund #19) kommt bei flachen
+    Kategorien dazu: ``themes`` und ``python_scripts`` gehoeren allen
+    Installationen gemeinsam, die Deinstallation nimmt nur genau diese
+    Dateien wieder mit -- Ordner-Kategorien tragen die leere Liste.
+    """
+
+    pfad: PurePosixPath
+    dateien: tuple[str, ...] = ()
 
 
 class InstallationsFehler(Exception):
@@ -257,9 +273,114 @@ def _zielname(eintrag: Eintrag, archiv: bytes) -> str:
     return name or eintrag.identitaet.full_name
 
 
+#: Dateien, die das Repository beschreiben -- sie gehoeren nicht in die
+#: geteilte Wurzel (Befund #19): Home Assistant liest sie dort nicht,
+#: und jede zweite Installation wuerde an ihnen kollidieren.
+_QUELL_BESCHREIBUNGEN = frozenset(
+    {
+        "hacs.json",
+        "README.md",
+        "README.rst",
+        "README.txt",
+        "LICENSE",
+        "LICENSE.md",
+        "LICENSE.txt",
+    }
+)
+
+
+def _installiere_flach(
+    archiv: bytes,
+    zwischenlager: Path,
+    ziel: Path,
+    zuordnung: dict[str, str],
+    fruehere: tuple[str, ...],
+) -> tuple[str, ...]:
+    """Flacher Weg fuer geteilte Wurzeln (Befund #19): je Datei.
+
+    ``theme`` und ``python_script`` teilen sich ihre Wurzel mit allen
+    anderen Installationen -- sie zu tauschen (wie es der Ordnerweg
+    tut) waere Datenverlust: jede neue Installation frae die voherige,
+    jede Deinstallation den ganzen Ordner. Stattdessen: entpacken ins
+    Zwischenlager (dort gilt weiterhin die ganze Archiv-Abwehr), dann
+    JEDE Datei einzeln an ihren Platz schieben -- atomar je Datei,
+    ueberschrieben wird nur, was der eigenen frueheren Installation
+    gehoerte. Fremde Dateien sind Kollisionen und werden mit Klartext
+    abgewiesen, nicht still ueberschrieben.
+
+    Zurueck kommt die Liste der geschriebenen Dateien -- sie wandert
+    ins Protokoll (``Stand.dateien``) und macht die Deinstallation
+    zur Rundreise ueber genau diese Liste.
+    """
+    zwischenlager.mkdir(parents=True, exist_ok=True)
+    neu = zwischenlager / (ziel.name + ".neu")
+    shutil.rmtree(neu, ignore_errors=True)
+    entpacke = entpacken.entpacke
+    try:
+        entpacke(archiv, neu, nur=zuordnung)
+    except entpacken.EntpackFehler as fehlschlag:
+        shutil.rmtree(neu, ignore_errors=True)
+        raise InstallationsFehler(str(fehlschlag)) from fehlschlag
+
+    # Die geteilte Wurzel traegt die Dateien der Installation, nicht die
+    # Beschreibung der Quelle: jedes Tag-Archiv bringt hacs.json, README
+    # und Lizenz mit -- ohne diesen Filter kollidierte jede zweite
+    # flache Installation an denselben Beschreibungen, und genau das
+    # Testedikt ('zwei Themes nacheinander') verbietet es.
+    neu_namen = sorted(
+        name
+        for name in zuordnung.values()
+        if PurePosixPath(name).name not in _QUELL_BESCHREIBUNGEN
+    )
+    alt_namen = set(fruehere)
+    geschrieben: list[str] = []
+    try:
+        for name in neu_namen:
+            quelle = neu / name
+            senke = ziel / name
+            if senke.exists() and name not in alt_namen:
+                raise InstallationsFehler(
+                    f"{ziel.name}/{name} existiert schon und gehoert nicht zu "
+                    "dieser Installation -- erst die andere Installation "
+                    "entfernen oder die Datei umbenennen"
+                )
+            senke.parent.mkdir(parents=True, exist_ok=True)
+            os.replace(quelle, senke)
+            geschrieben.append(name)
+    except OSError as fehlschlag:
+        raise InstallationsFehler(
+            f"Dateisystem beim Verteilen in {ziel.name} versagte: {fehlschlag}"
+        ) from fehlschlag
+    finally:
+        shutil.rmtree(neu, ignore_errors=True)
+
+    # Dateien, die die neue Version nicht mehr mitbringt, gehoeren
+    # weder dem Archiv noch der Wurzel -- weg mit ihnen.
+    for name in sorted(alt_namen - set(neu_namen)):
+        (ziel / name).unlink(missing_ok=True)
+        _raeume_leere_eltern(ziel, ziel / name)
+    return tuple(geschrieben)
+
+
+def _raeume_leere_eltern(wurzel: Path, datei: Path) -> None:
+    """Entfernt die (dann leeren) Ordner oberhalb einer Datei -- nur
+    bis zur Wurzel, nur wenn leer. Fremde Dateien halten ihre Ordner."""
+    ordner = datei.parent
+    while ordner != wurzel and ordner.is_dir():
+        try:
+            ordner.rmdir()
+        except OSError:
+            return  # nicht leer oder sonstwie blockiert -- stehen lassen
+        ordner = ordner.parent
+
+
 def _installiere_sync(
-    archiv: bytes, kategorie: str, zielname: str, konfiguration: Path
-) -> PurePosixPath:
+    archiv: bytes,
+    kategorie: str,
+    zielname: str,
+    konfiguration: Path,
+    fruehere_dateien: tuple[str, ...] | list[str] | None = None,
+) -> InstallationsErgebnis:
     """Der schreibende Teil -- laeuft im Vorfuehrer (Executor), nie im Kreis.
 
     Zurueck kommt der Zielweg (relativ zur Konfiguration) fuer das
@@ -333,18 +454,36 @@ def _installiere_sync(
 
     ziel = konfiguration / zielpfade.zielverzeichnis(kategorie, zielname)
     zwischenlager = konfiguration / ZWISCHENLAGER_NAME
+    ziel_weg = PurePosixPath(*ziel.relative_to(konfiguration).parts)
+
+    # Befund #19: geteilte Wurzeln (themes, python_scripts) werden nie
+    # als Ordner getauscht -- dort gilt der flache, dateiweise Weg.
+    if zielpfade.ist_flach(kategorie):
+        dateien = _installiere_flach(
+            archiv,
+            zwischenlager,
+            ziel,
+            zuordnung,
+            tuple(fruehere_dateien or ()),
+        )
+        return InstallationsErgebnis(pfad=ziel_weg, dateien=dateien)
+
     try:
         entpacken.installiere(archiv, zwischenlager, ziel, nur=zuordnung)
     except entpacken.EntpackFehler as fehlschlag:
         raise InstallationsFehler(str(fehlschlag)) from fehlschlag
-    return PurePosixPath(*ziel.relative_to(konfiguration).parts)
+    return InstallationsErgebnis(pfad=ziel_weg)
 
 
 # ---------------------------------------------------- Deinstallation
 
 
-def _deinstalliere_sync(pfad_relativ: str, konfiguration: Path) -> None:
-    """Entfernt ein installiertes Verzeichnis -- in einem Zug.
+def _deinstalliere_sync(
+    pfad_relativ: str,
+    konfiguration: Path,
+    dateien: tuple[str, ...] | list[str] | None = None,
+) -> None:
+    """Entfernt eine Installation -- mit Dateiliste oder als Ordnerzug.
 
     Der Weg kommt aus dem Protokoll und wird hier noch einmal geprueft
     (:func:`zielpfade.ist_zielpfad`): die Ablage ist eine Datei, Dateien
@@ -352,12 +491,19 @@ def _deinstalliere_sync(pfad_relativ: str, konfiguration: Path) -> None:
     nie dazu fuehren, dass hier etwas ausserhalb der Kategorie-Wurzeln
     wegbenannt wird.
 
-    Die Reihenfolge ist dieselbe wie beim Installieren: erst das Ziel
-    ins Zwischenlager wegbenennen (``.weg``), dann dort entfernen.
-    Scheitert das Wegbenennen, steht das Ziel noch unberuehrt; scheitert
-    das Entfernen, ist das Ziel zumindest verschwunden und das Lager
-    raeumt der naechste Lauf auf -- halbe Zustaende gibt es im Ziel
-    nicht.
+    Befund #19: bei flachen Kategorien ist der verzeichnete Weg die
+    geteilte Wurzel (``themes``, ``python_scripts``) -- die wird nie
+    als Ordner entfernt. Die Deinstallation nimmt nur die verzeichneten
+    Dateien mit, prueft jeden Namen wie einen Pfad und laesst
+    Fremddateien und die Wurzel selbst unberuehrt. Fehlt die Liste
+    (installiert vor der Heilung), gibt es Klartext statt Datenverlust.
+
+    Der Ordnerzug (alles ausser flachen Wurzeln) bleibt wie er war:
+    erst das Ziel ins Zwischenlager wegbenennen (``.weg``), dann dort
+    entfernen. Scheitert das Wegbenennen, steht das Ziel noch
+    unberuehrt; scheitert das Entfernen, ist das Ziel zumindest
+    verschwunden und das Lager raeumt der naechste Lauf auf -- halbe
+    Zustaende gibt es im Ziel nicht.
     """
     rein = (pfad_relativ or "").strip()
     if not zielpfade.ist_zielpfad(rein):
@@ -366,6 +512,29 @@ def _deinstalliere_sync(pfad_relativ: str, konfiguration: Path) -> None:
             "Deinstallation fasst nur bekannte Kategorie-Wurzeln an"
         )
     ziel = konfiguration.joinpath(*PurePosixPath(rein).parts)
+
+    if dateien:
+        if not ziel.is_dir():
+            raise InstallationsFehler(
+                f"nichts installiert unter {pfad_relativ!r} -- schon entfernt?"
+            )
+        sauber = [zielpfade.pruefe_relativen_namen(name) for name in dateien]
+        for name in sauber:
+            senke = ziel / name
+            senke.parent.mkdir(parents=True, exist_ok=True)
+            senke.unlink(missing_ok=True)
+        for name in sauber:
+            _raeume_leere_eltern(ziel, ziel / name)
+        return
+
+    teile = PurePosixPath(rein).parts
+    if len(teile) == 1 and teile[0] in zielpfade.FLACHE_WURZELN:
+        raise InstallationsFehler(
+            f"{rein} ist die geteilte Wurzel mehrerer Installationen -- ohne "
+            "verzeichnete Dateiliste wird sie nicht entfernt (installiert vor "
+            "der Heilung?): einmal neu installieren, dann laesst sich auch "
+            "sauber entfernen"
+        )
     if not ziel.is_dir():
         raise InstallationsFehler(
             f"nichts installiert unter {pfad_relativ!r} -- schon entfernt?"
@@ -387,8 +556,12 @@ def _deinstalliere_sync(pfad_relativ: str, konfiguration: Path) -> None:
 
 
 async def installiere_version(
-    hass: HomeAssistant, forge: Forge, eintrag: Eintrag, tag: str
-) -> PurePosixPath:
+    hass: HomeAssistant,
+    forge: Forge,
+    eintrag: Eintrag,
+    tag: str,
+    fruehere_dateien: tuple[str, ...] | list[str] | None = None,
+) -> InstallationsErgebnis:
     """Bringt die Version an ihren Ort und meldet den Zielweg.
 
     Quelle: Anhang des Releases, sonst Archiv des Tags (Stufe M4b).
@@ -397,20 +570,30 @@ async def installiere_version(
     Fehler kommen als :class:`InstallationsFehler` mit Klartext; die
     aufrufende Entity reicht ihn als HomeAssistantError weiter.
 
-    Der Zielweg (relativ zur Konfiguration) ist das Protokoll fuer die
-    Deinstallation -- die aufrufende Stelle sorgt dafuer, dass er in der
-    Ablage landet, noch bevor die Version als installiert gilt.
+    Das InstallationsErgebnis (Zielweg plus Dateiliste bei flachen
+    Kategorien) ist das Protokoll fuer die Deinstallation -- die
+    aufrufende Stelle sorgt dafuer, dass es in der Ablage landet, noch
+    bevor die Version als installiert gilt.
     """
     pfad = eintrag.identitaet.full_name
     archiv, _herkunft = await beschaffe_archiv(forge, pfad, tag)
     zielname = _zielname(eintrag, archiv)
     konfiguration = Path(hass.config.config_dir)
     return await hass.async_add_executor_job(
-        _installiere_sync, archiv, eintrag.kategorie, zielname, konfiguration
+        _installiere_sync,
+        archiv,
+        eintrag.kategorie,
+        zielname,
+        konfiguration,
+        tuple(fruehere_dateien or ()),
     )
 
 
-async def deinstalliere_version(hass: HomeAssistant, pfad_relativ: str) -> None:
+async def deinstalliere_version(
+    hass: HomeAssistant,
+    pfad_relativ: str,
+    dateien: tuple[str, ...] | list[str] | None = None,
+) -> None:
     """Nimmt eine installierte Version weg -- den Weg aus dem Protokoll.
 
     Fehler sind Klartext und werden von der aufrufenden Stelle als
@@ -419,4 +602,6 @@ async def deinstalliere_version(hass: HomeAssistant, pfad_relativ: str) -> None:
     dass nichts (mehr) da ist.
     """
     konfiguration = Path(hass.config.config_dir)
-    await hass.async_add_executor_job(_deinstalliere_sync, pfad_relativ, konfiguration)
+    await hass.async_add_executor_job(
+        _deinstalliere_sync, pfad_relativ, konfiguration, tuple(dateien or ())
+    )
