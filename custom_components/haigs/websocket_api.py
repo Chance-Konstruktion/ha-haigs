@@ -604,13 +604,13 @@ async def ws_deinstallieren(
             )
             return
         try:
-            await deinstalliere_version(hass, stand.pfad)
+            await deinstalliere_version(hass, stand.pfad, dateien=stand.dateien)
         except InstallationsFehler as fehlschlag:
             connection.send_error(
                 msg["id"], "deinstallation_fehlgeschlagen", str(fehlschlag)
             )
             return
-        await laufzeit.staende.setzen(schluessel, installiert="", pfad="")
+        await laufzeit.staende.setzen(schluessel, installiert="", pfad="", dateien=[])
         lager = getattr(laufzeit, "lager", None)
         if lager is not None:
             await lager.stand_geaendert(schluessel, installiert="", zielweg="")

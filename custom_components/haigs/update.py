@@ -261,18 +261,27 @@ class HaigsUpdateEntity(UpdateEntity):
             )
         self._laeuft_gerade = True
         self._schreibe()
+        # Befund #19: flache Kategorien verzeichnen ihre Dateiliste --
+        # der fruehere Stand entscheidet, was ein Update ersetzen darf.
+        stand_alt = self._staende.stand(self._eintrag.storage_key)
         try:
-            pfad = await installiere_version(
-                self.hass, self._forge, self._eintrag_aktuell, fund.tag
+            ergebnis = await installiere_version(
+                self.hass,
+                self._forge,
+                self._eintrag_aktuell,
+                fund.tag,
+                fruehere_dateien=stand_alt.dateien,
             )
         except InstallationsFehler as fehlschlag:
             raise HomeAssistantError(str(fehlschlag)) from fehlschlag
         finally:
             self._laeuft_gerade = False
+        pfad = str(ergebnis.pfad)
         await self._staende.setzen(
             self._eintrag.storage_key,
             installiert=fund.neueste,
-            pfad=str(pfad),
+            pfad=pfad,
+            dateien=list(ergebnis.dateien),
         )
         # Flug 2098: das Lager zieht nach -- Version UND Zielweg. Ohne
         # diesen Griff bliebe die Zeile "nichts installiert", bis der
@@ -282,11 +291,11 @@ class HaigsUpdateEntity(UpdateEntity):
             await self._lager.stand_geaendert(
                 self._eintrag.storage_key,
                 installiert=fund.neueste,
-                zielweg=str(pfad),
+                zielweg=pfad,
             )
         self._schreibe()
         mit_dialog = (
-            await lies_dialog_flag(self.hass, str(pfad))
+            await lies_dialog_flag(self.hass, pfad)
             if self._eintrag_aktuell.kategorie == "integration"
             else None
         )
@@ -296,7 +305,7 @@ class HaigsUpdateEntity(UpdateEntity):
             fund.neueste,
             "installation",
             mit_dialog=mit_dialog,
-            pfad=str(pfad),
+            pfad=pfad,
         )
         _LOGGER.info(
             "%s auf %s installiert",

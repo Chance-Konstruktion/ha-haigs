@@ -362,7 +362,7 @@ class TestInstalliereLagerform:
 
         weg = _installiere_sync(archiv, "integration", "bienentanz", tmp_path)
 
-        assert weg == PurePosixPath("custom_components/bienentanz")
+        assert weg.pfad == PurePosixPath("custom_components/bienentanz")
         ziel = tmp_path / "custom_components" / "bienentanz"
         assert (ziel / "manifest.json").read_bytes() == _manifest("bienentanz")
         assert (ziel / "__init__.py").exists()
@@ -382,7 +382,7 @@ class TestInstalliereLagerform:
 
         weg = _installiere_sync(archiv, "integration", "bienentanz", tmp_path)
 
-        assert weg == PurePosixPath("custom_components/bienentanz")
+        assert weg.pfad == PurePosixPath("custom_components/bienentanz")
         ziel = tmp_path / "custom_components" / "bienentanz"
         assert (ziel / "__init__.py").exists()
         assert (ziel / "manifest.json").read_bytes() == _manifest("bienentanz", "1.1.0")
@@ -435,7 +435,7 @@ class TestInstalliereLagerform:
 
         weg = _installiere_sync(archiv, "integration", "vistapool", tmp_path)
 
-        assert weg == PurePosixPath("custom_components/vistapool")
+        assert weg.pfad == PurePosixPath("custom_components/vistapool")
         ziel = tmp_path / "custom_components" / "vistapool"
         assert (ziel / "manifest.json").read_bytes() == _manifest("vistapool", "1.19.0")
         assert (ziel / "__init__.py").exists()
@@ -506,7 +506,7 @@ class TestFilenameOhneAnhang:
 
         weg = _installiere_sync(archiv, "integration", "powerline", tmp_path)
 
-        assert weg == PurePosixPath("custom_components/powerline")
+        assert weg.pfad == PurePosixPath("custom_components/powerline")
         ziel = tmp_path / "custom_components" / "powerline"
         assert (ziel / "manifest.json").read_bytes() == _manifest("powerline", "0.2.0")
         assert (ziel / "__init__.py").exists()
@@ -600,3 +600,153 @@ class TestFilenameMitAusbruch:
                 tmp_path / "staging" / "probe",
                 nur={"gut.txt": "../draussen.txt"},
             )
+
+
+# ------------------ Geteilte Wurzeln (Befund #19: theme & python_script)
+
+
+class TestFlacheKategorien:
+    """themes/ und python_scripts/ gehoeren ALLEN Installationen -- die
+    Wurzel darf nie getauscht werden (Issue #19)."""
+
+    def test_zwei_themes_nebeneinander(self, tmp_path: Path):
+        """Das Ticket: zwei Themes nacheinander installieren -- beide
+        muessen vorhanden sein. Vor der Heilung fraß die zweite
+        Installation die erste (Wurzeltausch)."""
+        hell = _zip(
+            {"blume-v1/hell.yaml": b"hell", "blume-v1/hacs.json": b'{"name": "Blume"}'}
+        )
+        nacht = _zip(
+            {
+                "nacht-v1/dunkel.yaml": b"dunkel",
+                "nacht-v1/hacs.json": b'{"name": "Nacht"}',
+            }
+        )
+
+        weg_hell = _installiere_sync(hell, "theme", "blume", tmp_path)
+        weg_nacht = _installiere_sync(nacht, "theme", "nacht", tmp_path)
+
+        assert weg_hell.pfad == PurePosixPath("themes")
+        assert weg_hell.dateien == ("hell.yaml",)
+        assert weg_nacht.dateien == ("dunkel.yaml",)
+        assert (tmp_path / "themes" / "hell.yaml").read_bytes() == b"hell"
+        assert (tmp_path / "themes" / "dunkel.yaml").read_bytes() == b"dunkel"
+        # Die Beschreibung der Quelle gehoert nicht in die geteilte Wurzel:
+        assert not (tmp_path / "themes" / "hacs.json").exists()
+
+    def test_deinstallation_nimmt_nur_die_eigenen_dateien(self, tmp_path: Path):
+        """Das Ticket: eines deinstallieren -- nur dessen Dateien
+        verschwinden, Fremddateien und das andere Theme bleiben."""
+        hell = _zip({"blume-v1/hell.yaml": b"hell"})
+        nacht = _zip({"nacht-v1/dunkel.yaml": b"dunkel"})
+        _installiere_sync(hell, "theme", "blume", tmp_path)
+        _installiere_sync(nacht, "theme", "nacht", tmp_path)
+        hand_pflege = tmp_path / "themes" / "fremd.yaml"
+        hand_pflege.write_bytes(b"hand")
+
+        _deinstalliere_sync("themes", tmp_path, dateien=("hell.yaml",))
+
+        assert not (tmp_path / "themes" / "hell.yaml").exists()
+        assert (tmp_path / "themes" / "dunkel.yaml").exists()
+        assert hand_pflege.read_bytes() == b"hand"
+        assert (tmp_path / "themes").is_dir()
+
+    def test_blanke_wurzel_ohne_dateiliste_wird_abgewiesen(self, tmp_path: Path):
+        """Alt-Installationen (vor der Heilung) tragen nur den Pfad
+        'themes' -- die Deinstallation darf die geteilte Wurzel NICHT
+        als Ordner entfernen. Klartext statt Datenverlust."""
+        themen = tmp_path / "themes"
+        themen.mkdir()
+        (themen / "liebling.yaml").write_bytes(b"bleib")
+
+        with pytest.raises(InstallationsFehler, match="Wurzel"):
+            _deinstalliere_sync("themes", tmp_path)
+
+        assert (themen / "liebling.yaml").read_bytes() == b"bleib"
+
+    def test_update_entsorgt_alte_dateien_die_wegfallen(self, tmp_path: Path):
+        """Eine Datei, die in der neuen Version nicht mehr vorkommt,
+        wird entfernt -- sonst bleiben Leichen bei Umbenennungen."""
+        alt = _zip({"blume-v1/a.yaml": b"alt", "blume-v1/b.yaml": b"b"})
+        neu = _zip({"blume-v2/a.yaml": b"neu"})
+        _installiere_sync(alt, "theme", "blume", tmp_path)
+
+        ergebnis = _installiere_sync(
+            neu, "theme", "blume", tmp_path, fruehere_dateien=("a.yaml", "b.yaml")
+        )
+
+        assert ergebnis.dateien == ("a.yaml",)
+        assert (tmp_path / "themes" / "a.yaml").read_bytes() == b"neu"
+        assert not (tmp_path / "themes" / "b.yaml").exists()
+
+    def test_fremddatei_wird_nicht_ueberschrieben(self, tmp_path: Path):
+        """Eine schon liegende Datei, die nicht zur eigenen (alten)
+        Installation gehoert, ist eine Kollision -- Abweisung mit
+        Klartext statt stiller Ueberschreibung (Datenverlust)."""
+        themen = tmp_path / "themes"
+        themen.mkdir()
+        (themen / "fremd.yaml").write_bytes(b"hand")
+        archiv = _zip({"blume-v1/fremd.yaml": b"verdeckt"})
+
+        with pytest.raises(InstallationsFehler, match="fremd.yaml"):
+            _installiere_sync(archiv, "theme", "blume", tmp_path)
+
+        assert (themen / "fremd.yaml").read_bytes() == b"hand"
+
+    def test_eigene_alte_datei_darf_erneuert_werden(self, tmp_path: Path):
+        """Update desselben Repo: die eigene Datei wird ersetzt -- das
+        ist der Normalfall, keine Kollision."""
+        alt = _zip({"blume-v1/a.yaml": b"alt"})
+        neu = _zip({"blume-v2/a.yaml": b"neu"})
+        _installiere_sync(alt, "theme", "blume", tmp_path)
+
+        _installiere_sync(neu, "theme", "blume", tmp_path, fruehere_dateien=("a.yaml",))
+
+        assert (tmp_path / "themes" / "a.yaml").read_bytes() == b"neu"
+
+    def test_python_scripts_genauso(self, tmp_path: Path):
+        """Die zweite flache Kategorie kennt dieselbe Heilung."""
+        erst = _zip({"erst-v1/x.py": b"x"})
+        zweit = _zip({"zweit-v1/y.py": b"y"})
+        weg = _installiere_sync(erst, "python_script", "erst", tmp_path)
+        _installiere_sync(zweit, "python_script", "zweit", tmp_path)
+
+        assert weg.pfad == PurePosixPath("python_scripts")
+        assert (tmp_path / "python_scripts" / "x.py").exists()
+        assert (tmp_path / "python_scripts" / "y.py").exists()
+
+        _deinstalliere_sync("python_scripts", tmp_path, dateien=("y.py",))
+        assert not (tmp_path / "python_scripts" / "y.py").exists()
+        assert (tmp_path / "python_scripts" / "x.py").exists()
+
+    def test_deinstallation_mit_ausbrechendem_dateinamen_wird_abgewiesen(
+        self, tmp_path: Path
+    ):
+        """Die Ablage ist eine Datei -- die Dateiliste ist Eingabe,
+        die wird geprueft, nicht geglaubt (wie der Pfad selbst)."""
+        sicher = tmp_path / "wichtig.txt"
+        sicher.write_bytes(b"bleib")
+        with pytest.raises(InstallationsFehler):
+            _deinstalliere_sync("themes", tmp_path, dateien=("../wichtig.txt",))
+        assert sicher.read_bytes() == b"bleib"
+
+    def test_unterordner_im_flachen_ziel(self, tmp_path: Path):
+        """Themes duerfen Unterordner tragen -- sie entstehen in der
+        Wurzel, und die Deinstallation raeumt sie leer mit weg."""
+        archiv = _zip({"blume-v1/gruppe/a.yaml": b"a"})
+        weg = _installiere_sync(archiv, "theme", "blume", tmp_path)
+
+        assert weg.dateien == ("gruppe/a.yaml",)
+        assert (tmp_path / "themes" / "gruppe" / "a.yaml").read_bytes() == b"a"
+
+        _deinstalliere_sync("themes", tmp_path, dateien=("gruppe/a.yaml",))
+        assert not (tmp_path / "themes" / "gruppe" / "a.yaml").exists()
+        assert not (tmp_path / "themes" / "gruppe").exists()
+        assert (tmp_path / "themes").is_dir()
+
+    def test_lager_wird_geraeumt(self, tmp_path: Path):
+        """Das Zwischenlager traegt keine Reste der flachen Wege."""
+        archiv = _zip({"blume-v1/a.yaml": b"a"})
+        _installiere_sync(archiv, "theme", "blume", tmp_path)
+        lager = tmp_path / ".haigs_zwischenlager"
+        assert not list(lager.glob("themes.*"))
