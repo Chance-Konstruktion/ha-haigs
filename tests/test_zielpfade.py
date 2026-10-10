@@ -162,3 +162,57 @@ def test_fehlender_unterordner_wird_benannt():
     ergebnis = Ausschnitt(art="unterordner", unterordner="gibts-nicht")
     with pytest.raises(ZielpfadFehler, match="gibts-nicht"):
         waehle_eintraege(ergebnis, ["anderes/a.py"])
+
+
+# ------------------------------ Zielnamen (Befund #18: Zip-Slip)
+
+
+@pytest.mark.parametrize(
+    "boese",
+    [
+        "/tmp/x/e.txt",  # absolut -- Path / name verwirft die linke Seite
+        "D:/x",  # Windows-Laufwerk
+        "..\\x",  # Rueckwaerts-Trenner
+        "x//tmp/..",  # der Weg aus dem Befund: besteht _pruefe_name, faellt nachher
+        "../oben.yaml",
+        "a/../b.yaml",
+        "/absolut-ohne-tiefere",
+    ],
+)
+def test_filename_mit_ausbruch_wird_abgewiesen(boese: str):
+    """Der Zielname kommt aus der hacs.json des REMOTEN Repos -- er ist
+    Eingabe von Fremden und wird wie ein Archivname geprueft, bevor er
+    irgendwo als Pfad auftaucht (Issue #18)."""
+    with pytest.raises(ZielpfadFehler):
+        ausschnitt({"filename": boese})
+
+
+def test_filename_als_zahl_wird_abgewiesen():
+    """str(5) haette '5' daraus gemacht -- Typluecke aus Issue #18."""
+    with pytest.raises(ZielpfadFehler):
+        ausschnitt({"filename": 5})
+
+
+@pytest.mark.parametrize("feld", ["content_in_root", "zip_release"])
+@pytest.mark.parametrize("boese", ["false", "true", 1, 0, [], {}])
+def test_schaltfeld_muss_wahr_oder_falsch_sein(feld: str, boese: object):
+    """Ein 'false' ALS TEXT ist wahr in Python -- es haette die Archivform
+    auf 'wurzel' umgeschaltet (Issue #18). Nur echte Bools duerfen schalten."""
+    with pytest.raises(ZielpfadFehler):
+        ausschnitt({feld: boese})
+
+
+def test_echte_bools_schalten_weiter():
+    assert ausschnitt({"zip_release": True}).art == "wurzel"
+    assert ausschnitt({"content_in_root": True}).art == "wurzel"
+    assert ausschnitt({"zip_release": False, "content_in_root": False}).art == (
+        "unterordner"
+    )
+
+
+def test_waehle_eintraege_prueft_zielnamen_auch_selbst_gebaut():
+    """Ausschnitt ist ein dataclass -- wer ihn von Hand fuellt, kommt an
+    der zweiten Pruefung vorbei: die Zuordnung selbst wehrt ab."""
+    boese = Ausschnitt(art="dateien", dateien=("../ausbruch.js",))
+    with pytest.raises(ZielpfadFehler, match="ausbruch"):
+        waehle_eintraege(boese, ["ausbruch.js"])

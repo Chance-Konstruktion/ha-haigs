@@ -16,10 +16,17 @@ waehlen, sicher entpacken, tauschen.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from pathlib import PurePosixPath
 
 from .validierung import KATEGORIEN
+
+#: Ein Windows-Laufwerk als erster Teil eines Namens: ``C:`` und Verwandte.
+#: Auf POSIX waere ``C:/x`` ein ordentlicher Ordnername -- auf dem echten
+#: Ziel (Windows-Installation von Home Assistant) ist es der Sprung auf ein
+#: anderes Laufwerk. Der Name bleibt deshalb ueberall verboten.
+_LAUFWERK = re.compile(r"[A-Za-z]:")
 
 #: Wurzel je Kategorie, relativ zur Home-Assistant-Konfiguration.
 #: ``theme`` und ``python_script`` sind bewusst flach: Home Assistant
@@ -134,6 +141,44 @@ def ist_zielpfad(pfad: PurePosixPath | str) -> bool:
     return False
 
 
+def pruefe_relativen_namen(name: str) -> str:
+    """Prueft einen Zielnamen, der aus einer ``hacs.json`` stammt.
+
+    Befund #18 (Zip-Slip ueber den Zielnamen): der Wert hinter
+    ``filename`` ist Eingabe von Fremden -- ein absoluter Pfad, ein
+    Windows-Laufwerk oder ein ``..``-Teil haette das Schreiben aus dem
+    Zielordner hinaus gelenkt (``Path / absoluter Pfad`` verwirft die
+    linke Seite). Dasselbe Gesetz gilt seitdem fuer jeden Namen, der
+    als Ziel einer Zuordnung dient. Zurueck kommt der gestrippte Name;
+    alles Ausbrechende ist ein :class:`ZielpfadFehler` mit Klartext.
+    """
+    if not isinstance(name, str):
+        raise ZielpfadFehler(
+            "Zielname muss ein Dateiname als Text sein, nicht " + type(name).__name__
+        )
+    rein = name.strip()
+    if not rein:
+        raise ZielpfadFehler("Zielname ist leer")
+    if "\x00" in rein:
+        raise ZielpfadFehler(f"NUL-Byte im Zielnamen: {name!r}")
+    if "\\" in rein:
+        raise ZielpfadFehler(
+            f"Rueckwaerts-Schraegstrich im Zielnamen (Windows-Tarnung): {name!r}"
+        )
+    if rein.startswith("/"):
+        raise ZielpfadFehler(
+            f"Zielname ist absolut -- er wuerde aus dem Zielordner "
+            f"hinausschreiben: {name!r}"
+        )
+    teile = rein.split("/")
+    for teil in teile:
+        if teil in ("", ".", ".."):
+            raise ZielpfadFehler(f"untauglicher Teil {teil!r} im Zielnamen: {name!r}")
+    if _LAUFWERK.fullmatch(teile[0]):
+        raise ZielpfadFehler(f"Windows-Laufwerk im Zielnamen: {name!r}")
+    return rein
+
+
 def ausschnitt(daten: dict | None) -> Ausschnitt:
     """Bestimmt aus den ``hacs.json``-Feldern den Ausschnitt eines Archivs.
 
@@ -144,14 +189,31 @@ def ausschnitt(daten: dict | None) -> Ausschnitt:
     Sonst bedeuten ``content_in_root`` oder ``zip_release``, dass der
     Inhalt in der Wurzel steht. Ohne alle drei lebt der Inhalt in
     einem Unterordner, der Name wird aus dem Archiv abgeleitet.
+
+    Befund #18: alle drei Felder sind Typ- und Ausbruch-geprueft -- ein
+    ``filename``, der woandershin zeigt, und ein Schaltfeld als Text
+    (``"false"`` ist wahr in Python) sind Klartextfehler, keine stillen
+    Umleitungen mehr.
     """
     daten = daten or {}
     if not isinstance(daten, dict):
         raise ZielpfadFehler("hacs.json enthaelt kein Objekt")
 
-    datei = str(daten.get("filename") or "").strip()
+    datei_roh = daten.get("filename")
+    if datei_roh is not None and not isinstance(datei_roh, str):
+        raise ZielpfadFehler(
+            "hacs.json: 'filename' muss ein Dateiname als Text sein, nicht "
+            + type(datei_roh).__name__
+        )
+    datei = (datei_roh or "").strip()
     if datei:
-        return Ausschnitt(art="dateien", dateien=(datei,))
+        return Ausschnitt(art="dateien", dateien=(pruefe_relativen_namen(datei),))
+    for feld in ("content_in_root", "zip_release"):
+        wert = daten.get(feld)
+        if wert is not None and not isinstance(wert, bool):
+            raise ZielpfadFehler(
+                f"hacs.json: '{feld}' muss true oder false sein, nicht {wert!r}"
+            )
     if daten.get("content_in_root") or daten.get("zip_release"):
         return Ausschnitt(art="wurzel")
     return Ausschnitt(art="unterordner")
@@ -171,7 +233,10 @@ def waehle_eintraege(ausschnitt: Ausschnitt, namen: list[str]) -> dict[str, str]
 
     if ausschnitt.art == "dateien":
         zuordnung: dict[str, str] = {}
-        for gewuenscht in ausschnitt.dateien:
+        for gewuenscht_roh in ausschnitt.dateien:
+            # Befund #18, zweite Stufe: der Ausschnitt ist ein dataclass,
+            # wer ihn von Hand fuellt, kommt an ausschnitt() vorbei.
+            gewuenscht = pruefe_relativen_namen(gewuenscht_roh)
             treffer = [
                 n for n in dateinamen if n == gewuenscht or n.endswith("/" + gewuenscht)
             ]

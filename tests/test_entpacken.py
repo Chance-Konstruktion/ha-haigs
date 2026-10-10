@@ -11,6 +11,7 @@ Platte liegt.
 import io
 import struct
 import zipfile
+from pathlib import Path
 
 import pytest
 from haigs.core.entpacken import (
@@ -379,3 +380,51 @@ def test_zusammenspiel_mit_zielpfaden_vollstaendige_installation(tmp_path):
     assert (ziel / "__init__.py").read_bytes() == b"pass\n"
     assert (ziel / "README.md").read_bytes() == b"doku"
     assert not (ziel / "mein-projekt-v1.2.0").exists()
+
+
+# --------------------------- Kopierplan-Ausbruch (Befund #18: Zip-Slip)
+
+
+def test_boes_kopierplan_mit_absolutem_zielnamen(tmp_path):
+    """Issue #18: ``Path / '/tmp/x/e.txt'`` verwirft die linke Seite --
+    der Zielname im Kopierplan darf das Ziel nicht umstossen. Die Probe
+    schreibt bewusst in einen absichtlich benannten Pfad: nichts darf
+    dort entstehen, und das Ziel bleibt leer und wird geraeumt."""
+    probe = "/tmp/haigs_schreibprobe_ausbruch.txt"
+    archiv = baue_zip({"gut.txt": b"boese getarnt"})
+    ziel = tmp_path / "staging" / "probe"
+    with pytest.raises(PfadAusbruch):
+        entpacke(archiv, ziel, nur={"gut.txt": probe})
+    assert not Path(probe).exists()
+    assert not ziel.exists()  # das halbfertige Lager ist weg
+
+
+def test_boes_kopierplan_mit_verweis_auf_oberes_verzeichnis(tmp_path):
+    archiv = baue_zip({"gut.txt": b"boese"})
+    ziel = tmp_path / "staging" / "probe"
+    (tmp_path / "staging").mkdir()
+    (tmp_path / "draussen.txt").write_bytes(b"bleib")
+    with pytest.raises(PfadAusbruch):
+        entpacke(archiv, ziel, nur={"gut.txt": "../draussen.txt"})
+    assert (tmp_path / "draussen.txt").read_bytes() == b"bleib"
+
+
+def test_boes_kopierplan_mit_laufwerk_als_zielnamen(tmp_path):
+    """Auf POSIX ist 'C:/x' ein ordentlicher Ordnername -- aber auf dem
+    Ziel der echten Installation (Windows) waere es ein Ausbruch. Der
+    Name bleibt verboten, egal wo die Probe laeuft."""
+    archiv = baue_zip({"gut.txt": b"boese"})
+    ziel = tmp_path / "staging" / "probe"
+    with pytest.raises(PfadAusbruch):
+        entpacke(archiv, ziel, nur={"gut.txt": "C:/boese.txt"})
+
+
+def test_guter_kopierplan_entpackt_unterordner_und_bleibt_drin(tmp_path):
+    """Unterordner im Zielnamen sind erlaubt -- sie entstehen im Ziel,
+    nicht daneben. Die Waage: nichts oberhalb von 'staging'."""
+    archiv = baue_zip({"src/a.py": b"a", "src/b/c.py": b"c"})
+    ziel = tmp_path / "staging" / "probe"
+    entpacke(archiv, ziel, nur={"src/a.py": "a.py", "src/b/c.py": "b/c.py"})
+    assert (ziel / "a.py").read_bytes() == b"a"
+    assert (ziel / "b" / "c.py").read_bytes() == b"c"
+    assert sorted(p.name for p in (tmp_path / "staging").iterdir()) == ["probe"]

@@ -284,6 +284,12 @@ def _installiere_sync(
     # nur sie haben eine Domain und damit eine Lagerform. Was die
     # hacs.json ausdruecklich sagt (filename, content_in_root,
     # zip_release), bleibt vorrangig.
+    #
+    # Befund #18: schnitt muss VOR dem Versuch stehen -- wirft
+    # ausschnitt() (hacs.json als Liste, Typfehler, Ausbruch im
+    # Zielnamen), laesst der Rueckweg sonst ein ungeborenes schnitt.art
+    # lesen (UnboundLocalError statt Klartext).
+    schnitt: zielpfade.Ausschnitt | None = None
     try:
         schnitt = zielpfade.ausschnitt(hacs_daten)
         if (
@@ -309,9 +315,14 @@ def _installiere_sync(
         # Die Integration kommt dann aus dem Ordner statt aus der
         # Raterei nach einer Datei, die nie im Archiv war. Andere
         # Kategorien und echte Mehrdeutigkeiten bleiben Fehler.
+        # Befund #18: wirft ausschnitt() selbst (hacs.json kein Objekt,
+        # Typfehler, Ausbruch im Zielnamen), ist schnitt None -- dann
+        # gibt es nichts zu retten, nur den Klartext weiterzureichen.
         lagerform = (
             finde_lagerform(archiv, zielname)
-            if kategorie == "integration" and schnitt.art == "dateien"
+            if kategorie == "integration"
+            and schnitt is not None
+            and schnitt.art == "dateien"
             else None
         )
         if lagerform is not None:

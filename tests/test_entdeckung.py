@@ -60,6 +60,31 @@ def test_kaputte_hacs_json_faellt_durch():
     assert not pruefe_hacs_json(GUELTIG, kategorie="erfunden")
 
 
+# ------------------------ Feldtypen (Befund #18: Typluecke)
+
+
+def test_filename_als_falscher_typ_faellt_durch():
+    """Issue #18: filename 5 waere zu '5' geworden und haette die
+    Dateiwaehl-Suche verdreht -- die Aufnahme lehnt ab."""
+    assert not pruefe_hacs_json(json.dumps({"name": "Bar", "filename": 5}))
+
+
+@pytest.mark.parametrize("feld", ["content_in_root", "zip_release"])
+def test_schaltfeld_als_text_faellt_durch(feld: str):
+    """Issue #18: 'false' ALS TEXT ist wahr -- es haette die Archivform
+    heimlich auf 'wurzel' gestellt. Die Aufnahme lehnt ab."""
+    assert not pruefe_hacs_json(json.dumps({"name": "Bar", feld: "false"}))
+
+
+@pytest.mark.parametrize("feld", ["content_in_root", "zip_release"])
+def test_schaltfeld_als_wahres_bool_kommt_durch(feld: str):
+    befund = pruefe_hacs_json(
+        json.dumps({"name": "Bar", feld: False}), kategorie="plugin"
+    )
+    assert befund.gueltig
+    assert befund.fehler == []
+
+
 def test_gueltige_hacs_json_kommt_durch():
     befund = pruefe_hacs_json(GUELTIG)
     assert befund

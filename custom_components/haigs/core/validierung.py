@@ -74,6 +74,19 @@ def pruefe_hacs_json(roh: bytes | str, kategorie: str = "integration") -> Befund
     if daten.get("render_readme") not in (None, True, False):
         hinweise.append("'render_readme' ist weder true noch false")
 
+    # Befund #18 (Typluecke): 'filename' und die zwei Schaltfelder
+    # steuern den Installationsweg -- ein 'false' ALS TEXT ist wahr in
+    # Python und haette die Archivform heimlich auf 'wurzel' gestellt.
+    # Bei render_readme ist ein falscher Typ eine Auffaelligkeit, hier
+    # ist er ein Fehler.
+    dateiname = daten.get("filename")
+    if dateiname is not None and not isinstance(dateiname, str):
+        fehler.append("'filename' muss ein Dateiname als Text sein")
+    for feld in ("content_in_root", "zip_release"):
+        wert = daten.get(feld)
+        if wert is not None and not isinstance(wert, bool):
+            fehler.append("'" + feld + "' muss true oder false sein")
+
     for feld in ("homeassistant", "hacs"):
         wert = daten.get(feld)
         if wert is not None and not isinstance(wert, str):
