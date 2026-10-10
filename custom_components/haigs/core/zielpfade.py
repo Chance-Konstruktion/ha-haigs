@@ -48,6 +48,22 @@ _KATEGORIE_WURZELN = {
 #: in die Wurzel -- dort sammeln sich mehrere Repositorys nebeneinander.
 _MIT_EIGENEM_ORDNER = frozenset({"integration", "plugin", "appdaemon", "template"})
 
+#: Befund #19: die flachen Kategorien teilen sich die Wurzel mit allen
+#: anderen Installationen -- ihre Wurzel darf nie als Ordner getauscht
+#: oder entfernt werden. Installieren heisst hier: je Datei schreiben,
+#: und die Dateiliste ins Protokoll fuehren.
+FLACHE_KATEGORIEN = frozenset({"theme", "python_script"})
+
+
+#: Die Wurzeln der flachen Kategorien, als Namen -- die Deinstallation
+#: sperrt genau diese gegen den Ordnerzug (Befund #19).
+FLACHE_WURZELN = frozenset({"themes", "python_scripts"})
+
+
+def ist_flach(kategorie: str) -> bool:
+    """Legt diese Kategorie ihre Dateien direkt in die geteilte Wurzel?"""
+    return kategorie in FLACHE_KATEGORIEN
+
 
 class ZielpfadFehler(Exception):
     """Kategorie unbekannt, Name untauglich oder der Ausschnitt eines
