@@ -27,23 +27,33 @@ FELD = "stand"
 
 
 class Stand:
-    """Unveraenderlicher Zustand eines Eintrags."""
+    """Unveraenderlicher Zustand eines Eintrags.
+
+    ``dateien`` (Befund #19) ist die Liste der geschriebenen Dateien
+    bei flachen Kategorien (``theme``, ``python_script``): die Wurzel
+    gehoert allen Installationen gemeinsam, die Deinstallation nimmt
+    nur genau diese Dateien wieder mit. Ordner-Kategorien tragen hier
+    die leere Liste -- bei ihnen genuegt der Pfad.
+    """
 
     def __init__(
         self,
         installiert: str = "",
         vorabversionen: bool = False,
         pfad: str = "",
+        dateien: tuple[str, ...] = (),
     ) -> None:
         self.installiert = installiert
         self.vorabversionen = vorabversionen
         self.pfad = pfad
+        self.dateien = tuple(dateien)
 
-    def as_dict(self) -> dict[str, str | bool]:
+    def as_dict(self) -> dict[str, str | bool | list[str]]:
         return {
             "installiert": self.installiert,
             "vorabversionen": self.vorabversionen,
             "pfad": self.pfad,
+            "dateien": list(self.dateien),
         }
 
     def __eq__(self, andere: object) -> bool:
@@ -53,13 +63,15 @@ class Stand:
             self.installiert == andere.installiert
             and self.vorabversionen == andere.vorabversionen
             and self.pfad == andere.pfad
+            and self.dateien == andere.dateien
         )
 
     def __repr__(self) -> str:
         return (
             f"Stand(installiert={self.installiert!r},"
             f" vorabversionen={self.vorabversionen!r},"
-            f" pfad={self.pfad!r})"
+            f" pfad={self.pfad!r},"
+            f" dateien={self.dateien!r})"
         )
 
 
@@ -84,10 +96,17 @@ def integrations_domain(pfad: str) -> str | None:
 def _aus_dict(roh: object) -> Stand:
     if not isinstance(roh, dict):
         return Stand()
+    dateien_roh = roh.get("dateien")
+    dateien = (
+        tuple(name for name in dateien_roh if isinstance(name, str))
+        if isinstance(dateien_roh, list)
+        else ()
+    )
     return Stand(
         installiert=str(roh.get("installiert") or ""),
         vorabversionen=bool(roh.get("vorabversionen")),
         pfad=str(roh.get("pfad") or ""),
+        dateien=dateien,
     )
 
 
@@ -146,6 +165,7 @@ class Staende:
         installiert: str | None = None,
         vorabversionen: bool | None = None,
         pfad: str | None = None,
+        dateien: list[str] | tuple[str, ...] | None = None,
     ) -> Stand:
         """Aendert Felder eines Standes und sichert sofort.
 
@@ -159,6 +179,7 @@ class Staende:
                 alt.vorabversionen if vorabversionen is None else vorabversionen
             ),
             pfad=alt.pfad if pfad is None else pfad,
+            dateien=alt.dateien if dateien is None else tuple(dateien),
         )
         self._karte[schluessel] = neu
         await self._ablage.sicher_teil(
