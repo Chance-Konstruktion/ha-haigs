@@ -28,7 +28,11 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .aktualisierer import HaigsAktualisierer, hole_aktualisierer
 from .const import DOMAIN
 from .core.aktualisierungen import Fund
-from .installation import InstallationsFehler, installiere_version
+from .installation import (
+    HalbeInstallation,
+    InstallationsFehler,
+    installiere_version,
+)
 from .neustart import neustart_hinweis
 from .sichtbarkeit import lies_dialog_flag
 from .stand import integrations_domain
@@ -273,6 +277,17 @@ class HaigsUpdateEntity(UpdateEntity):
                 fruehere_dateien=stand_alt.dateien,
             )
         except InstallationsFehler as fehlschlag:
+            # Review zu !50, Befund 1: ein Bruchstueck wird verzeichnet,
+            # BEVOR der Fehler hochgeht -- der zweite Versuch (und die
+            # Deinstallation) scheitern nicht mehr an den eigenen Resten.
+            # Die Version bleibt, wie sie ist: der Stand luegt nicht
+            # ueber eine Version, die nie ganz ankam.
+            if isinstance(fehlschlag, HalbeInstallation):
+                await self._staende.setzen(
+                    self._eintrag.storage_key,
+                    pfad=str(fehlschlag.pfad),
+                    dateien=sorted(set(stand_alt.dateien) | set(fehlschlag.dateien)),
+                )
             raise HomeAssistantError(str(fehlschlag)) from fehlschlag
         finally:
             self._laeuft_gerade = False

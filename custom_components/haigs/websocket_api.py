@@ -591,7 +591,10 @@ async def ws_deinstallieren(
         if eintrag is None:
             continue
         stand = laufzeit.staende.stand(schluessel)
-        if not stand.installiert:
+        if not stand.installiert and not stand.dateien:
+            # Ein Bruchstueck ohne Version (Review zu !50, Befund 1) ist
+            # trotzdem ein ehrlicher Grund aufzuraeumen -- die Liste ist
+            # ja verzeichnet, nur die Version kam nie ganz an.
             connection.send_error(msg["id"], "nichts_installiert", "nichts installiert")
             return
         if not stand.pfad:

@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import io
 import json
+import os
 import zipfile
 from pathlib import Path, PurePosixPath
 
@@ -750,3 +751,57 @@ class TestFlacheKategorien:
         _installiere_sync(archiv, "theme", "blume", tmp_path)
         lager = tmp_path / ".haigs_zwischenlager"
         assert not list(lager.glob("themes.*"))
+
+
+# ----- Nachbesserung nach claudes Review zu !50: die drei offenen Faelle
+
+
+class TestKollisionVorab:
+    """Befund 1: Kollisionen werden geprueft, BEVOR das erste
+    os.replace laeuft -- und ein Dateisystemfehler mittendrin
+    protokolliert sein Bruchstueck, damit der zweite Versuch nicht an
+    den eigenen Resten scheitert (die Deinstallation ebenso wenig)."""
+
+    def test_kollision_hinterlaesst_nichts_halbes(self, tmp_path: Path):
+        """Archiv mit a.yaml und zz.yaml, fremde zz.yaml liegt schon:
+        die Abweisung kommt VOR dem ersten Verschieben -- a.yaml wird
+        nicht mehr hingelegt (vorher blieb es als Sperre liegen)."""
+        themen = tmp_path / "themes"
+        themen.mkdir()
+        (themen / "zz.yaml").write_bytes(b"hand")
+        archiv = _zip({"blume-v1/a.yaml": b"a", "blume-v1/zz.yaml": b"zz"})
+
+        with pytest.raises(InstallationsFehler, match="zz.yaml"):
+            _installiere_sync(archiv, "theme", "blume", tmp_path)
+
+        assert not (themen / "a.yaml").exists()
+        assert (themen / "zz.yaml").read_bytes() == b"hand"
+
+    def test_bruchstueck_nach_dateisystemfehler(self, tmp_path: Path, monkeypatch):
+        """Das Dateisystem versagt mittendrin: was schon geschrieben
+        wurde, reist in der Ausnahme (pfad und dateien) -- der zweite
+        Versuch mit dem Bruchstueck als fruehere Liste laeuft durch."""
+        archiv = _zip({"blume-v1/a.yaml": b"a", "blume-v1/b.yaml": b"b"})
+        echt = os.replace
+        zaehler = {"n": 0}
+
+        def fehlbar(quelle, senke):
+            zaehler["n"] += 1
+            if zaehler["n"] == 2:
+                raise OSError("Dateisystem versagt")
+            return echt(quelle, senke)
+
+        monkeypatch.setattr(os, "replace", fehlbar)
+        with pytest.raises(InstallationsFehler) as befund:
+            _installiere_sync(archiv, "theme", "blume", tmp_path)
+        bruch = befund.value
+        assert bruch.dateien == ("a.yaml",)
+        assert str(bruch.pfad) == "themes"
+        monkeypatch.undo()
+
+        ergebnis = _installiere_sync(
+            archiv, "theme", "blume", tmp_path, fruehere_dateien=bruch.dateien
+        )
+        assert ergebnis.dateien == ("a.yaml", "b.yaml")
+        assert (tmp_path / "themes" / "a.yaml").read_bytes() == b"a"
+        assert (tmp_path / "themes" / "b.yaml").read_bytes() == b"b"

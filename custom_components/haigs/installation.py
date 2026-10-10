@@ -76,6 +76,28 @@ class InstallationsFehler(Exception):
     """Die Installation ist gescheitert -- der Text ist für Menschen."""
 
 
+class HalbeInstallation(InstallationsFehler):
+    """Die flache Installation brach mittendrin ab (Review zu !50).
+
+    ``pfad`` (relativ zur Konfiguration) und ``dateien`` nennen, was
+    von dieser Installation schon auf der Platte liegt -- zusammen mit
+    der frueheren verzeichneten Liste, denn die beiden Mengen gehoeren
+    jetzt dem Eintrag. Der Aufrufer protokolliert beides, BEVOR er den
+    Fehler weiterreicht: so scheitert der zweite Versuch nicht an den
+    eigenen Resten, und die Deinstallation findet auch ein Bruchstueck
+    ehrlich weg. Ohne das Protokoll wäre ein Abbruch eine Sackgasse
+    (Kollision beim ersten Versuch, keine Liste beim zweiten).
+
+    Die Ausnahme entsteht nur auf dem flachen Weg -- der Ordnerweg
+    tauscht in einem Zug und kennt keine halben Zustaende.
+    """
+
+    def __init__(self, text: str, pfad: PurePosixPath, dateien: tuple[str, ...]) -> None:
+        super().__init__(text)
+        self.pfad = pfad
+        self.dateien = tuple(dateien)
+
+
 # ----------------------------------------------------------- Quelle
 
 
@@ -333,32 +355,47 @@ def _installiere_flach(
         if PurePosixPath(name).name not in _QUELL_BESCHREIBUNGEN
     )
     alt_namen = set(fruehere)
+
+    # Review zu !50, Befund 1: JEDE Kollision wird geprueft, BEVOR das
+    # erste os.replace laeuft. Vorher wanderte die Schleife Datei fuer
+    # Datei und traf die fremde Datei erst mittendrin -- die schon
+    # verschobenen eigenen blieben liegen, das Protokoll blieb leer,
+    # und der zweite Versuch sperrte sich selbst an den eigenen Resten.
+    for name in neu_namen:
+        if (ziel / name).exists() and name not in alt_namen:
+            shutil.rmtree(neu, ignore_errors=True)
+            raise InstallationsFehler(
+                f"{ziel.name}/{name} existiert schon und gehoert nicht zu "
+                "dieser Installation -- erst die andere Installation "
+                "entfernen oder die Datei umbenennen"
+            )
+
     geschrieben: list[str] = []
     try:
         for name in neu_namen:
             quelle = neu / name
             senke = ziel / name
-            if senke.exists() and name not in alt_namen:
-                raise InstallationsFehler(
-                    f"{ziel.name}/{name} existiert schon und gehoert nicht zu "
-                    "dieser Installation -- erst die andere Installation "
-                    "entfernen oder die Datei umbenennen"
-                )
             senke.parent.mkdir(parents=True, exist_ok=True)
             os.replace(quelle, senke)
             geschrieben.append(name)
+
+        # Dateien, die die neue Version nicht mehr mitbringt, gehoeren
+        # weder dem Archiv noch der Wurzel -- weg mit ihnen.
+        for name in sorted(alt_namen - set(neu_namen)):
+            (ziel / name).unlink(missing_ok=True)
+            _raeume_leere_eltern(ziel, ziel / name)
     except OSError as fehlschlag:
-        raise InstallationsFehler(
-            f"Dateisystem beim Verteilen in {ziel.name} versagte: {fehlschlag}"
+        # Review zu !50, Befund 1: das Bruchstueck reist in der Ausnahme
+        # -- eigene Reste plus fruehere Liste, denn alles das gehoert
+        # jetzt dem Eintrag. Der Aufrufer protokolliert es, bevor der
+        # Fehler hochgeht, und der zweite Versuch laeuft durch.
+        raise HalbeInstallation(
+            f"Dateisystem beim Verteilen in {ziel.name} versagte: {fehlschlag}",
+            PurePosixPath(*ziel.parts),
+            tuple(sorted(alt_namen | set(geschrieben))),
         ) from fehlschlag
     finally:
         shutil.rmtree(neu, ignore_errors=True)
-
-    # Dateien, die die neue Version nicht mehr mitbringt, gehoeren
-    # weder dem Archiv noch der Wurzel -- weg mit ihnen.
-    for name in sorted(alt_namen - set(neu_namen)):
-        (ziel / name).unlink(missing_ok=True)
-        _raeume_leere_eltern(ziel, ziel / name)
     return tuple(geschrieben)
 
 
@@ -459,13 +496,19 @@ def _installiere_sync(
     # Befund #19: geteilte Wurzeln (themes, python_scripts) werden nie
     # als Ordner getauscht -- dort gilt der flache, dateiweise Weg.
     if zielpfade.ist_flach(kategorie):
-        dateien = _installiere_flach(
-            archiv,
-            zwischenlager,
-            ziel,
-            zuordnung,
-            tuple(fruehere_dateien or ()),
-        )
+        try:
+            dateien = _installiere_flach(
+                archiv,
+                zwischenlager,
+                ziel,
+                zuordnung,
+                tuple(fruehere_dateien or ()),
+            )
+        except HalbeInstallation as bruch:
+            # Der flache Weg kennt nur den absoluten Ort -- hier oben
+            # wird die Adresse ehrlich: relativ zur Konfiguration,
+            # genau wie sie ins Protokoll gehoert.
+            raise HalbeInstallation(str(bruch), ziel_weg, bruch.dateien) from bruch
         return InstallationsErgebnis(pfad=ziel_weg, dateien=dateien)
 
     try:
