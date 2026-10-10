@@ -495,7 +495,9 @@ async def test_update_altbestand_ohne_dateiliste(
         },
     )
     themen = Path(hass.config.config_dir) / "themes"
-    themen.mkdir(parents=True)
+    # exist_ok: die Testumgebung teilt den config_dir -- steht themes
+    # schon da (Nachbar aus einem frueheren Lauf), wird er mitbenutzt.
+    themen.mkdir(parents=True, exist_ok=True)
     (themen / "liebling.yaml").write_bytes(b"alt")
     archiv = _themen_archiv(None, b"neu")
     sitzung_einpflanzen(
@@ -519,7 +521,7 @@ async def test_update_altbestand_ohne_dateiliste(
 
     assert (themen / "liebling.yaml").read_bytes() == b"neu"
     gespeichert = hass_storage[SCHLUESSEL]["data"]["stand"][STORAGE_KEY]
-    assert gespeichert["installiert"] == "v1.2.0"
+    assert gespeichert["installiert"] == "1.2.0"  # Tag v1.2.0, normalisiert
     assert gespeichert["pfad"] == "themes"
     assert gespeichert["dateien"] == ["liebling.yaml"]
 
@@ -544,7 +546,7 @@ async def test_deinstallation_altbestand_rekonstruiert_die_liste(
         },
     )
     themen = Path(hass.config.config_dir) / "themes"
-    themen.mkdir(parents=True)
+    themen.mkdir(parents=True, exist_ok=True)
     (themen / "liebling.yaml").write_bytes(b"hell")
     (themen / "fremd.yaml").write_bytes(b"hand")
     archiv = io.BytesIO()
