@@ -255,7 +255,19 @@ def entpacke(
     plan = plane(archiv, grenzen)
     if isinstance(nur, Mapping):
         gesucht = set(nur)
-        umbenennung = dict(nur)
+        umbenennung = {}
+        # Befund #18 (Zip-Slip ueber den Zielnamen): die Werte des
+        # Kopierplans sind Ziele -- dasselbe Gesetz wie fuer Archivnamen.
+        # Ein absoluter Name wuerde beim Zusammensetzen die linke Seite
+        # verwerfen (``Path / '/tmp/x'`` ist ``/tmp/x``), ein Laufwerk
+        # auf Windows hinausspringen. Vor dem ersten Byte, nicht danach.
+        for archiv_name, ziel_name in nur.items():
+            if not isinstance(ziel_name, str):
+                raise BoesesArtefakt(
+                    f"Zielname im Kopierplan ist kein Text: {ziel_name!r}"
+                )
+            _pruefe_name(ziel_name)
+            umbenennung[archiv_name] = ziel_name
     elif nur is not None:
         gesucht = set(nur)
         umbenennung = {}
@@ -270,6 +282,12 @@ def entpacke(
     else:
         ziel.mkdir()
 
+    # Befund #18, zweites Netz: das aufgeloeste Ziel jedes Eintrags muss
+    # UNTER dem aufgeloesten Zielordner bleiben -- was die Namenspruefung
+    # nicht sah (oder kuenftig umgeht), faellt hier auf, bevor die erste
+    # Senke geoeffnet wird.
+    ziel_wurzel = ziel.resolve()
+
     dateien = verzeichnisse = geschrieben = 0
     try:
         with _archiv_oeffnen(archiv) as zip_datei:
@@ -277,6 +295,11 @@ def entpacke(
                 if gesucht is not None and eintrag.name not in gesucht:
                     continue
                 pfad = ziel / umbenennung.get(eintrag.name, eintrag.name)
+                if not pfad.resolve().is_relative_to(ziel_wurzel):
+                    raise PfadAusbruch(
+                        f"Zielname {umbenennung.get(eintrag.name, eintrag.name)!r} "
+                        "fuehrt aus dem Zielordner hinaus"
+                    )
                 if eintrag.ist_verzeichnis:
                     pfad.mkdir(parents=True, exist_ok=True)
                     verzeichnisse += 1
