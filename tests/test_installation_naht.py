@@ -535,3 +535,68 @@ class TestFilenameOhneAnhang:
         )
         with pytest.raises(InstallationsFehler):
             _installiere_sync(archiv, "theme", "wupp", tmp_path)
+
+
+# ------------------------- hacs.json im Archiv (Befund #18: Klartext)
+
+
+class TestHacsJsonKeinObjekt:
+    """Die hacs.json IM ARCHIV kann einer bauen, der die im Repo-Wurzel
+    schon sauber hatte (Issue #18): die Aufnahme prueft nur die im Repo,
+    die Installation liest die im Archiv."""
+
+    def test_klartext_statt_unbound_local_error(self, tmp_path: Path):
+        """Vor der Heilung starb die Naht mit UnboundLocalError, weil der
+        except-Zweig 'schnitt.art' las, obwohl ausschnitt() schon warf.
+        Der Befund: Klartext fuer Menschen."""
+        archiv = _zip(
+            {
+                "beispiel-v1.0.0/manifest.json": _manifest("bienentanz"),
+                "beispiel-v1.0.0/__init__.py": b"# tanz",
+                "beispiel-v1.0.0/hacs.json": b'["liste", "ist", "kein", "objekt"]',
+            }
+        )
+        with pytest.raises(InstallationsFehler, match="kein Objekt"):
+            _installiere_sync(archiv, "integration", "bienentanz", tmp_path)
+        assert not (tmp_path / "custom_components").exists()
+
+    def test_untauglicher_typ_bleibt_fehler_ohne_nebenwirkung(self, tmp_path: Path):
+        """hacs.json als Liste PLUS Kategorie theme: der Fehler bleibt
+        derselbe Klartext (kein Sturz im except)."""
+        archiv = _zip(
+            {
+                "wupp/hacs.json": b"[1, 2, 3]",
+                "wupp/theme.yaml": b"farbe",
+            }
+        )
+        with pytest.raises(InstallationsFehler):
+            _installiere_sync(archiv, "theme", "wupp", tmp_path)
+
+
+class TestFilenameMitAusbruch:
+    """Der Zielname aus der hacs.json faengt die Installation, nicht erst
+    das Entpacken (Issue #18)."""
+
+    def test_absoluter_zielname_wird_abgelehnt(self, tmp_path: Path):
+        archiv = _zip(
+            {
+                "beispiel-v1.0.0/manifest.json": _manifest("bienentanz"),
+                "beispiel-v1.0.0/custom_components/bienentanz/__init__.py": b"# tanz",
+                "beispiel-v1.0.0/hacs.json": b'{"filename": "/tmp/x/e.txt"}',
+            }
+        )
+        with pytest.raises(InstallationsFehler):
+            _installiere_sync(archiv, "integration", "bienentanz", tmp_path)
+        assert not (tmp_path / "custom_components").exists()
+
+    def test_kopierplan_ausbruch_erreicht_kein_dateisystem(self, tmp_path: Path):
+        """Selbst wenn eine Zuordnung mit Ausbruch bis zum Kern kaeme:
+        das Schreiben wehrt ab, nichts entsteht (das zweite Netz)."""
+        from haigs.core.entpacken import PfadAusbruch, entpacke
+
+        with pytest.raises(PfadAusbruch):
+            entpacke(
+                _zip({"gut.txt": b"x"}),
+                tmp_path / "staging" / "probe",
+                nur={"gut.txt": "../draussen.txt"},
+            )
