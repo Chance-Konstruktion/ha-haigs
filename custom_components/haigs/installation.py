@@ -364,7 +364,16 @@ def _installiere_flach(
         for name in zuordnung.values()
         if PurePosixPath(name).name not in _QUELL_BESCHREIBUNGEN
     )
-    alt_namen = set(fruehere)
+    # Review zu !50, Befund 3: die verzeichnete Liste ist Eingabe aus
+    # der Ablage -- jedes Name wird geprueft, BEVOR irgendetwas laeuft
+    # (gleiches Gesetz wie der installierte Pfad und die Namen der
+    # Deinstallation). Ein '../'-Name wuerde beim Aufraeumen aus der
+    # Wurzel hinausloeschen -- Klartext statt Datenverlust.
+    try:
+        alt_namen = {zielpfade.pruefe_relativen_namen(name) for name in fruehere}
+    except zielpfade.ZielpfadFehler as fehlschlag:
+        shutil.rmtree(neu, ignore_errors=True)
+        raise InstallationsFehler(str(fehlschlag)) from fehlschlag
 
     # Review zu !50, Befund 1: JEDE Kollision wird geprueft, BEVOR das
     # erste os.replace laeuft. Vorher wanderte die Schleife Datei fuer
@@ -591,10 +600,19 @@ def _deinstalliere_sync(
             raise InstallationsFehler(
                 f"nichts installiert unter {pfad_relativ!r} -- schon entfernt?"
             )
-        sauber = [zielpfade.pruefe_relativen_namen(name) for name in dateien]
+        # Review zu !50, Befund 3: die Kern-Ausnahme ZielpfadFehler wird
+        # hier eingewickelt -- der Befehl darueber fängt nur
+        # InstallationsFehler, Klartext darf nicht als ungefangene
+        # Ausnahme uebrig bleiben.
+        try:
+            sauber = [zielpfade.pruefe_relativen_namen(name) for name in dateien]
+        except zielpfade.ZielpfadFehler as fehlschlag:
+            raise InstallationsFehler(str(fehlschlag)) from fehlschlag
+        # Review zu !50, Befund 3: kein mkdir vor dem unlink -- die
+        # Deinstallation erzeugt keine Ordner, die es nie gab (fehlende
+        # Pfade sind mit missing_ok kein Fehler, auch ohne Eltern).
         for name in sauber:
             senke = ziel / name
-            senke.parent.mkdir(parents=True, exist_ok=True)
             senke.unlink(missing_ok=True)
         for name in sauber:
             _raeume_leere_eltern(ziel, ziel / name)

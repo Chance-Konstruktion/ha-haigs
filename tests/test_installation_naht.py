@@ -880,3 +880,61 @@ class TestAltbestandOhneListe:
         assert not (themen / "liebling.yaml").exists()
         assert (themen / "fremd.yaml").read_bytes() == b"hand"
         assert themen.is_dir()
+
+
+class TestNamensgesetzImUpdate:
+    """Befund 3: die verzeichnete Liste einer flachen Installation ist
+    Eingabe aus der Ablage -- gleiches Gesetz wie bei der Deinstallation
+    und dem installierten Pfad: pruefen, nicht glauben."""
+
+    def test_ausbrechender_name_im_update_wird_abgewiesen(self, tmp_path: Path):
+        """Mit einem '../'-Namen in der verzeichneten Liste wuerde das
+        Update beim Aufraeumen aus der Wurzel hinausloeschen -- die
+        Abweisung kommt mit Klartext, das Opfer bleibt unberuehrt."""
+        opfer = tmp_path / "opfer.txt"
+        opfer.write_bytes(b"bleib")
+        themen = tmp_path / "themes"
+        themen.mkdir()
+        archiv = _zip({"blume-v1/a.yaml": b"a"})
+
+        with pytest.raises(InstallationsFehler, match="Zielnam"):
+            _installiere_sync(
+                archiv, "theme", "blume", tmp_path, fruehere_dateien=("../opfer.txt",)
+            )
+
+        assert opfer.read_bytes() == b"bleib"
+        assert not (themen / "a.yaml").exists()
+
+    def test_deinstallation_legt_keine_ordner_an(self, tmp_path: Path, monkeypatch):
+        """Die Deinstallation erzeugt zwischendurch keine Ordner, nur um
+        sie leer wieder wegzunehmen -- war der Pfad nie da, passiert
+        nichts (der Spion sieht jeden mkdir)."""
+        themen = tmp_path / "themes"
+        themen.mkdir()
+        angelegt: list[Path] = []
+        echt = Path.mkdir
+
+        def spion(pfad, *args, **kwargs):
+            angelegt.append(pfad)
+            return echt(pfad, *args, **kwargs)
+
+        monkeypatch.setattr(Path, "mkdir", spion)
+        _deinstalliere_sync("themes", tmp_path, dateien=("nie/da.yaml",))
+        monkeypatch.undo()
+
+        assert angelegt == []
+        assert not (themen / "nie").exists()
+
+    def test_deinstallation_ausbrechender_name_ist_klartext(self, tmp_path: Path):
+        """Die Namen der Liste werden geprueft, BEVOR etwas laeuft --
+        und als InstallationsFehler gemeldet, nicht als Kern-Ausnahme,
+        die niemand faengt."""
+        sicher = tmp_path / "wichtig.txt"
+        sicher.write_bytes(b"bleib")
+        themen = tmp_path / "themes"
+        themen.mkdir()
+
+        with pytest.raises(InstallationsFehler, match="Zielnam"):
+            _deinstalliere_sync("themes", tmp_path, dateien=("../wichtig.txt",))
+
+        assert sicher.read_bytes() == b"bleib"
