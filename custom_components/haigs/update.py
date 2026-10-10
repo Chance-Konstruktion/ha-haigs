@@ -28,6 +28,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .aktualisierer import HaigsAktualisierer, hole_aktualisierer
 from .const import DOMAIN
 from .core.aktualisierungen import Fund
+from .core.zielpfade import ist_flach
 from .installation import (
     HalbeInstallation,
     InstallationsFehler,
@@ -268,6 +269,14 @@ class HaigsUpdateEntity(UpdateEntity):
         # Befund #19: flache Kategorien verzeichnen ihre Dateiliste --
         # der fruehere Stand entscheidet, was ein Update ersetzen darf.
         stand_alt = self._staende.stand(self._eintrag.storage_key)
+        # Review zu !50, Befund 2: ein Altbestand aus 0.6.3 traegt Version
+        # und Wurzel, aber keine Dateiliste -- ohne Erben der Namen waere
+        # das Update eine Sackgasse (Kollision an den eigenen Dateien).
+        altbestand = (
+            bool(stand_alt.installiert)
+            and not stand_alt.dateien
+            and ist_flach(self._eintrag_aktuell.kategorie)
+        )
         try:
             ergebnis = await installiere_version(
                 self.hass,
@@ -275,6 +284,7 @@ class HaigsUpdateEntity(UpdateEntity):
                 self._eintrag_aktuell,
                 fund.tag,
                 fruehere_dateien=stand_alt.dateien,
+                altbestand=altbestand,
             )
         except InstallationsFehler as fehlschlag:
             # Review zu !50, Befund 1: ein Bruchstueck wird verzeichnet,

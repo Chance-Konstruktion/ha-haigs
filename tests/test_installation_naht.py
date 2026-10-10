@@ -805,3 +805,78 @@ class TestKollisionVorab:
         assert ergebnis.dateien == ("a.yaml", "b.yaml")
         assert (tmp_path / "themes" / "a.yaml").read_bytes() == b"a"
         assert (tmp_path / "themes" / "b.yaml").read_bytes() == b"b"
+
+
+class TestAltbestandOhneListe:
+    """Befund 2: mit 0.6.3 installiert -- der Stand verzeichnet nur die
+    Wurzel, keine Dateiliste. Update und Deinstallation brauchen einen
+    Weg, sonst ist der Altbestand eine Sackgasse."""
+
+    def test_update_erbt_die_namen(self, tmp_path: Path):
+        """Das Update eines Altbestands ersetzt die gleichnamigen
+        Dateien -- der Nachfolger eines Repo, das 0.6.3 ohne Protokoll
+        in die Wurzel schrieb. Inhaltsgleichheit allein wuerde genau
+        den Normalfall sperren: geaenderte Dateien sind der Grund des
+        Updates."""
+        themen = tmp_path / "themes"
+        themen.mkdir()
+        (themen / "liebling.yaml").write_bytes(b"alt")
+        archiv = _zip({"blume-v1/liebling.yaml": b"neu"})
+
+        ergebnis = _installiere_sync(archiv, "theme", "blume", tmp_path, altbestand=True)
+
+        assert ergebnis.dateien == ("liebling.yaml",)
+        assert (themen / "liebling.yaml").read_bytes() == b"neu"
+
+    def test_altbestand_fasst_fremde_namen_nicht_an(self, tmp_path: Path):
+        """Erben heisst: nur die Namen, die das neue Archiv BRINGT --
+        andere Dateien in der Wurzel bleiben unberuehrt."""
+        themen = tmp_path / "themes"
+        themen.mkdir()
+        (themen / "fremd.yaml").write_bytes(b"hand")
+        archiv = _zip({"blume-v1/a.yaml": b"a"})
+
+        _installiere_sync(archiv, "theme", "blume", tmp_path, altbestand=True)
+
+        assert (themen / "fremd.yaml").read_bytes() == b"hand"
+
+    def test_rekonstruktion_beanprucht_nur_inhaltsgleiche(self, tmp_path: Path):
+        """Fuer die Deinstallation wird die Liste aus dem Archiv der
+        INSTALLIERTEN Version abgeleitet: nur was inhaltsgleich daliegt,
+        gilt als eigenes -- Veraendertes und Fremdes bleibt."""
+        from haigs.installation import _beanspruche_altbestand
+
+        themen = tmp_path / "themes"
+        themen.mkdir()
+        (themen / "liebling.yaml").write_bytes(b"hell")
+        (themen / "veraendert.yaml").write_bytes(b"handgeschrieben")
+        (themen / "fremd.yaml").write_bytes(b"hand")
+        archiv = _zip(
+            {
+                "blume-v1/liebling.yaml": b"hell",
+                "blume-v1/veraendert.yaml": b"original",
+                "blume-v1/hacs.json": b'{"name": "Blume"}',
+            }
+        )
+
+        beansprucht = _beanspruche_altbestand(archiv, "theme", "blume", tmp_path)
+
+        assert beansprucht == ("liebling.yaml",)
+
+    def test_rekonstruktion_und_entfernung_zusammen(self, tmp_path: Path):
+        """Der ganze Weg: Liste rekonstruieren, dann deinstallieren --
+        die Wurzel bleibt, Fremdes bleibt, das Eigene geht."""
+        from haigs.installation import _beanspruche_altbestand
+
+        themen = tmp_path / "themes"
+        themen.mkdir()
+        (themen / "liebling.yaml").write_bytes(b"hell")
+        (themen / "fremd.yaml").write_bytes(b"hand")
+        archiv = _zip({"blume-v1/liebling.yaml": b"hell"})
+
+        dateien = _beanspruche_altbestand(archiv, "theme", "blume", tmp_path)
+        _deinstalliere_sync("themes", tmp_path, dateien=dateien)
+
+        assert not (themen / "liebling.yaml").exists()
+        assert (themen / "fremd.yaml").read_bytes() == b"hand"
+        assert themen.is_dir()

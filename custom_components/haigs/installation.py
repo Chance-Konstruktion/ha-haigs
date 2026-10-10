@@ -317,6 +317,7 @@ def _installiere_flach(
     ziel: Path,
     zuordnung: dict[str, str],
     fruehere: tuple[str, ...],
+    altbestand: bool = False,
 ) -> tuple[str, ...]:
     """Flacher Weg fuer geteilte Wurzeln (Befund #19): je Datei.
 
@@ -329,6 +330,15 @@ def _installiere_flach(
     ueberschrieben wird nur, was der eigenen frueheren Installation
     gehoerte. Fremde Dateien sind Kollisionen und werden mit Klartext
     abgewiesen, nicht still ueberschrieben.
+
+    ``altbestand`` (Review zu !50, Befund 2): der Stand verzeichnet
+    eine Installation aus 0.6.3 -- Version ja, Dateiliste nein. Die
+    gleichnamigen Dateien des Archivs erben dann den Platz: ein
+    Inhaltsgleichheits-Beweis wuerde gerade den Normalfall sperren
+    (geaenderte Dateien sind der Grund eines Updates), die Namens-
+    gleichheit mit dem eigenen Nachfolger ist der beste verfuegbare
+    Nachweis der Zugehoerigkeit. Namen, die das Archiv nicht bringt,
+    bleiben Kollisionen -- Fremdes wird auch so nicht angeruehrt.
 
     Zurueck kommt die Liste der geschriebenen Dateien -- sie wandert
     ins Protokoll (``Stand.dateien``) und macht die Deinstallation
@@ -361,14 +371,16 @@ def _installiere_flach(
     # Datei und traf die fremde Datei erst mittendrin -- die schon
     # verschobenen eigenen blieben liegen, das Protokoll blieb leer,
     # und der zweite Versuch sperrte sich selbst an den eigenen Resten.
-    for name in neu_namen:
-        if (ziel / name).exists() and name not in alt_namen:
-            shutil.rmtree(neu, ignore_errors=True)
-            raise InstallationsFehler(
-                f"{ziel.name}/{name} existiert schon und gehoert nicht zu "
-                "dieser Installation -- erst die andere Installation "
-                "entfernen oder die Datei umbenennen"
-            )
+    # Altbestand erbt die Namen (Befund 2): keine Pruefung, Ersetzung.
+    if not altbestand:
+        for name in neu_namen:
+            if (ziel / name).exists() and name not in alt_namen:
+                shutil.rmtree(neu, ignore_errors=True)
+                raise InstallationsFehler(
+                    f"{ziel.name}/{name} existiert schon und gehoert nicht zu "
+                    "dieser Installation -- erst die andere Installation "
+                    "entfernen oder die Datei umbenennen"
+                )
 
     geschrieben: list[str] = []
     try:
@@ -417,15 +429,60 @@ def _installiere_sync(
     zielname: str,
     konfiguration: Path,
     fruehere_dateien: tuple[str, ...] | list[str] | None = None,
+    altbestand: bool = False,
 ) -> InstallationsErgebnis:
     """Der schreibende Teil -- laeuft im Vorfuehrer (Executor), nie im Kreis.
 
     Zurueck kommt der Zielweg (relativ zur Konfiguration) fuer das
     Protokoll: die Deinstallation nimmt genau diesen Weg wieder.
+    ``altbestand`` (Review zu !50, Befund 2) gilt Installationen aus
+    0.6.3, deren Stand keine Dateiliste traegt -- dort erben die
+    gleichnamigen Dateien des Archivs den Platz (siehe
+    :func:`_installiere_flach`).
     """
     plan = entpacken.plane(archiv)
     namen = [eintrag.name for eintrag in plan if not eintrag.ist_verzeichnis]
+    zuordnung = _kopierplan(archiv, kategorie, zielname, namen)
 
+    ziel = konfiguration / zielpfade.zielverzeichnis(kategorie, zielname)
+    zwischenlager = konfiguration / ZWISCHENLAGER_NAME
+    ziel_weg = PurePosixPath(*ziel.relative_to(konfiguration).parts)
+
+    # Befund #19: geteilte Wurzeln (themes, python_scripts) werden nie
+    # als Ordner getauscht -- dort gilt der flache, dateiweise Weg.
+    if zielpfade.ist_flach(kategorie):
+        try:
+            dateien = _installiere_flach(
+                archiv,
+                zwischenlager,
+                ziel,
+                zuordnung,
+                tuple(fruehere_dateien or ()),
+                altbestand=altbestand,
+            )
+        except HalbeInstallation as bruch:
+            # Der flache Weg kennt nur den absoluten Ort -- hier oben
+            # wird die Adresse ehrlich: relativ zur Konfiguration,
+            # genau wie sie ins Protokoll gehoert.
+            raise HalbeInstallation(str(bruch), ziel_weg, bruch.dateien) from bruch
+        return InstallationsErgebnis(pfad=ziel_weg, dateien=dateien)
+
+    try:
+        entpacken.installiere(archiv, zwischenlager, ziel, nur=zuordnung)
+    except entpacken.EntpackFehler as fehlschlag:
+        raise InstallationsFehler(str(fehlschlag)) from fehlschlag
+    return InstallationsErgebnis(pfad=ziel_weg)
+
+
+def _kopierplan(
+    archiv: bytes, kategorie: str, zielname: str, namen: list[str]
+) -> dict[str, str]:
+    """Der Kopierplan: welcher Ausschnitt des Archivs wohin wandert.
+
+    Einheitlich gerechnet und einheitlich geprueft -- Installation und
+    Rekonstruktion des Altbestands (Review zu !50, Befund 2) lesen
+    denselben Plan, damit beide ueber dieselben Dateien sprechen.
+    """
     hacs_roh = lese_archiv_datei(archiv, _HACS_JSON)
     hacs_daten: dict | None = None
     if hacs_roh is not None:
@@ -488,34 +545,7 @@ def _installiere_sync(
             zuordnung = zielpfade.waehle_eintraege(schnitt, namen)
         else:
             raise InstallationsFehler(str(fehlschlag)) from fehlschlag
-
-    ziel = konfiguration / zielpfade.zielverzeichnis(kategorie, zielname)
-    zwischenlager = konfiguration / ZWISCHENLAGER_NAME
-    ziel_weg = PurePosixPath(*ziel.relative_to(konfiguration).parts)
-
-    # Befund #19: geteilte Wurzeln (themes, python_scripts) werden nie
-    # als Ordner getauscht -- dort gilt der flache, dateiweise Weg.
-    if zielpfade.ist_flach(kategorie):
-        try:
-            dateien = _installiere_flach(
-                archiv,
-                zwischenlager,
-                ziel,
-                zuordnung,
-                tuple(fruehere_dateien or ()),
-            )
-        except HalbeInstallation as bruch:
-            # Der flache Weg kennt nur den absoluten Ort -- hier oben
-            # wird die Adresse ehrlich: relativ zur Konfiguration,
-            # genau wie sie ins Protokoll gehoert.
-            raise HalbeInstallation(str(bruch), ziel_weg, bruch.dateien) from bruch
-        return InstallationsErgebnis(pfad=ziel_weg, dateien=dateien)
-
-    try:
-        entpacken.installiere(archiv, zwischenlager, ziel, nur=zuordnung)
-    except entpacken.EntpackFehler as fehlschlag:
-        raise InstallationsFehler(str(fehlschlag)) from fehlschlag
-    return InstallationsErgebnis(pfad=ziel_weg)
+    return zuordnung
 
 
 # ---------------------------------------------------- Deinstallation
@@ -595,6 +625,67 @@ def _deinstalliere_sync(
     shutil.rmtree(weg, ignore_errors=True)
 
 
+def _beanspruche_altbestand(
+    archiv: bytes, kategorie: str, zielname: str, konfiguration: Path
+) -> tuple[str, ...]:
+    """Die Dateiliste eines Altbestands -- inhaltsgleich zum Archiv.
+
+    Review zu !50, Befund 2: installiert vor der Heilung, verzeichnet
+    der Stand nur die Wurzel -- welche Dateien DAMALS geschrieben
+    wurden, sagt allein das Archiv der installierten Version. Es wird
+    derselbe Kopierplan gerechnet wie bei der Installation (ohne zu
+    schreiben), und beansprucht wird nur, was INHALTSGLEICH daliegt:
+    eine veraenderte oder fremde Datei bleibt unberuehrt -- Loeschen
+    nach Raterei waere der Datenverlust, den Befund #19 heilt. Die
+    Beschreibungen der Quelle (hacs.json, README, Lizenz) gehoeren
+    nie dazu, auch wenn sie im Archiv stehen.
+
+    Zurueck kommt die Liste als Grundlage der Deinstallation --
+    leer heisst: nichts zu erkennen, der Aufrufer meldet Klartext.
+    """
+    plan = entpacken.plane(archiv)
+    namen = [eintrag.name for eintrag in plan if not eintrag.ist_verzeichnis]
+    zuordnung = _kopierplan(archiv, kategorie, zielname, namen)
+    ziel = konfiguration / zielpfade.zielverzeichnis(kategorie, zielname)
+    beansprucht: list[str] = []
+    with zipfile.ZipFile(io.BytesIO(archiv)) as zip_datei:
+        for archiv_name, name in sorted(zuordnung.items()):
+            if PurePosixPath(name).name in _QUELL_BESCHREIBUNGEN:
+                continue
+            datei = ziel / name
+            if not datei.is_file():
+                continue
+            if zip_datei.read(archiv_name) == datei.read_bytes():
+                beansprucht.append(name)
+    return tuple(beansprucht)
+
+
+async def rekonstruiere_dateiliste(
+    hass: HomeAssistant,
+    forge: Forge,
+    eintrag: Eintrag,
+    version: str,
+) -> tuple[str, ...]:
+    """Die Dateiliste eines Altbestands aus dem Archiv der Version.
+
+    Der Weg fuer die Deinstallation eines 0.6.3-Altbestands: das
+    Archiv der INSTALLIERTEN Version beschaffen (Anhang zuerst, sonst
+    Tag-Archiv -- dieselbe Wahl wie bei der Installation), dann ohne
+    Schreiben beanspruchen, was inhaltsgleich daliegt. Netz im
+    Ereigniskreis, Vergleiche im Vorfuehrer. Fehler kommen als
+    :class:`InstallationsFehler` oder :class:`ForgeFehler` mit
+    Klartext -- der Aufrufer entscheidet, was daraus wird.
+    """
+    pfad = eintrag.identitaet.full_name
+    archiv, _herkunft = await beschaffe_archiv(forge, pfad, version)
+    name = eintrag.identitaet.full_name.rsplit("/", 1)[-1]
+    zielname = name or eintrag.identitaet.full_name
+    konfiguration = Path(hass.config.config_dir)
+    return await hass.async_add_executor_job(
+        _beanspruche_altbestand, archiv, eintrag.kategorie, zielname, konfiguration
+    )
+
+
 # ------------------------------------------------------- Ereigniskreis
 
 
@@ -604,6 +695,7 @@ async def installiere_version(
     eintrag: Eintrag,
     tag: str,
     fruehere_dateien: tuple[str, ...] | list[str] | None = None,
+    altbestand: bool = False,
 ) -> InstallationsErgebnis:
     """Bringt die Version an ihren Ort und meldet den Zielweg.
 
@@ -616,7 +708,9 @@ async def installiere_version(
     Das InstallationsErgebnis (Zielweg plus Dateiliste bei flachen
     Kategorien) ist das Protokoll fuer die Deinstallation -- die
     aufrufende Stelle sorgt dafuer, dass es in der Ablage landet, noch
-    bevor die Version als installiert gilt.
+    bevor die Version als installiert gilt. ``altbestand`` (Review
+    zu !50, Befund 2) ermoeglicht das Update einer 0.6.3-Installation
+    ohne verzeichnete Dateiliste.
     """
     pfad = eintrag.identitaet.full_name
     archiv, _herkunft = await beschaffe_archiv(forge, pfad, tag)
@@ -629,6 +723,7 @@ async def installiere_version(
         zielname,
         konfiguration,
         tuple(fruehere_dateien or ()),
+        altbestand,
     )
 
 

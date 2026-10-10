@@ -462,3 +462,114 @@ async def test_althinweis_verschwindet_beim_laden(
     sitzung_einpflanzen([herzschlag(), stammdaten(), releases(release_objekt("v1.2.0"))])
     await richten(hass, mock_eintrag())
     assert neustart_issues(hass) == []
+
+
+# ------------- Altbestand aus 0.6.3 (Review zu !50, Befund 2)
+
+
+def _themen_archiv(tag_inhalt: bytes, liebling: bytes) -> bytes:
+    """Ein Theme-Archiv in Tag-Form: alles unter einem Ordner."""
+    archiv = io.BytesIO()
+    with zipfile.ZipFile(archiv, "w") as zip_datei:
+        zip_datei.writestr("foo-bar-v1.2.0/liebling.yaml", liebling)
+        zip_datei.writestr("foo-bar-v1.2.0/hacs.json", json.dumps({"name": "Blume"}))
+    return archiv.getvalue()
+
+
+async def test_update_altbestand_ohne_dateiliste(
+    hass: HomeAssistant, sitzung_einpflanzen, hass_storage
+) -> None:
+    """0.6.3-Altbestand: Stand ohne dateien, Update auf 1.2.0 -- die
+    eigenen Dateien erben die Namen des Archivs (keine Sackgasse)."""
+    eintrag = eintrag_daten()
+    eintrag["kategorie"] = "theme"
+    speichern(
+        hass_storage,
+        [eintrag],
+        stand={
+            STORAGE_KEY: {
+                "installiert": "v1.1.0",
+                "vorabversionen": False,
+                "pfad": "themes",
+            }
+        },
+    )
+    themen = Path(hass.config.config_dir) / "themes"
+    themen.mkdir(parents=True)
+    (themen / "liebling.yaml").write_bytes(b"alt")
+    archiv = _themen_archiv(None, b"neu")
+    sitzung_einpflanzen(
+        [
+            herzschlag(),
+            stammdaten(),
+            releases(release_objekt("v1.2.0")),
+            releases(release_objekt("v1.2.0")),
+            Aufzeichnung(rohbytes=archiv, kopfzeilen={}),
+        ]
+    )
+    await richten(hass, mock_eintrag())
+
+    await hass.services.async_call(
+        "update",
+        "install",
+        {"entity_id": update_entity_id(hass)},
+        blocking=True,
+    )
+    await hass.async_block_till_done()
+
+    assert (themen / "liebling.yaml").read_bytes() == b"neu"
+    gespeichert = hass_storage[SCHLUESSEL]["data"]["stand"][STORAGE_KEY]
+    assert gespeichert["installiert"] == "v1.2.0"
+    assert gespeichert["pfad"] == "themes"
+    assert gespeichert["dateien"] == ["liebling.yaml"]
+
+
+async def test_deinstallation_altbestand_rekonstruiert_die_liste(
+    hass: HomeAssistant, sitzung_einpflanzen, hass_storage, hass_ws_client
+) -> None:
+    """0.6.3-Altbestand: Deinstallation ohne verzeichnete dateien -- die
+    Liste wird aus dem Archiv der installierten Version rekonstruiert;
+    nur inhaltsgleiche Dateien gelten als eigene."""
+    eintrag = eintrag_daten()
+    eintrag["kategorie"] = "theme"
+    speichern(
+        hass_storage,
+        [eintrag],
+        stand={
+            STORAGE_KEY: {
+                "installiert": "v1.1.0",
+                "vorabversionen": False,
+                "pfad": "themes",
+            }
+        },
+    )
+    themen = Path(hass.config.config_dir) / "themes"
+    themen.mkdir(parents=True)
+    (themen / "liebling.yaml").write_bytes(b"hell")
+    (themen / "fremd.yaml").write_bytes(b"hand")
+    archiv = io.BytesIO()
+    with zipfile.ZipFile(archiv, "w") as zip_datei:
+        zip_datei.writestr("foo-bar-v1.1.0/liebling.yaml", b"hell")
+        zip_datei.writestr("foo-bar-v1.1.0/hacs.json", json.dumps({"name": "Blume"}))
+    sitzung_einpflanzen(
+        [
+            herzschlag(),
+            stammdaten(),
+            releases(release_objekt("v1.2.0")),
+            releases(release_objekt("v1.1.0")),
+            Aufzeichnung(rohbytes=archiv.getvalue(), kopfzeilen={}),
+        ]
+    )
+    await richten(hass, mock_eintrag())
+    client = await hass_ws_client(hass)
+
+    antwort = await frage(client, 1, "haigs/deinstallieren", storage_key=STORAGE_KEY)
+    assert antwort["success"], antwort
+
+    assert not (themen / "liebling.yaml").exists()
+    assert (themen / "fremd.yaml").read_bytes() == b"hand"
+    assert themen.is_dir()
+    gespeichert = hass_storage[SCHLUESSEL]["data"]["stand"][STORAGE_KEY]
+    assert gespeichert["installiert"] == ""
+    assert gespeichert["pfad"] == ""
+    assert gespeichert["dateien"] == []
