@@ -143,6 +143,21 @@ async def test_ohne_releases_bleibt_die_version_leer():
 
 
 @pytest.mark.asyncio
+async def test_ohne_releases_zaehlen_die_tags():
+    """ha-haigs#1: nur Tags, kein Release -- die Version kommt aus den Tags."""
+    http = FakeHttp(
+        {
+            "/groups/": [projekt()],
+            "releases": [],
+            "repository/tags": [{"name": "v0.2.0"}, {"name": "v0.1.0"}],
+        },
+        {"hacs.json": GUELTIG},
+    )
+    funde = await entdecke(GitLabForge(http, HOST), gruppe="foo")
+    assert funde[0].letzte_version == "0.2.0"
+
+
+@pytest.mark.asyncio
 async def test_releases_stoerung_bricht_den_scan_nicht():
     """Ein einzelner Ausfall darf nicht den ganzen Scan kosten."""
     http = FakeHttp(

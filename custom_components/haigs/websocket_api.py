@@ -349,6 +349,20 @@ async def ws_detail(
         ]
     except Exception as fehler:  # noqa: BLE001 - Releases fehlen, Rest bleibt
         _LOGGER.debug("Releases zu %s gescheitert: %s", pfad, fehler)
+    if not releases:  # Tags sind der Rueckfall (ha-haigs#1)
+        try:
+            releases = [
+                {
+                    "tag": tag,
+                    "name": tag,
+                    "beschreibung": "",
+                    "veroeffentlicht_am": "",
+                    "vorabversion": False,
+                }
+                for tag in await laufzeit.forge.tags(pfad)
+            ]
+        except Exception as fehler:  # noqa: BLE001
+            _LOGGER.debug("Tags zu %s gescheitert: %s", pfad, fehler)
 
     readme: str | None = None
     readme_datei = ""
