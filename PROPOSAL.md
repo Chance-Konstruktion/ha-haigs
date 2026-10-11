@@ -1,5 +1,9 @@
 # Ein zweiter Anbieter für HACS — ein Vorschlag
 
+> **Abgelegt am 11.10.2026, nicht eingereicht.** HAIGS steht eigenständig und
+> geht seinen eigenen Weg; ein Einbau in HACS wird nicht mehr verfolgt. Das
+> Dokument bleibt als Beschreibung der Forge-Naht stehen.
+
 > Dieses Dokument ist die nach außen gerichtete Ausarbeitung der Forge-Naht,
 > auf der HAIGS läuft. Es wendet sich an die Leute, die
 > [HACS](https://github.com/hacs/integration) betreuen. Die Entscheidung, ob

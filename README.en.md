@@ -8,9 +8,10 @@
 
 > 🇬🇧 English · [🇩🇪 Deutsch](README.md)
 
-HACS behaviour for self-hosted Git forges: add, discover, and update Home
-Assistant custom components that live on **GitLab**, **Gitea**, or **Forgejo**
-([Codeberg](https://codeberg.org)) — the way HACS does it for GitHub.
+The store for Home Assistant custom components that don't live on GitHub:
+**GitLab**, **Gitea**, and **Forgejo** ([Codeberg](https://codeberg.org)) —
+add, discover, keep up to date. Self-hosted, no GitHub account, no mirror
+detour.
 
 **Not a fork.** HAIGS is its own Home Assistant integration that runs
 *alongside* HACS. We change no HACS code and copy none. There is a reason:
@@ -67,7 +68,7 @@ read-only token on Gitea/Forgejo).
 
 ## Using HAIGS
 
-- **The panel – feels like HACS:** the same data table as the HACS store
+- **The panel – instantly familiar:** the same data table as the HACS store
   (filters, search, grouping by status, sorting, column picker), the same
   groups (*Pending update*, *Downloaded*, *New*, *Available for download*),
   the same detail page with README, chips for owner, source, stars, issues
