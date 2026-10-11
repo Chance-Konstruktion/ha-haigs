@@ -69,7 +69,7 @@ Ein Lese-Token brauchst du nur für private Repositories (GitLab-Scope
 ## HAIGS benutzen
 
 > **Handbuch:** das
-> [Projekt-Wiki](https://gitlab.schanz.ipv64.net/chance-konstruktion/hacs-lab/-/wikis/Home)
+> [Projekt-Wiki](https://gitlab.schanz.ipv64.net/chance-konstruktion/haigs/-/wikis/Home)
 > erklärt alles in der Tiefe — Installation, Provider anbinden (so viele
 > Server, wie du magst, GitLab/Gitea/Forgejo in beliebiger Mischung),
 > Einstellungen, den Laden, die Anleitung für Repository-Besitzer und eine
