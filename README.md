@@ -214,8 +214,7 @@ zurückgerollt.
 ## Repository-Aufbau
 
 ```
-logo.png, original.png        das eine Markenbild — Quelle (original.png) und
-                              512er-Form (logo.png): Panel, Avatar, exe
+logo.png                      das Markenbild: Panel, Avatar, exe
 hacs.json                     Repository-Konventionen für HAIGS selbst
 custom_components/haigs/   die Integration — dünne Home-Assistant-Schicht
   manifest.json               Domain, Version, Config-Flow, Icon
@@ -260,8 +259,7 @@ da), fünfteilige Versionen, wo `.10` gegen `.9` gewinnen muss, Suchwörter, die
 wie Skript-Einschleusungen aussehen, zehntausend Zeichen lange Schlüsselwörter,
 Speicher, der nicht hält, was das Schema versprach, Captive Portals, die mit
 HTML statt JSON antworten, und 500er, wo vorher ein GitLab aus dem Nichts
-behauptet wurde. Die DOM-Seite ist im Browser-Harness bewiesen
-(`scripts/schaufenster2093/`): feindliche Repository-Namen, Beschreibungen,
+behauptet wurde. Auf der DOM-Seite gilt: feindliche Repository-Namen, Beschreibungen,
 Avatare (`javascript:`-URLs fallen auf den Buchstaben zurück) und Suchwörter
 kommen als *Text* an, nie als lebende Elemente — nie führt ein
 eingeschleustes Tag etwas aus.
@@ -277,10 +275,8 @@ und `manifest.json` verschiedene Versionen nennen.
 Die Dokumentation hier ist durchgehend deutsch — auf der Forge ist Deutsch
 Amtssprache (Issue #16). Das Denken wohnt in
 [ARCHITEKTUR.md](ARCHITEKTUR.md) (die fünf Struktur-Entscheidungen),
-[ROADMAP.md](ROADMAP.md) (Meilensteine M0–M10 mit ihren Abnahmen) und
-[MITARBEIT.md](MITARBEIT.md) (wie man mitarbeitet). Die Schnittstelle für
-einen zweiten Forge-Anbieter — und was HACS selbst dafür übernehmen müsste —
-steht ausgearbeitet in [PROPOSAL.md](PROPOSAL.md).
+[CHANGELOG.md](CHANGELOG.md) (was sich je Version geändert hat) und
+[MITARBEIT.md](MITARBEIT.md) (wie man mitarbeitet).
 
 **Wo gearbeitet wird.** Entwickelt wird auf dem selbst gehosteten GitLab —
 das ist der Sinn des Projekts — und nach

@@ -25,7 +25,7 @@ ANBIETER_AUTO = "auto"
 #: lebt nicht in den Optionen, sondern darin, ob der Eintrag existiert.
 CONF_KATALOG = "katalog_anzeigen"
 
-#: Option des Herzschlags: Abstand in Minuten (ROADMAP M2:
+#: Option des Herzschlags: Abstand in Minuten (Meilenstein M2:
 #: "DataUpdateCoordinator mit einstellbarem Abstand").
 CONF_ABSTAND_MINUTEN = "abstand_minuten"
 

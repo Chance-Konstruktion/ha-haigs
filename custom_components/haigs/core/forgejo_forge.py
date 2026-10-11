@@ -3,7 +3,7 @@
 Bewusst ohne feste HTTP-Bibliothek: der :class:`HttpClient` wird
 hineingereicht, genau wie bei :class:`~gitlab_forge.GitLabForge`.
 Dass dieser Anbieter ohne jede Sonderbehandlung im Ablauf auskommt,
-ist der Beweis, den Stufe M9 verlangt (siehe ROADMAP.md): ein dritter
+ist der Beweis, den Stufe M9 verlangt (siehe CHANGELOG.md, 0.1.0): ein dritter
 Anbieter ist eine weitere Klasse und sonst nichts.
 
 Zwei Eigenheiten der Forgejo-API gegenueber GitLab, beide hier
