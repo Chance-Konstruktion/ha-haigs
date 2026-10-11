@@ -8,9 +8,10 @@
 
 > 🇩🇪 Deutsch · [🇬🇧 English](README.en.md)
 
-HACS-Verhalten für selbst gehostete Git-Forges: Home-Assistant-Custom-Components,
-die auf **GitLab**, **Gitea** oder **Forgejo** ([Codeberg](https://codeberg.org))
-leben, hinzufügen, entdecken und aktuell halten — so, wie HACS es für GitHub tut.
+Der Store für Home-Assistant-Custom-Components, die nicht auf GitHub wohnen:
+**GitLab**, **Gitea** und **Forgejo** ([Codeberg](https://codeberg.org)) —
+hinzufügen, entdecken, aktuell halten. Selbst gehostet, ohne GitHub-Konto,
+ohne Umweg über einen Spiegel.
 
 **Kein Fork.** HAIGS ist eine eigene Home-Assistant-Integration, die *neben*
 HACS läuft. Wir ändern keinen HACS-Code und kopieren keinen. Das hat einen
@@ -69,13 +70,13 @@ Ein Lese-Token brauchst du nur für private Repositories (GitLab-Scope
 ## HAIGS benutzen
 
 > **Handbuch:** das
-> [Projekt-Wiki](https://gitlab.schanz.ipv64.net/chance-konstruktion/hacs-lab/-/wikis/Home)
+> [Projekt-Wiki](https://gitlab.schanz.ipv64.net/chance-konstruktion/haigs/-/wikis/Home)
 > erklärt alles in der Tiefe — Installation, Provider anbinden (so viele
 > Server, wie du magst, GitLab/Gitea/Forgejo in beliebiger Mischung),
 > Einstellungen, den Laden, die Anleitung für Repository-Besitzer und eine
 > Seite Fehlerbehebung.
 
-- **Das Panel – fühlt sich an wie HACS:** dieselbe Datentabelle wie der
+- **Das Panel – sofort vertraut:** dieselbe Datentabelle wie der
   HACS-Store (Filter, Suche, Gruppen nach Status, Sortierung, Spaltenwahl),
   dieselben Gruppen (*Ausstehende Aktualisierung*, *Heruntergeladen*, *Neu*,
   *Verfügbar zum Herunterladen*), dieselbe Detailseite mit README, Chips für

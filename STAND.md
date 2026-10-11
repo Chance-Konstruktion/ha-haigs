@@ -6,7 +6,7 @@
 
 HACS-Erweiterung für self-hosted GitLab + Gitea/Codeberg/Forgejo: Custom-Repos
 installieren, Updates erkennen — ein echtes Produkt für den Imker-Server
-(`gitlab.schanz.ipv64.net`, Projekt `chance-konstruktion/hacs-lab`, ID 107).
+(`gitlab.schanz.ipv64.net`, Projekt `chance-konstruktion/haigs`, ID 107; bis 11.10.2026 `hacs-lab`).
 
 ## Was wo liegt
 
@@ -75,8 +75,9 @@ Tag-Pipeline 10836 lief grün durch: ZIP gebaut, GitLab-Release eingetragen,
 GitHub-Release angelegt **mit dem Archiv daran** (136 KB).
 
 **Der Name drüben weicht ab, und das ist Absicht.** Das GitLab-Projekt heißt
-weiter `chance-konstruktion/hacs-lab` — kein Umbenennen im GitLab, so steht es
-in der ROADMAP. Auf GitHub heißt es `ha-haigs`, passend zur ha-Familie
+seit 11.10.2026 `chance-konstruktion/haigs` (vorher `hacs-lab`; der alte Pfad
+leitet um). Chris: HAIGS ist kein HACS-Partner mehr, sondern Konkurrenz — ein
+Name überall. Auf GitHub heißt es `ha-haigs`, passend zur ha-Familie
 (ha-powerline, ha-kontinuum, ha-spatial-…). `GITHUB_REPO` ist die einzige
 Stelle, an der dieser Unterschied steht; ein Test hält sie fest. Den Stern
 kann GitHub ohnehin nicht: erlaubt sind dort nur Buchstaben, Ziffern, `.`,

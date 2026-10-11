@@ -1,6 +1,6 @@
 """Der HACS-Katalog als Schmiede (Flug 2102) -- alles in einem Laden.
 
-Wer HACS*lab statt HACS benutzen will, braucht die Repositories, die
+Wer HAIGS statt HACS benutzen will, braucht die Repositories, die
 HACS kennt. HACS selbst laedt seine Liste aus einem oeffentlichen
 Katalog (``data-v2.hacs.xyz``): je Kategorie eine JSON-Datei mit Name,
 Beschreibung, Sternen, Downloads, Domain, letzter Version und Datum.
@@ -35,7 +35,7 @@ from .validierung import Befund
 #: Der Katalog, aus dem HACS selbst liest.
 KATALOG_URL = "https://data-v2.hacs.xyz/{kategorie}/data.json"
 
-#: Die Kategorien des Katalogs -- dieselben Worte wie in HACS*lab.
+#: Die Kategorien des Katalogs -- dieselben Worte wie in HAIGS.
 KATALOG_KATEGORIEN = ("integration", "plugin", "theme")
 
 #: Wie lange der Katalog als frisch gilt. HACS selbst erneuert ihn
@@ -265,7 +265,7 @@ class HacsKatalogForge:
         """Die letzte Version laut Katalog -- mit dem ZIP, wenn HACS eins nimmt.
 
         Steht in der ``hacs.json`` des Tags ``zip_release`` samt
-        ``filename``, laedt HACS dieses ZIP aus dem Release; HACS*lab
+        ``filename``, laedt HACS dieses ZIP aus dem Release; HAIGS
         tut dasselbe (es ist der Anhang, den die Installation zuerst
         nimmt). Sonst bleibt das Quellarchiv des Tags.
         """
