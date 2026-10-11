@@ -21,7 +21,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .forge import ForgeFehler, NichtGefunden, RepositoryInfo
+from .forge import ForgeFehler, NichtGefunden, Release, RepositoryInfo
 from .identity import GITLAB, RepositoryIdentity
 from .validierung import Befund, pruefe_hacs_json
 from .versionen import waehle_version
@@ -113,12 +113,15 @@ async def entdecke(
 async def _letzte_version(forge, pfad: str) -> str:
     """Neueste stabile Version eines Projekts -- oder leer bei Stoerung.
 
-    Ein Projekt ohne Releases ist kein Fehler (Tags sind die
-    Rueckfallebene spaeterer Stufen), und ein einzelner Ausfall darf
-    einen ganzen Scan nicht abbrechen lassen.
+    Ein Projekt ohne Releases ist kein Fehler: dann zaehlen die Tags,
+    wie bei der Aktualisierungspruefung (ha-haigs#1). Ein einzelner
+    Ausfall darf einen ganzen Scan nicht abbrechen lassen.
     """
     try:
-        aktualisierung = waehle_version(await forge.releases(pfad))
+        releases = await forge.releases(pfad)
+        if not releases:
+            releases = [Release(tag=tag) for tag in await forge.tags(pfad)]
+        aktualisierung = waehle_version(releases)
     except (ForgeFehler, NichtGefunden):
         return ""
     return aktualisierung.neueste
