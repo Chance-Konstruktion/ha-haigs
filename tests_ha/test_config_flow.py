@@ -99,6 +99,7 @@ async def test_verbindung_gelingt(hass: HomeAssistant, sitzung_einpflanzen) -> N
         CONF_HOST: "gitlab.example.net",
         CONF_PROVIDER: "gitlab",
         CONF_TOKEN: "",
+        "schema": "https",
     }
     assert len(attrappe.abrufe) == 2
     assert attrappe.abrufe[0][0].startswith("https://gitlab.example.net/api/v4/projects")
@@ -108,6 +109,27 @@ async def test_verbindung_gelingt(hass: HomeAssistant, sitzung_einpflanzen) -> N
     eintraege = hass.config_entries.async_entries(DOMAIN)
     assert len(eintraege) == 1
     assert eintraege[0].state is ConfigEntryState.LOADED
+
+
+async def test_verbindung_ueber_http(hass: HomeAssistant, sitzung_einpflanzen) -> None:
+    """GitHub #1: ein ausdrueckliches http:// bleibt http -- Dialog und Herzschlag."""
+    attrappe = sitzung_einpflanzen([antwort(), antwort()])
+    ergebnis = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": SOURCE_USER}
+    )
+    ergebnis = await hass.config_entries.flow.async_configure(
+        ergebnis["flow_id"],
+        {CONF_HOST: "http://gitlab.lan:8080", CONF_PROVIDER: "gitlab", CONF_TOKEN: ""},
+    )
+    await hass.async_block_till_done()
+
+    assert ergebnis["type"] is FlowResultType.CREATE_ENTRY
+    assert ergebnis["title"] == "gitlab.lan:8080"
+    assert ergebnis["data"]["host"] == "gitlab.lan:8080"
+    assert ergebnis["data"]["schema"] == "http"
+    assert len(attrappe.abrufe) == 2
+    for url, *_ in attrappe.abrufe:
+        assert url.startswith("http://gitlab.lan:8080/api/v4/")
 
 
 async def test_probe_holt_hoechstens_eine_seite(

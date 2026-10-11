@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "HAIGS mit einer Instanz verbinden",
-        "description": "Adresse der Instanz und ihr Anbieter. „auto“ fragt die Instanz selbst ab (zwei, drei kleine Anfragen) und passt auf gitlab.com, codeberg.org, gitea.com und eigene Server gleichermaßen; einen genannten Anbieter wählt man, wenn die Erkennung nicht entscheiden kann. Der Host genügt; ein eingefügter Link wird darauf gekürzt. Öffentliche Instanzen kommen ohne Token aus, eigene brauchen meist eins mit Leserecht.",
+        "description": "Adresse der Instanz und ihr Anbieter. „auto“ fragt die Instanz selbst ab (zwei, drei kleine Anfragen) und passt auf gitlab.com, codeberg.org, gitea.com und eigene Server gleichermaßen; einen genannten Anbieter wählt man, wenn die Erkennung nicht entscheiden kann. Der Host genügt; ein eingefügter Link wird darauf gekürzt. Öffentliche Instanzen kommen ohne Token aus, eigene brauchen meist eins mit Leserecht. Eine Instanz ohne TLS mit ausdrücklichem http:// eingeben; ein Token geht dann unverschlüsselt über das Netz.",
         "data": {
           "host": "Host der Instanz",
           "provider": "Anbieter (auto = erkennen)",

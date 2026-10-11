@@ -43,10 +43,12 @@ from .const import (
     CONF_HOST,
     CONF_KATALOG,
     CONF_PROVIDER,
+    CONF_SCHEMA,
     CONF_TOKEN,
     DOMAIN,
     STANDARD_ABSTAND_MINUTEN,
     host_normalisieren,
+    schema_aus_eingabe,
 )
 from .core.forge import ForgeFehler, NichtGefunden, RepositoryInfo
 from .core.hacs_katalog_forge import KATALOG_HOST
@@ -85,7 +87,11 @@ ANBIETER_NAMEN = frozenset(ANBIETER_WAHL)
 
 
 async def verbindung_pruefen(
-    hass: HomeAssistant, host: str, token: str | None, anbieter: str = ANBIETER_AUTO
+    hass: HomeAssistant,
+    host: str,
+    token: str | None,
+    anbieter: str = ANBIETER_AUTO,
+    schema: str = "https",
 ) -> tuple[list, str]:
     """Ein echter Abruf ueber die Instanz -- beweist Host, API und Token.
 
@@ -98,8 +104,8 @@ async def verbindung_pruefen(
     sitzung = async_get_clientsession(hass)
     klient = AiohttpClient(sitzung, token)
     if anbieter == ANBIETER_AUTO:
-        anbieter = await erkenne(klient, host)
-    forge = schmiede(klient, host, anbieter)
+        anbieter = await erkenne(klient, host, schema)
+    forge = schmiede(klient, host, anbieter, schema)
     # Eine Probe, kein Bestandsabruf: hoechstens ein Eintrag, genau
     # eine Seite. Ohne die Grenze holte ein Klick auf "Absenden"
     # gegen eine grosse Instanz im schlimmsten Fall zwanzigtausend
@@ -121,6 +127,7 @@ class HaigsFluss(config_entries.ConfigFlow, domain=DOMAIN):
 
         if benutzereingabe is not None:
             host = host_normalisieren(benutzereingabe[CONF_HOST])
+            schema = schema_aus_eingabe(benutzereingabe[CONF_HOST])
             token = (benutzereingabe.get(CONF_TOKEN) or "").strip() or None
             anbieter = str(benutzereingabe.get(CONF_PROVIDER) or ANBIETER_AUTO)
             if anbieter not in ANBIETER_NAMEN:
@@ -133,7 +140,7 @@ class HaigsFluss(config_entries.ConfigFlow, domain=DOMAIN):
             else:
                 try:
                     funde, erkannt = await verbindung_pruefen(
-                        self.hass, host, token, anbieter
+                        self.hass, host, token, anbieter, schema
                     )
                 except AnbieterUnbekannt as fehlgeschlag:
                     fehler["base"] = "anbieter_unerkannt"
@@ -160,6 +167,7 @@ class HaigsFluss(config_entries.ConfigFlow, domain=DOMAIN):
                             CONF_HOST: host,
                             CONF_TOKEN: token or "",
                             CONF_PROVIDER: erkannt,
+                            CONF_SCHEMA: schema,
                         },
                         description="verbunden",
                         description_placeholders={

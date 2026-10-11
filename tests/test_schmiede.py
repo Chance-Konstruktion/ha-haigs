@@ -201,3 +201,50 @@ async def test_formlose_version_ist_ein_fehler():
     klient_, _ = klient([Aufzeichnung(text=json.dumps(["kein", "dict"]))])
     with pytest.raises(ForgeFehler):
         await erkenne(klient_, HOST)
+
+
+# ------------------------------------------------------------------
+# Das Schema (GitHub #1): Instanzen ohne TLS im eigenen Netz
+# ------------------------------------------------------------------
+
+
+def test_ohne_schema_bleibt_es_https():
+    """Ohne Angabe gilt https -- das Verhalten aller Eintraege davor."""
+    f = FakeHttp()
+    assert schmiede(f, HOST, GITLAB).api == f"https://{HOST}/api/v4"
+    assert schmiede(f, HOST, FORGEJO).api == f"https://{HOST}/api/v1"
+
+
+def test_http_formt_jede_klasse_ohne_tls():
+    """Ein ausdrueckliches http reicht bis in die API-Adresse, Port inklusive."""
+    f = FakeHttp()
+    host = "forgejo.lan:3030"
+    assert schmiede(f, host, GITLAB, "http").api == f"http://{host}/api/v4"
+    assert schmiede(f, host, FORGEJO, "http").api == f"http://{host}/api/v1"
+    assert schmiede(f, host, GITEA, "http").api == f"http://{host}/api/v1"
+    # Der Host bleibt der Schluessel -- ohne Schema.
+    assert schmiede(f, host, FORGEJO, "http").host == host
+
+
+def test_unbekanntes_schema_faellt_auf_https():
+    """Nur http schaltet um; alles andere bleibt verschluesselt."""
+    assert schmiede(FakeHttp(), HOST, GITLAB, "ftp").api.startswith("https://")
+
+
+@pytest.mark.asyncio
+async def test_erkennung_fragt_ueber_http():
+    """Die Erkennung fragt ueber das eingegebene Schema, nicht fest https."""
+    klient_, attrappe = klient([weg(), version("13.0.1+gitea-1.22.0")])
+    assert await erkenne(klient_, "forgejo.lan:3030", "http") == FORGEJO
+    assert attrappe.abrufe[0][0] == "http://forgejo.lan:3030/api/v4/version"
+    assert attrappe.abrufe[1][0] == "http://forgejo.lan:3030/api/v1/version"
+
+
+def test_schema_aus_eingabe():
+    from haigs.const import host_normalisieren, schema_aus_eingabe
+
+    assert schema_aus_eingabe("http://forgejo.lan:3030") == "http"
+    assert schema_aus_eingabe("  HTTP://Forgejo.lan:3030/gruppe") == "http"
+    assert schema_aus_eingabe("https://gitlab.com") == "https"
+    assert schema_aus_eingabe("gitlab.com") == "https"
+    assert host_normalisieren("http://forgejo.lan:3030") == "forgejo.lan:3030"

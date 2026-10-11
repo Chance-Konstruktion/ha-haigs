@@ -40,15 +40,15 @@ from .http_aiohttp import KeinJson, TorVerriegelt
 from .identity import FORGEJO, GITEA, GITHUB, GITLAB
 
 #: Der Name, unter dem die Familien-API (Gitea wie Forgejo) erreicht wird.
-FAMILIE_API = "https://{host}/api/v1/version"
+FAMILIE_API = "{schema}://{host}/api/v1/version"
 
 #: Dasselbe fuer GitLab -- Version ist das billigste Tor, das mit
 #: und ohne Schluessel zwischen "da" und "nicht da" unterscheidet.
-GITLAB_API = "https://{host}/api/v4/version"
+GITLAB_API = "{schema}://{host}/api/v4/version"
 
 #: Die Startseite, deren Fusstext die Geschwister nennt. Nur gefragt,
 #: wenn die Versionsnummer allein nicht entscheidet.
-STARTSEITE = "https://{host}/"
+STARTSEITE = "{schema}://{host}/"
 
 #: Anbietername -> Klasse. Die Schmiede kennt keine Sonderfalle:
 #: ein neuer Anbieter ist ein Eintrag hier und sonst nichts.
@@ -69,7 +69,9 @@ class AnbieterUnbekannt(ForgeFehler):
     """
 
 
-def schmiede(klient: HttpClient, host: str, anbieter: str = GITLAB) -> Forge:
+def schmiede(
+    klient: HttpClient, host: str, anbieter: str = GITLAB, schema: str = "https"
+) -> Forge:
     """Der Forge zum Anbieternamen -- ein Eintrag in :data:`KLASSEN`.
 
     ``anbieter`` ist der Wert aus dem Einrichtungsdialog (``provider``
@@ -80,7 +82,7 @@ def schmiede(klient: HttpClient, host: str, anbieter: str = GITLAB) -> Forge:
     klasse = KLASSEN.get(anbieter)
     if klasse is None:
         raise ForgeFehler("unbekannter Anbieter: " + repr(anbieter))
-    return klasse(klient, host)
+    return klasse(klient, host, schema)
 
 
 def _hauptversion(version: str) -> int | None:
@@ -99,7 +101,7 @@ def _hauptversion(version: str) -> int | None:
         return None
 
 
-async def _familie_aus_seite(klient: HttpClient, host: str) -> str:
+async def _familie_aus_seite(klient: HttpClient, host: str, schema: str = "https") -> str:
     """Die Startseite sagt es, wenn die Nummer es nicht kann.
 
     Forgejo und Gitea nennen sich im Fusstext ihrer Seiten. Versagt
@@ -109,7 +111,7 @@ async def _familie_aus_seite(klient: HttpClient, host: str) -> str:
     ("Forgejo, ein Fork von Gitea"), meinen Forgejo.
     """
     try:
-        roh = await klient.get_bytes(STARTSEITE.format(host=host))
+        roh = await klient.get_bytes(STARTSEITE.format(schema=schema, host=host))
     except Exception:  # noqa: BLE001 - die Seite ist Zweitmeinung, kein Muss
         return GITEA
     seite = roh.decode("utf-8", errors="replace").lower()
@@ -118,7 +120,7 @@ async def _familie_aus_seite(klient: HttpClient, host: str) -> str:
     return GITEA
 
 
-async def erkenne(klient: HttpClient, host: str) -> str:
+async def erkenne(klient: HttpClient, host: str, schema: str = "https") -> str:
     """Welcher Anbieter antwortet unter dieser Adresse?
 
     Der Reihe nach: GitLab, dann die Familie, dann innerhalb der
@@ -129,7 +131,7 @@ async def erkenne(klient: HttpClient, host: str) -> str:
 
     # -- Frage 1: GitLab ------------------------------------------------
     try:
-        antwort = await klient.get_json(GITLAB_API.format(host=host))
+        antwort = await klient.get_json(GITLAB_API.format(schema=schema, host=host))
     except NichtGefunden:
         pass  # kein GitLab unter der Adresse -- weiter zur Familie
     except KeinJson:
@@ -151,7 +153,7 @@ async def erkenne(klient: HttpClient, host: str) -> str:
 
     # -- Frage 2: die Gitea-Familie --------------------------------------
     try:
-        antwort = await klient.get_json(FAMILIE_API.format(host=host))
+        antwort = await klient.get_json(FAMILIE_API.format(schema=schema, host=host))
     except NichtGefunden:
         raise AnbieterUnbekannt(
             "unter " + host + " antwortet weder GitLab (api/v4) "
@@ -168,7 +170,7 @@ async def erkenne(klient: HttpClient, host: str) -> str:
         # Tor da, aber verriegelt -- die Familie trotzdem, die Nummer
         # bleibt unbeantwortet; die Startseite entscheidet. Gitea/Forgejo
         # koennen die Versionsfrage hinter der Anmeldung verstecken.
-        return await _familie_aus_seite(klient, host)
+        return await _familie_aus_seite(klient, host, schema)
 
     version = antwort.get("version") if isinstance(antwort, dict) else None
     haupt = _hauptversion(str(version or ""))
@@ -176,4 +178,4 @@ async def erkenne(klient: HttpClient, host: str) -> str:
         # Forgejo zaehlt seit v7 selbst (2024); Gitea bleibt bei 1.x.
         return FORGEJO
     # Gitea 1.x, alte Forgejo 1.x, oder unlesbar: die Startseite.
-    return await _familie_aus_seite(klient, host)
+    return await _familie_aus_seite(klient, host, schema)
