@@ -44,6 +44,7 @@ from .const import (
     CONF_ABSTAND_MINUTEN,
     CONF_HOST,
     CONF_PROVIDER,
+    CONF_SCHEMA,
     CONF_TOKEN,
     DOMAIN,
     LAGER_START_VERZOEGERUNG_SEK,
@@ -190,9 +191,21 @@ async def async_setup_entry(hass: HomeAssistant, eintrag: ConfigEntry) -> bool:
     # 2088). Eintraege aus der Zeit davor tragen keinen -- dann gilt
     # GitLab, die einzige Schmiedung, die es damals gab; das Verhalten
     # dieser Eintraege bleibt Stueck fuer Stueck dasselbe.
+    # Das Schema kam mit GitHub #1: Eintraege davor tragen keins und
+    # bleiben bei https. Klartext nur, wenn der Mensch http:// eingab.
+    schema = eintrag.data.get(CONF_SCHEMA) or "https"
     forge = schmiede(
-        klient, eintrag.data[CONF_HOST], eintrag.data.get(CONF_PROVIDER) or GITLAB
+        klient,
+        eintrag.data[CONF_HOST],
+        eintrag.data.get(CONF_PROVIDER) or GITLAB,
+        schema,
     )
+    if schema == "http" and eintrag.data.get(CONF_TOKEN):
+        _LOGGER.warning(
+            "%s laeuft ueber http:// -- das Token geht unverschluesselt "
+            "ueber das Netz. Im eigenen LAN oft vertretbar, sonst https nutzen",
+            eintrag.data[CONF_HOST],
+        )
 
     ablage = Ablage(
         Store(hass, ABLAGE_VERSION, ablage_schluessel(eintrag.data[CONF_HOST]))

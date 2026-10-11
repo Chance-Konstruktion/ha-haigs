@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Connect HAIGS to an instance",
-        "description": "Address of the instance and its provider. \"auto\" asks the instance itself (two or three small requests) and is right for gitlab.com, codeberg.org, gitea.com, and self-hosted servers alike; pick a named provider if auto-detection cannot decide. The host is enough; a pasted link is shortened to it. Public instances work without a token, private ones usually need a read token.",
+        "description": "Address of the instance and its provider. \"auto\" asks the instance itself (two or three small requests) and is right for gitlab.com, codeberg.org, gitea.com, and self-hosted servers alike; pick a named provider if auto-detection cannot decide. The host is enough; a pasted link is shortened to it. Public instances work without a token, private ones usually need a read token. Enter an explicit http:// for an instance without TLS; a token is then sent unencrypted.",
         "data": {
           "host": "Host of the instance",
           "provider": "Provider (auto = detect)",

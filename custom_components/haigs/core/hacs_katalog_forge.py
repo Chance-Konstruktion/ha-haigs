@@ -114,9 +114,12 @@ class HacsKatalogForge:
 
     provider = GITHUB
 
-    def __init__(self, http: HttpClient, host: str = KATALOG_HOST) -> None:
+    def __init__(
+        self, http: HttpClient, host: str = KATALOG_HOST, schema: str = "https"
+    ) -> None:
         self.http = http
         self.host = KATALOG_HOST
+        self.schema = "https"  # der Katalog kennt nur github.com
         self._zeilen: dict[str, tuple[dict[str, Any], str]] = {}
         self._nach_name: dict[str, str] = {}
         self._geholt_am = 0.0

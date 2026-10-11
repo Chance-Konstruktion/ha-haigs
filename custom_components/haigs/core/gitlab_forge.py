@@ -59,10 +59,11 @@ class GitLabForge:
 
     provider = GITLAB
 
-    def __init__(self, http: HttpClient, host: str) -> None:
+    def __init__(self, http: HttpClient, host: str, schema: str = "https") -> None:
         self.http = http
         self.host = host.rstrip("/").removeprefix("https://").removeprefix("http://")
-        self.api = "https://" + self.host + "/api/v4"
+        self.schema = "http" if schema == "http" else "https"
+        self.api = self.schema + "://" + self.host + "/api/v4"
 
     # -- Stammdaten ---------------------------------------------------
     async def repository(self, pfad: str) -> RepositoryInfo:

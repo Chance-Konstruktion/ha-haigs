@@ -10,6 +10,9 @@ DOMAIN = "haigs"
 CONF_HOST = "host"
 CONF_TOKEN = "token"
 CONF_PROVIDER = "provider"
+#: Das Schema der Instanz (``https`` oder ``http``, Issue GitHub #1).
+#: Eintraege aus der Zeit davor tragen keins -- dann gilt ``https``.
+CONF_SCHEMA = "schema"
 
 #: Der Wert "auto" im Dialog: die Schmiede soll erkennen, welcher
 #: Anbieter unter der Adresse antwortet (Flug 2088). Die anderen
@@ -71,6 +74,16 @@ def host_normalisieren(host: str) -> str:
             gereinigt = gereinigt[len(praefix) :]
             break
     return gereinigt.split("/", 1)[0].lower()
+
+
+def schema_aus_eingabe(host: str) -> str:
+    """Das Schema, das der Mensch eingegeben hat -- ``https`` ohne Angabe.
+
+    Nur ein ausdrueckliches ``http://`` schaltet auf Klartext: selbst
+    gehostete Forgejo/Gitea im LAN laufen oft ohne TLS (GitHub #1).
+    Der Host bleibt davon unberuehrt, er ist der Speicherschluessel.
+    """
+    return "http" if host.strip().lower().startswith("http://") else "https"
 
 
 def ablage_schluessel(host: str) -> str:
