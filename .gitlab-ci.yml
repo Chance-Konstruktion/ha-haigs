@@ -71,6 +71,42 @@ tests-homeassistant:
   script:
     - python -m pytest tests_ha -q -p pytest_homeassistant_custom_component
 
+# Die Forgen-Bahn: HAIGS gegen ECHTE Gitea- und Forgejo-Instanzen,
+# beide ohne TLS auf eigenen Ports -- der Fall aus GitHub #1 (Forgejo
+# im LAN). Codeberg ist ein Forgejo und damit mit drin. ci/forgen.sh
+# startet beide (Version und SHA256 festgenagelt), ci/forgen_saat.py
+# migriert drei unserer Repos plus einen Lockvogel hinein. Strom
+# sparen: nur auf main, Tags und MRs, die Kern, Saat oder Bahn
+# anfassen -- die Attrappen in tests/ bleiben die schnelle Bahn.
+tests-forgen:
+  stage: test
+  rules:
+    - if: $CI_COMMIT_TAG
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - custom_components/haigs/core/**/*
+        - custom_components/haigs/const.py
+        - ci/**/*
+        - tests_forgen/**/*
+        - .gitlab-ci.yml
+  variables:
+    PYTHONUTF8: "1"
+    HAIGS_FORGEN: "gitea=http://127.0.0.1:3000,forgejo=http://127.0.0.1:3030"
+  cache:
+    key: forgen-gitea28.1.0-forgejo16.0.5
+    paths:
+      - .forgen-cache/
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends git curl ca-certificates > /dev/null
+    - pip install --quiet --disable-pip-version-check -r requirements-dev.txt aiohttp
+  script:
+    - sh ci/forgen.sh
+    - python ci/forgen_saat.py
+    - python -m pytest tests_forgen -q -p no:cacheprovider
+  after_script:
+    - tail -n 40 /srv/gitea/web.log /srv/forgejo/web.log 2>/dev/null || true
+
 # --------------------------------------------------------------------
 # Der Kern haengt nicht an Home Assistant. Das ist keine Stilfrage:
 # nur so bleiben die Tests schnell und ohne HA-Installation lauffaehig.
