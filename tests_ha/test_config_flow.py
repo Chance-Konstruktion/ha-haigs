@@ -401,7 +401,12 @@ async def test_auto_erkent_gitlab(hass: HomeAssistant, sitzung_einpflanzen) -> N
 async def test_auto_erkent_forgejo(hass: HomeAssistant, sitzung_einpflanzen) -> None:
     """Forgejo nennt die eigene Nummer (ab v7, 2024) -- die reicht."""
     attrappe = sitzung_einpflanzen(
-        [weg_404(), version_frage("13.0.1"), forgejo_antwort(), forgejo_antwort()]
+        [
+            weg_404(),
+            version_frage("13.0.1+gitea-1.22.0"),
+            forgejo_antwort(),
+            forgejo_antwort(),
+        ]
     )
 
     ergebnis = await hass.config_entries.flow.async_init(

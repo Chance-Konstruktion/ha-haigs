@@ -14,7 +14,6 @@ import os
 
 import aiohttp
 import pytest
-from haigs.core.http_aiohttp import AiohttpClient
 
 import tests.kern_laden  # noqa: F401 -- Anmeldung als Nebenwirkung
 
@@ -49,5 +48,9 @@ async def klient_und_spur():
 
     verfolgung = aiohttp.TraceConfig()
     verfolgung.on_request_start.append(mitschreiben)
+    # Erst hier importiert: der Kern ist erst nach tests.kern_laden da,
+    # und die Import-Sortierung darf das nicht umdrehen.
+    from haigs.core.http_aiohttp import AiohttpClient
+
     async with aiohttp.ClientSession(trace_configs=[verfolgung]) as sitzung:
         yield AiohttpClient(sitzung, None), spur
