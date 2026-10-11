@@ -6,6 +6,10 @@
 # ein Forgejo und damit mit abgedeckt. Die Binaries sind auf Version
 # und SHA256 festgenagelt; Gitea und Forgejo verweigern root, darum
 # laufen sie als Benutzer "forge".
+#
+# Die Ports sucht das Skript frei: Runner koennen sich das Netz teilen,
+# ein fester Port 3000 war im ersten Lauf schon belegt. Die gewaehlten
+# Adressen landen in .forgen-env (HAIGS_FORGEN) fuer Saat und Tests.
 set -eu
 
 GITEA_VERSION=28.1.0
@@ -66,7 +70,15 @@ INI
   echo "FEHLER: $name antwortet nicht auf Port $port"; cat "$wurzel/web.log"; exit 1
 }
 
+freier_port() {
+  python3 -c 'import socket; s = socket.socket(); s.bind(("127.0.0.1", 0)); print(s.getsockname()[1])'
+}
+
 holen gitea "https://dl.gitea.com/gitea/$GITEA_VERSION/gitea-$GITEA_VERSION-linux-amd64" "$GITEA_SHA256"
 holen forgejo "https://codeberg.org/forgejo/forgejo/releases/download/v$FORGEJO_VERSION/forgejo-$FORGEJO_VERSION-linux-amd64" "$FORGEJO_SHA256"
-starten gitea 3000
-starten forgejo 3030
+GITEA_PORT=$(freier_port)
+starten gitea "$GITEA_PORT"
+FORGEJO_PORT=$(freier_port)
+starten forgejo "$FORGEJO_PORT"
+echo "HAIGS_FORGEN=gitea=http://127.0.0.1:$GITEA_PORT,forgejo=http://127.0.0.1:$FORGEJO_PORT" > .forgen-env
+cat .forgen-env

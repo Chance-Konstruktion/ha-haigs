@@ -92,7 +92,6 @@ tests-forgen:
         - .gitlab-ci.yml
   variables:
     PYTHONUTF8: "1"
-    HAIGS_FORGEN: "gitea=http://127.0.0.1:3000,forgejo=http://127.0.0.1:3030"
   cache:
     key: forgen-gitea28.1.0-forgejo16.0.5
     paths:
@@ -102,10 +101,14 @@ tests-forgen:
     - pip install --quiet --disable-pip-version-check -r requirements-dev.txt aiohttp
   script:
     - sh ci/forgen.sh
+    - export "$(cat .forgen-env)"
     - python ci/forgen_saat.py
     - python -m pytest tests_forgen -q -p no:cacheprovider
   after_script:
     - tail -n 40 /srv/gitea/web.log /srv/forgejo/web.log 2>/dev/null || true
+    # Keine Waisen: teilt sich der Runner das Netz, blieben sie sonst
+    # auf ihren Ports liegen.
+    - pkill -u forge 2>/dev/null || true
 
 # --------------------------------------------------------------------
 # Der Kern haengt nicht an Home Assistant. Das ist keine Stilfrage:

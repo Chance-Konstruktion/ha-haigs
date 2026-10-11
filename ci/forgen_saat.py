@@ -18,7 +18,10 @@ import sys
 import urllib.error
 import urllib.request
 
-FORGEN = {"gitea": "http://127.0.0.1:3000", "forgejo": "http://127.0.0.1:3030"}
+#: name -> Basisadresse, wie ci/forgen.sh sie gewaehlt hat (HAIGS_FORGEN).
+FORGEN = dict(
+    paar.split("=", 1) for paar in os.environ.get("HAIGS_FORGEN", "").split(",") if paar
+)
 QUELLE = os.environ.get("CI_SERVER_URL", "").rstrip("/") + "/chance-konstruktion/"
 REPOS = ["ha-powerline", "ha-gaming-assistant", "ha-spatial-matter"]
 LOCKVOGEL = "kein-hacs-json"
@@ -71,6 +74,8 @@ def saeen(name: str, basis: str) -> None:
 
 
 if __name__ == "__main__":
+    if not FORGEN:
+        sys.exit("HAIGS_FORGEN fehlt -- erst ci/forgen.sh, dann . ./.forgen-env")
     if not os.environ.get("CI_SERVER_URL"):
         sys.exit("CI_SERVER_URL fehlt -- die Saat kommt aus dem eigenen GitLab")
     for name, basis in FORGEN.items():
