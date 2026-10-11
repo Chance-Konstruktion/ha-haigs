@@ -134,3 +134,11 @@ seinem echten Namen; keine Bahn teilt Objekte mit der anderen.
 * eine HTTP-Bibliothek importieren
 * Dateien schreiben (das macht ab M4 die HA-Schicht)
 * auf der Forge schreiben -- HAIGS liest, immer
+
+## Was ausdrücklich nicht geplant ist
+
+* **Kein Nachbau des HACS-Katalogs.** HAIGS arbeitet mit Custom
+  Repositories und Topic-Entdeckung; der offizielle Katalog ist nur eine
+  zuschaltbare Quelle.
+* **Kein Umbenennen auf der Forge.** Die Kennzeichnung entsteht in HAIGS.
+* **Keine Schreibzugriffe auf die Forge.** HAIGS liest.

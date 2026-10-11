@@ -198,7 +198,7 @@ atomically, rolled back on failure.
 ## Repository layout
 
 ```
-logo.png, original.png        brand artwork — the fox and the house
+logo.png                      brand artwork — the fox and the house
 hacs.json                     repository conventions for HAIGS itself
 custom_components/haigs/   the integration — thin Home Assistant layer
   manifest.json               domain, version, config flow, icon
@@ -262,10 +262,8 @@ that people can find, install, and report against it. Identifiers, commit
 messages and the engineering documents are German; that is a deliberate
 decision, not an oversight. The reasoning lives in
 [ARCHITEKTUR.md](ARCHITEKTUR.md) (the structural decisions),
-[ROADMAP.md](ROADMAP.md) (milestones M0–M10 with their acceptance tests),
-and [MITARBEIT.md](MITARBEIT.md) (how to contribute). The interface for a
-second forge provider — and what HACS itself would have to adopt for one —
-is written up in [PROPOSAL.md](PROPOSAL.md). You do not need German to use
+[CHANGELOG.md](CHANGELOG.md) (what changed in each version),
+and [MITARBEIT.md](MITARBEIT.md) (how to contribute). You do not need German to use
 HAIGS: this file, the setup dialog and the panel are English.
 
 ## License

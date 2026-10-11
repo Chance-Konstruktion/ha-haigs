@@ -1,0 +1,134 @@
+# Änderungen
+
+Alle nennenswerten Änderungen an HAIGS. Die Versionen folgen
+[SemVer](https://semver.org/lang/de/); installiert wird aus den
+[GitHub-Releases](https://github.com/Chance-Konstruktion/ha-haigs/releases).
+
+## 0.6.6 — 2026-10-11
+
+### Behoben
+- Gitea wurde als Forgejo erkannt. Forgejo erkennt HAIGS jetzt am
+  `+gitea-` in der Versionsangabe, alles andere fragt die Startseite.
+- Gitea und Forgejo ohne Token: Die Abfrage nach Projekt-Nummer endet dort
+  anonym mit 401 (auch auf codeberg.org und gitea.com). HAIGS holt die
+  Stammdaten dann über den bekannten Pfad und prüft die Nummer.
+
+### Intern
+- Neue CI-Bahn `tests-forgen`: HAIGS läuft gegen echte Gitea- und
+  Forgejo-Server, befüllt mit eigenen Repositories, über `http://`.
+
+## 0.6.5 — 2026-10-11
+
+### Neu
+- `http://` für Instanzen ohne TLS, etwa ein Forgejo im Heimnetz
+  ([#1](https://github.com/Chance-Konstruktion/ha-haigs/issues/1)).
+  Ohne Angabe bleibt es bei `https://`. Ein Token über `http://` erzeugt
+  eine Warnung im Log.
+
+### Geändert
+- Der Name heißt überall HAIGS. Der Projektpfad im GitLab ist jetzt
+  `chance-konstruktion/haigs`.
+- HAIGS tritt als eigener Store auf, nicht als Begleiter von HACS.
+
+## 0.6.4 — 2026-10-10
+
+### Behoben
+- Flache Kategorien (Themes, Python-Skripte) schreiben dateiweise in den
+  gemeinsamen Ordner. Kollisionen werden vorher geprüft, die
+  Deinstallation entfernt genau die eigenen Dateien.
+- Zielnamen aus der `hacs.json` werden geprüft; kein Schreiben außerhalb
+  des Ziels.
+- Ältere Installationen ohne Dateiliste lassen sich weiter aktualisieren
+  und entfernen.
+- Klartext-Meldung, wenn die `hacs.json` im Archiv kein Objekt ist.
+
+## 0.6.3 — 2026-10-08
+
+### Geändert
+- Logo und Seitenleisten-Icon ohne fremde Markenzeichen: der Fuchskopf.
+- Lizenzhinweise in `NOTICE.md`, eigener User-Agent.
+- README mit Ein-Klick-Knöpfen für die Einrichtung.
+
+## 0.6.2 — 2026-10-08
+
+### Geändert
+- Angesehene Neuheiten wandern zu „Herunterladen“, wie bei HACS.
+
+## 0.6.1 — 2026-10-08
+
+### Geändert
+- Neue Fußzeile: „your forge, your rules“.
+
+## 0.6.0 — 2026-10-08
+
+### Neu
+- Der offizielle HACS-Katalog als zuschaltbare Quelle, mit Download-Zahlen
+  im Panel.
+
+### Behoben
+- Plugins kommen aus dem Release-ZIP; Symlinks aus Quellarchiven werden
+  entfernt.
+
+## 0.5.1 — 2026-10-07
+
+### Geändert
+- Reparatur-Meldungen zeigen das Icon des betroffenen Repositorys.
+
+## 0.5.0 — 2026-10-07
+
+### Geändert
+- Umbenennung: HACS*lab heißt jetzt HAIGS. Die Domain ist `haigs`.
+
+## 0.4.1 — 2026-10-07
+
+### Behoben
+- `manifest.json` nennt die Abhängigkeiten so, wie hassfest es verlangt.
+
+## 0.4.0 — 2026-10-07
+
+### Neu
+- Benutzerdefinierte Repositories direkt im Laden hinzufügen.
+- Entwicklermodus: installiert den Kopf eines Zweigs statt eines Releases.
+- Icons aus dem `brand`-Ordner der Repositories, auch in den Updates.
+
+### Geändert
+- Der Laden sieht aus wie in Home Assistant gewohnt.
+
+## 0.3.0 — 2026-09-20
+
+### Neu
+- Gitea als vierter Anbieter; der Einrichtungsdialog erkennt den Anbieter
+  selbst.
+- Laden mit Suche, Sortierung, Detailansicht und gerenderter README;
+  seitenweises Nachladen bei großen Instanzen.
+- Zustand je installierter Integration: Neustart nötig, einrichten,
+  eingerichtet. Dazu eine Benachrichtigung mit Anleitung.
+- Englische README, Fehlerberichte über GitHub.
+
+### Behoben
+- README-Tabellen werden als Tabellen gezeigt.
+- Doppelte Einträge desselben Repositorys.
+- Repositories mit `custom_components/<domain>/` in tieferen Ordnern und
+  mit `filename` ohne Release-Anhang.
+- Härtung gegen feindliche Eingaben: BOM in `hacs.json`, lange Versionen,
+  HTML statt JSON, eingeschleuste Namen in der Oberfläche.
+
+## 0.1.1 — 2026-09-04
+
+### Geändert
+- Icon im Einrichtungsdialog.
+
+## 0.1.0 — 2026-09-04
+
+Erste Ausgabe.
+
+- Anbieter GitLab und Forgejo (Codeberg) hinter einer gemeinsamen
+  Schnittstelle; der Kern läuft ohne Home Assistant.
+- Einrichtungsdialog mit Verbindungsprüfung, mehrere Instanzen
+  nebeneinander, Token optional.
+- Custom Repositories hinzufügen, Entdeckung über das Topic `hacs`.
+- Installation aus Release-Anhang oder Tag-Archiv, bewachtes Entpacken
+  (Pfadausbruch, Größe, Symlinks), atomarer Tausch, saubere Deinstallation.
+- `update`-Entitäten mit Release-Notizen, Vorabversionen je Eintrag
+  schaltbar, Rückfall auf Tags.
+- Panel ohne YAML, Diagnose ohne Token, Reparatur-Meldungen.
