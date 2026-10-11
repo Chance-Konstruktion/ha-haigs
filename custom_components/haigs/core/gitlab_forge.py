@@ -72,7 +72,9 @@ class GitLabForge:
             raise NichtGefunden("kein Projekt unter " + pfad + " auf " + self.host)
         return _zu_info(roh)
 
-    async def repository_nach_id(self, anbieter_id: str) -> RepositoryInfo:
+    async def repository_nach_id(
+        self, anbieter_id: str, pfad: str = ""
+    ) -> RepositoryInfo:
         """Stammdaten ueber die numerische Projekt-ID (Stufe M8).
 
         Die Projects-API nimmt IDs genauso an wie Pfade -- dasselbe

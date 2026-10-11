@@ -21,7 +21,7 @@ ERWARTET = {"gitea": GITEA, "forgejo": FORGEJO}
 #: Die Saat aus ci/forgen_saat.py: Repo -> erwartete letzte Version.
 SAAT = {
     "haigs/ha-powerline": "261008",
-    "haigs/ha-gaming-assistant": "v261011",
+    "haigs/ha-gaming-assistant": "261011",  # HAIGS streicht das v
     "haigs/ha-spatial-matter": "",
 }
 LOCKVOGEL = "haigs/kein-hacs-json"
@@ -94,5 +94,8 @@ async def test_repository_nach_id_findet_dasselbe(eingabe, klient_und_spur):
     klient, _ = klient_und_spur
     _, forge = await _forge(eingabe, klient)
     info = await forge.repository("haigs/ha-gaming-assistant")
-    wieder = await forge.repository_nach_id(info.provider_id)
+    # Ohne Token ist das ID-Tor zu (401, wie auf codeberg.org und
+    # gitea.com) -- der bekannte Pfad traegt, die ID muss stimmen.
+    wieder = await forge.repository_nach_id(info.provider_id, pfad=info.full_name)
     assert wieder.full_name == info.full_name
+    assert wieder.provider_id == info.provider_id

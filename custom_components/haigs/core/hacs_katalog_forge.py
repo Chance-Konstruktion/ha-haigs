@@ -215,7 +215,9 @@ class HacsKatalogForge:
         repo_id, zeile, kategorie = await self._zeile(pfad)
         return _info(repo_id, zeile, kategorie)
 
-    async def repository_nach_id(self, anbieter_id: str) -> RepositoryInfo:
+    async def repository_nach_id(
+        self, anbieter_id: str, pfad: str = ""
+    ) -> RepositoryInfo:
         katalog = await self.katalog()
         if str(anbieter_id) not in katalog:
             raise NichtGefunden(f"ID {anbieter_id} steht nicht (mehr) im HACS-Katalog")

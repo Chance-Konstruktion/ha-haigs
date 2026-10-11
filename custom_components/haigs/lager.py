@@ -356,7 +356,7 @@ class Lager(DataUpdateCoordinator[dict[str, Any]]):
             grund = ""
             try:
                 info = await laufzeit.forge.repository_nach_id(
-                    eintrag.identitaet.provider_id
+                    eintrag.identitaet.provider_id, pfad=eintrag.identitaet.full_name
                 )
                 stammdaten_ok += 1
             except Exception as fehler:  # noqa: BLE001 - s. Moduldoku

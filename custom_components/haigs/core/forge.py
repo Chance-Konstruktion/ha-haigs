@@ -115,13 +115,19 @@ class Forge(Protocol):
         Wer wissen will, wo ein Projekt HEUTE wohnt, fragt die ID.
         """
 
-    async def repository_nach_id(self, anbieter_id: str) -> RepositoryInfo:
+    async def repository_nach_id(
+        self, anbieter_id: str, pfad: str = ""
+    ) -> RepositoryInfo:
         """Stammdaten ueber die Anbieter-ID -- der Name darf sich aendern, sie nicht.
 
         Stufe M8: umbenannte Projekte. Die ID ist das eine, das bei einer
         Umbenennung traegt; ueber sie kommt der aktuelle Name zurueck und
         wird nachgezogen. Die Antwort ist Stammdaten wie bei
         :meth:`repository` -- nur der Weg dorthin ist der stabile.
+
+        ``pfad`` ist der zuletzt bekannte Name. Anbieter, deren ID-Tor
+        ohne Anmeldung verschlossen ist (Gitea, Forgejo), nehmen ihn als
+        Rueckweg; die ID muss dann trotzdem stimmen.
         """
 
     async def releases(self, pfad: str) -> list[Release]:
