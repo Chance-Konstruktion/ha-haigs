@@ -438,3 +438,40 @@ async def test_stammdaten_nach_id_keine_ziffern_kein_weg():
 
     with pytest.raises(ForgeFehler):
         await forge().repository_nach_id("7a/../")
+
+
+class _VerschlossenesIdTor(FakeHttp):
+    """Wie codeberg.org ohne Token: /repositories/{id} antwortet 401."""
+
+    async def get_json(self, url, params=None, *, seiten=None):
+        if "/repositories/" in url:
+            self.aufrufe.append((url, params or {}))
+            from haigs.core.forge import ForgeFehler
+
+            raise ForgeFehler("Token fehlt oder reicht nicht (HTTP 401): " + url)
+        return await super().get_json(url, params, seiten=seiten)
+
+
+@pytest.mark.asyncio
+async def test_stammdaten_ohne_token_ueber_den_bekannten_pfad():
+    """Das ID-Tor ist ohne Anmeldung zu -- der Pfad traegt, die ID stimmt."""
+    http = _VerschlossenesIdTor({"/repos/foo/bar": forgejo_repo()})
+    info = await ForgejoForge(http, HOST).repository_nach_id("42", pfad="foo/bar")
+    assert info.provider_id == "42"
+    assert info.full_name == "foo/bar"
+
+
+@pytest.mark.asyncio
+async def test_stammdaten_ohne_token_mit_fremder_id_sind_nicht_gefunden():
+    """Liegt unter dem Pfad inzwischen ein anderes Projekt, gilt das alte als weg."""
+    http = _VerschlossenesIdTor({"/repos/foo/bar": forgejo_repo(id=99)})
+    with pytest.raises(NichtGefunden):
+        await ForgejoForge(http, HOST).repository_nach_id("42", pfad="foo/bar")
+
+
+@pytest.mark.asyncio
+async def test_stammdaten_ohne_token_und_ohne_pfad_bleiben_ehrlich_zu():
+    from haigs.core.forge import ForgeFehler
+
+    with pytest.raises(ForgeFehler):
+        await ForgejoForge(_VerschlossenesIdTor(), HOST).repository_nach_id("42")

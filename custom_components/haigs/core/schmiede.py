@@ -46,6 +46,10 @@ FAMILIE_API = "{schema}://{host}/api/v1/version"
 #: und ohne Schluessel zwischen "da" und "nicht da" unterscheidet.
 GITLAB_API = "{schema}://{host}/api/v4/version"
 
+#: Nur Forgejo traegt seine Gitea-Wurzel in der Versionsnummer
+#: (``16.0.5+gitea-1.22.0``) -- das sichere Merkmal der Geschwister.
+FORGEJO_MERKMAL = "+gitea-"
+
 #: Die Startseite, deren Fusstext die Geschwister nennt. Nur gefragt,
 #: wenn die Versionsnummer allein nicht entscheidet.
 STARTSEITE = "{schema}://{host}/"
@@ -83,22 +87,6 @@ def schmiede(
     if klasse is None:
         raise ForgeFehler("unbekannter Anbieter: " + repr(anbieter))
     return klasse(klient, host, schema)
-
-
-def _hauptversion(version: str) -> int | None:
-    """Die grosse Nummer einer Versionsangabe, oder None.
-
-    ``"1.23.8+dev-abc"`` -> 1, ``"11.0.1+gitea-1.22.0"`` -> 11,
-    ``"v13.2"`` -> 13. Forgejo nennt seit v7 eigene Nummern (major
-    >= 2), Gitea bleibt bei 1.x -- diese eine Ziffer trennt die
-    Geschwister zuverlaessig, seit Forgejo nicht mehr mitzaehlt.
-    """
-    gereinigt = str(version or "").strip().lstrip("vV")
-    erste = gereinigt.split(".", 1)[0]
-    try:
-        return int(erste)
-    except ValueError:
-        return None
 
 
 async def _familie_aus_seite(klient: HttpClient, host: str, schema: str = "https") -> str:
@@ -172,10 +160,14 @@ async def erkenne(klient: HttpClient, host: str, schema: str = "https") -> str:
         # koennen die Versionsfrage hinter der Anmeldung verstecken.
         return await _familie_aus_seite(klient, host, schema)
 
-    version = antwort.get("version") if isinstance(antwort, dict) else None
-    haupt = _hauptversion(str(version or ""))
-    if haupt is not None and haupt >= 2:
-        # Forgejo zaehlt seit v7 selbst (2024); Gitea bleibt bei 1.x.
+    version = str((antwort.get("version") if isinstance(antwort, dict) else "") or "")
+    if FORGEJO_MERKMAL in version:
+        # Forgejo nennt seit v7 (2024) seine Gitea-Wurzel in der
+        # Nummer: "16.0.5+gitea-1.22.0". Gitea selbst traegt das nie.
         return FORGEJO
-    # Gitea 1.x, alte Forgejo 1.x, oder unlesbar: die Startseite.
+    # Alles andere fragt die Startseite: Gitea 1.x, alte Forgejo 1.x,
+    # Unlesbares -- und seit 2026 auch Gitea selbst, das inzwischen
+    # ebenfalls gross zaehlt (28.1.0). Die Hauptnummer trennt die
+    # Geschwister nicht mehr; frueher galt ">= 2 ist Forgejo", und
+    # gitea.com wurde als Forgejo erkannt.
     return await _familie_aus_seite(klient, host, schema)

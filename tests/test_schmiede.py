@@ -248,3 +248,27 @@ def test_schema_aus_eingabe():
     assert schema_aus_eingabe("https://gitlab.com") == "https"
     assert schema_aus_eingabe("gitlab.com") == "https"
     assert host_normalisieren("http://forgejo.lan:3030") == "forgejo.lan:3030"
+
+
+@pytest.mark.asyncio
+async def test_neues_gitea_zaehlt_gross_und_bleibt_gitea():
+    """Gitea zaehlt seit 2026 gross (28.1.0, gitea.com 29.0.0+dev) -- die
+    Nummer allein machte daraus frueher ein Forgejo. Jetzt fragt die Seite."""
+    for nummer in ("28.1.0", "29.0.0+dev-19-g1204a0cbf2"):
+        klient_, attrappe = klient(
+            [
+                weg(),
+                version(nummer),
+                Aufzeichnung(rohbytes=b"<footer>Powered by Gitea</footer>"),
+            ]
+        )
+        assert await erkenne(klient_, HOST) == GITEA, nummer
+        assert len(attrappe.abrufe) == 3
+
+
+@pytest.mark.asyncio
+async def test_forgejo_am_merkmal_auch_als_entwicklerstand():
+    """Codeberg meldet einen Entwicklerstand -- das Merkmal entscheidet trotzdem."""
+    klient_, attrappe = klient([weg(), version("16.0.0-dev-753-6bcc6da0+gitea-1.22.0")])
+    assert await erkenne(klient_, HOST) == FORGEJO
+    assert len(attrappe.abrufe) == 2

@@ -163,7 +163,9 @@ class HaigsAktualisierer(DataUpdateCoordinator[dict[str, Fund]]):
         stammdaten: dict[str, RepositoryInfo | None] = {}
         for eintrag in self.eintraege.alle():
             try:
-                info = await self.forge.repository_nach_id(eintrag.identitaet.provider_id)
+                info = await self.forge.repository_nach_id(
+                    eintrag.identitaet.provider_id, pfad=eintrag.identitaet.full_name
+                )
                 if str(info.provider_id) != str(eintrag.identitaet.provider_id):
                     _LOGGER.warning(
                         "Stammdaten zu %s melden eine andere ID (%s) -- ignoriert",

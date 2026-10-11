@@ -104,14 +104,41 @@ class ForgejoForge:
             raise NichtGefunden("kein Projekt unter " + pfad + " auf " + self.host)
         return _zu_info(roh)
 
-    async def repository_nach_id(self, anbieter_id: str) -> RepositoryInfo:
+    async def repository_nach_id(
+        self, anbieter_id: str, pfad: str = ""
+    ) -> RepositoryInfo:
         """Stammdaten ueber die numerische Repository-ID (Stufe M8).
 
         Forgejo hat dafuer ein eigenes Tor: ``/repositories/{id}`` --
         unabhaengig vom Pfad. Ein umbenanntes Projekt meldet hier
         seinen neuen ``full_name``.
+
+        Das Tor verlangt aber eine Anmeldung: Gitea und Forgejo (auch
+        codeberg.org und gitea.com) antworten ohne Token mit 401, selbst
+        fuer oeffentliche Repos -- gefunden von der Forgen-Bahn. Dann
+        traegt der bekannte ``pfad`` die Stammdaten, und die ID muss
+        dazu passen; sonst gilt das Projekt als nicht gefunden.
+        Umbenennungen erkennt dieser Weg nicht, das bleibt dem Token.
         """
-        roh = await self._json(self.api + "/repositories/" + _id_kodiere(anbieter_id))
+        try:
+            roh = await self._json(self.api + "/repositories/" + _id_kodiere(anbieter_id))
+        except NichtGefunden:
+            raise
+        except ForgeFehler:
+            if not pfad:
+                raise
+            info = await self.repository(pfad)
+            if str(info.provider_id) != str(anbieter_id):
+                raise NichtGefunden(
+                    pfad
+                    + " traegt jetzt die ID "
+                    + str(info.provider_id)
+                    + ", nicht "
+                    + str(anbieter_id)
+                    + " -- auf "
+                    + self.host
+                ) from None
+            return info
         if not isinstance(roh, dict) or "id" not in roh:
             raise NichtGefunden(
                 "kein Projekt unter der ID " + str(anbieter_id) + " auf " + self.host
