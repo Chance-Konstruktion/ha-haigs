@@ -45,6 +45,40 @@ def ist_vorabversion(version: str) -> bool:
 #: Acht Stellen decken alles ab, was je im Freien rumlief.
 _SCHLUESSEL_TIEFE = 8
 
+#: Ziffern- und Textstuecke eines Nachtrags: ``rc10`` -> ("rc", 10).
+_NACHTRAG_STUECK = re.compile(r"\d+|\D+")
+
+
+def _nachtrag_schluessel(nachtrag: str) -> tuple:
+    """Zerlegt den Nachtrag -- NICHT als Zeichenkette wiegen (Ticket #21).
+
+    ``rc10`` galt als kleiner denn ``rc2``, ``1.2.3-10`` als kleiner
+    denn ``1.2.3-9``, ``beta.11`` als kleiner denn ``beta.2``: alles
+    nur, weil der Nachtrag als Text verglichen wurde.
+
+    Jetzt gilt (SemVer 2.0.0, Abschnitt 11):
+    * Punktfolgen: ``rc`` < ``rc.1`` (kuerzere Folge ist kleiner),
+    * Ziffernfolgen zaehlen NUMERISCH: ``rc2`` < ``rc10``,
+    * Ziffer vor Buchstabe im selben Rang,
+    * Textstuecke vergleichen wie sie stehen (ASCII, nicht geklebt).
+
+    Haus-Regel, sichtbar gemacht (Super Zs Fall B): rein numerische
+    Nachträge sind FINALE Fassungen -- ``ist_vorabversion("1.2.3-10")``
+    bleibt ``False`` und der Nachtrag ordnet ueber der reinen Fassung.
+    Was die Vorab-Leiter (``alpha`` ... ``rc``) betrifft, entscheidet
+    weiterhin das Rang-Bit vor diesem Schluessel.
+    """
+    teile = []
+    for stueck in nachtrag.split("."):
+        stuecke = []
+        for treffer in _NACHTRAG_STUECK.findall(stueck):
+            if treffer.isdigit():
+                stuecke.append((0, int(treffer), ""))
+            else:
+                stuecke.append((1, 0, treffer))
+        teile.append(tuple(stuecke))
+    return tuple(teile)
+
 
 def _schluessel(version: str) -> tuple:
     """Sortierschluessel: Zahlenkopf zuerst, Vorabversion danach kleiner.
@@ -54,6 +88,7 @@ def _schluessel(version: str) -> tuple:
     fertige Fassung schieben.
 
     Der letzte Teil ordnet nur noch den NACHTRAG hinter dem Kopf --
+    zerlegt statt geklebt (:func:`_nachtrag_schluessel`, Ticket #21) --
     Build-Metadaten (hinter ``+``) sind dabei abgeschnitten, wie es
     SemVer verlangt: ``1.0.0+build1`` ist dieselbe Version wie
     ``1.0.0``. Und weil ungleiche Schreibtiefe im Kopf durch die
@@ -68,7 +103,7 @@ def _schluessel(version: str) -> tuple:
         else ()
     )
     zahlen = zahlen + (0,) * (_SCHLUESSEL_TIEFE - len(zahlen))
-    nachtrag = _KOPF.sub("", v).split("+", 1)[0]
+    nachtrag = _nachtrag_schluessel(_KOPF.sub("", v).split("+", 1)[0])
     return (zahlen, 0 if ist_vorabversion(v) else 1, nachtrag)
 
 
