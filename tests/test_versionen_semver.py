@@ -88,8 +88,7 @@ def _rel(tag: str, vorab: bool = False) -> Release:
 
 def test_waehle_version_findet_rc10_nicht_rc9():
     releases = [_rel("v1.0.0-rc2"), _rel("v1.0.0-rc9"), _rel("v1.0.0-rc10")]
-    ergebnis = waehle_version(releases, installiert="1.0.0-rc2",
-                              mit_vorabversionen=True)
+    ergebnis = waehle_version(releases, installiert="1.0.0-rc2", mit_vorabversionen=True)
     assert ergebnis.tag == "v1.0.0-rc10"
 
 
@@ -103,6 +102,5 @@ def test_waehle_version_holt_das_finale_nachtrags_update():
 
 def test_fertige_fassung_schlaegt_ihre_vorabversionen():
     releases = [_rel("v2.0.0-rc10"), _rel("v2.0.0")]
-    ergebnis = waehle_version(releases, installiert="v1.0.0",
-                              mit_vorabversionen=True)
+    ergebnis = waehle_version(releases, installiert="v1.0.0", mit_vorabversionen=True)
     assert ergebnis.tag == "v2.0.0"
