@@ -4,6 +4,27 @@ Alle nennenswerten Änderungen an HAIGS. Die Versionen folgen
 [SemVer](https://semver.org/lang/de/); installiert wird aus den
 [GitHub-Releases](https://github.com/Chance-Konstruktion/ha-haigs/releases).
 
+## 0.6.7.1 — 2026-10-15
+
+### Behoben
+- Versionsnachträge werden zerlegt statt als Text verglichen
+  ([#21](https://gitlab.schanz.ipv64.net/chance-konstruktion/haigs/-/work_items/21)).
+  `1.0.0-rc10` gilt jetzt als neuer als `1.0.0-rc2`, `beta.11` als neuer als
+  `beta.2`, und `1.2.3-10` als neuer als `1.2.3-9`. Vorher wurden solche
+  Updates still übersehen. Ein rein numerischer Nachtrag wie `1.2.3-10`
+  bleibt eine fertige Fassung, keine Vorabversion.
+
+### Intern
+- Fahrplan, Stand und Vorschlag sind im Changelog aufgegangen;
+  `ROADMAP.md`, `STAND.md`, `PROPOSAL.md` und `original.png` sind raus.
+
+## 0.6.7 — 2026-10-11
+
+### Neu
+- Tags als Rückfall auch beim Entdecken und in der Versionsliste
+  ([ha-haigs#1](https://github.com/Chance-Konstruktion/ha-haigs/issues/1)):
+  Repositories ohne Releases erscheinen mit ihren Tags.
+
 ## 0.6.6 — 2026-10-11
 
 ### Behoben
