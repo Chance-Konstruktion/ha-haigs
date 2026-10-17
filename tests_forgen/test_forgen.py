@@ -65,10 +65,17 @@ async def test_entdeckung_findet_die_saat_und_verwirft_den_lockvogel(
         # Die letzte Version ist der NEUESTE Tag -- derselbe, auf den
         # die Saat ihr Release legt. GEMESSEN am lebenden Bestand,
         # nicht an einer gepinnten Zahl, die mit dem naechsten Tag
-        # im eigenen GitLab veraltet.
+        # im eigenen GitLab veraltet. HAIGS streicht ein fuehrendes
+        # v (ha-gaming-assistant taggt v261011) -- die Erwartung
+        # ebenso.
         tags = await forge.tags(pfad)
-        assert tags, pfad
-        assert fund.letzte_version == tags[0], (pfad, fund.letzte_version, tags[0])
+        # Ohne Tags keine Version (ha-spatial-matter) -- die Erwartung
+        # bleibt dann leer, wie der Fund es meldet.
+        if tags:
+            erwartet = tags[0][1:] if tags[0].startswith("v") else tags[0]
+        else:
+            erwartet = ""
+        assert fund.letzte_version == erwartet, (pfad, fund.letzte_version, tags[:1])
     assert LOCKVOGEL in funde
     assert not funde[LOCKVOGEL].uebernehmen, "ohne hacs.json darf nichts durch"
     assert all(url.startswith("http://") for url in spur), spur
