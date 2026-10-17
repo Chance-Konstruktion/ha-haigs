@@ -53,14 +53,21 @@ def sitzung_einpflanzen(monkeypatch: pytest.MonkeyPatch) -> Any:
 
     def _einpflanzen(aufzeichnungen: list[Aufzeichnung]) -> SitzungsAttrappe:
         attrappe = SitzungsAttrappe(list(aufzeichnungen))
+        # Die Sitzungs-Wahl wird GEMESSEN (haigs #26): async_get_clientsession
+        # kann mit verify_ssl=True/False gerufen werden -- die Attrappe
+        # zeichnet beide Rufe samt Argument auf, damit Tests beweisen
+        # koennen, welcher Weg ging.
+        attrappe.sitzungs_wahl: list[bool] = []
+
+        def _session(hass, **kwargs):
+            attrappe.sitzungs_wahl.append(bool(kwargs.get("verify_ssl", True)))
+            return attrappe
+
         for ziel in (
             "custom_components.haigs.config_flow",
             "custom_components.haigs",
         ):
-            monkeypatch.setattr(
-                f"{ziel}.async_get_clientsession",
-                lambda hass, **_: attrappe,
-            )
+            monkeypatch.setattr(f"{ziel}.async_get_clientsession", _session)
         return attrappe
 
     return _einpflanzen

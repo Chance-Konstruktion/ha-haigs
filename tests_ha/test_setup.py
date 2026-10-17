@@ -152,3 +152,83 @@ async def test_eintrag_entfernt_sich(hass: HomeAssistant, sitzung_einpflanzen) -
 
     assert mock.state is ConfigEntryState.NOT_LOADED
     assert mock.entry_id not in hass.data.get(DOMAIN, {})
+
+
+async def test_alter_eintrag_ohne_feld_bleibt_geprueft(
+    hass: HomeAssistant, sitzung_einpflanzen
+) -> None:
+    """#26: Eintraege aus der Zeit davor tragen kein verify_ssl-Feld.
+
+    Ihr Verhalten bleibt Stueck fuer Stueck dasselbe: die gemeinsame
+    gepruefte Sitzung, keine Warnung -- Migration ist hier nur ein
+    fehlender Schluessel, kein Vorgang.
+    """
+    attrappe = sitzung_einpflanzen([antwort()])
+    await richten(hass, eintrag())
+
+    assert attrappe.sitzungs_wahl == [True]
+
+
+async def test_selbstsignierter_eintrag_nimmt_die_ungepruefte_sitzung(
+    hass: HomeAssistant, sitzung_einpflanzen, caplog
+) -> None:
+    """#26: der Schalter aus -- Sitzung ohne Pruefung UND Warnung im Log.
+
+    Die Warnung steht in der Schule des http-Token-Hinweises: wer eine
+    unsichere Wahl trifft, soll sie im Log sehen, nicht nur im Dialog.
+    """
+    import logging
+
+    attrappe = sitzung_einpflanzen([antwort()])
+    mock = MockConfigEntry(
+        domain=DOMAIN,
+        title="gitlab.example.net",
+        data={
+            CONF_HOST: "gitlab.example.net",
+            CONF_TOKEN: "",
+            "schema": "https",
+            "verify_ssl": False,
+        },
+        unique_id="gitlab.example.net",
+    )
+    with caplog.at_level(logging.WARNING):
+        await richten(hass, mock)
+
+    assert mock.state is ConfigEntryState.LOADED
+    # Der Sitzungs-Griff ging ungeprueft: GEMESSEN.
+    assert attrappe.sitzungs_wahl == [False]
+    assert any(
+        "Zertifikat" in zeile and "gitlab.example.net" in zeile
+        for zeile in caplog.text.splitlines()
+    )
+
+
+async def test_http_eintrag_bleibt_bei_gepruefter_sitzung(
+    hass: HomeAssistant, sitzung_einpflanzen, caplog
+) -> None:
+    """#26: http kennt kein Zertifikat -- ungepruefte Sitzung bleibt zu.
+
+    Auch mit verify_ssl=False in den Daten eines http-Eintrags geht der
+    Sitzungs-Griff den normalen Weg: die Warnung gehoert zur TLS-Frage,
+    nicht zur Klartext-Frage (die hat ihre eigene).
+    """
+    import logging
+
+    attrappe = sitzung_einpflanzen([antwort()])
+    mock = MockConfigEntry(
+        domain=DOMAIN,
+        title="gitlab.lan:8080",
+        data={
+            CONF_HOST: "gitlab.lan:8080",
+            CONF_TOKEN: "",
+            "schema": "http",
+            "verify_ssl": False,
+        },
+        unique_id="gitlab.lan:8080",
+    )
+    with caplog.at_level(logging.WARNING):
+        await richten(hass, mock)
+
+    assert mock.state is ConfigEntryState.LOADED
+    assert attrappe.sitzungs_wahl == [True]
+    assert "Zertifikat" not in caplog.text

@@ -46,6 +46,7 @@ from .const import (
     CONF_PROVIDER,
     CONF_SCHEMA,
     CONF_TOKEN,
+    CONF_VERIFY_SSL,
     DOMAIN,
     LAGER_START_VERZOEGERUNG_SEK,
     STANDARD_ABSTAND_MINUTEN,
@@ -185,15 +186,30 @@ async def async_setup_entry(hass: HomeAssistant, eintrag: ConfigEntry) -> bool:
     erneut -- ehrlicher als ein scheinbar eingerichteter Eintrag ohne
     Verbindung.
     """
-    sitzung = async_get_clientsession(hass)
+    # Das Schema kam mit GitHub #1: Eintraege davor tragen keins und
+    # bleiben bei https. Klartext nur, wenn der Mensch http:// eingab.
+    schema = eintrag.data.get(CONF_SCHEMA) or "https"
+    # Die Sitzung nach dem Zertifikats-Wunsch des Eintrags (#26): nur
+    # bei https ueberhaupt eine Frage -- ueber http:// laeuft keine
+    # Pruefung, da gibt es nichts zu verifizieren. Eintraege aus der
+    # Zeit davor tragen das Feld nicht und bleiben bei der geprueften
+    # gemeinsamen Sitzung, Stueck fuer Stueck.
+    zertifikat_pruefen = bool(eintrag.data.get(CONF_VERIFY_SSL, True))
+    if schema == "https" and not zertifikat_pruefen:
+        sitzung = async_get_clientsession(hass, verify_ssl=False)
+        _LOGGER.warning(
+            "%s: das Zertifikat wird NICHT geprueft (selbstsignierte "
+            "Instanz) -- einem Angreifer zwischen Heimassistant und "
+            "Instanz stehen diese Verbindungen offen",
+            eintrag.data[CONF_HOST],
+        )
+    else:
+        sitzung = async_get_clientsession(hass)
     klient = AiohttpClient(sitzung, eintrag.data.get(CONF_TOKEN) or None)
     # Die Schmiede formt den Forge nach dem Namen im Eintrag (Flug
     # 2088). Eintraege aus der Zeit davor tragen keinen -- dann gilt
     # GitLab, die einzige Schmiedung, die es damals gab; das Verhalten
     # dieser Eintraege bleibt Stueck fuer Stueck dasselbe.
-    # Das Schema kam mit GitHub #1: Eintraege davor tragen keins und
-    # bleiben bei https. Klartext nur, wenn der Mensch http:// eingab.
-    schema = eintrag.data.get(CONF_SCHEMA) or "https"
     forge = schmiede(
         klient,
         eintrag.data[CONF_HOST],

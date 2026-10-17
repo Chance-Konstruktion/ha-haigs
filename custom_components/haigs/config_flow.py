@@ -45,6 +45,7 @@ from .const import (
     CONF_PROVIDER,
     CONF_SCHEMA,
     CONF_TOKEN,
+    CONF_VERIFY_SSL,
     DOMAIN,
     STANDARD_ABSTAND_MINUTEN,
     host_normalisieren,
@@ -92,6 +93,7 @@ async def verbindung_pruefen(
     token: str | None,
     anbieter: str = ANBIETER_AUTO,
     schema: str = "https",
+    zertifikat_pruefen: bool = True,
 ) -> tuple[list, str]:
     """Ein echter Abruf ueber die Instanz -- beweist Host, API und Token.
 
@@ -100,8 +102,18 @@ async def verbindung_pruefen(
     bei "auto" von der Erkennung geklaert, sonst der gewaehlte.
     Gelingt er nicht, wirft der Kern seine Fehlerarten -- und genau
     die werden im Dialog uebersetzt.
+
+    ``zertifikat_pruefen`` steht auf ``False``, sobald der Mensch die
+    Instanz mit einem selbstsignierten Zertifikat betreibt (#26) --
+    die Probe im Dialog muss dann denselben Weg nehmen wie spaeter
+    der Eintrag, sonst verneint die Pruefung eine Verbindung, die
+    real steht.
     """
-    sitzung = async_get_clientsession(hass)
+    # Bei http:// gibt es kein Zertifikat zu pruefen -- die Probe bleibt
+    # dann bei der normalen Sitzung, genau wie der Eintrag selbst.
+    sitzung = async_get_clientsession(
+        hass, verify_ssl=(schema != "https" or zertifikat_pruefen)
+    )
     klient = AiohttpClient(sitzung, token)
     if anbieter == ANBIETER_AUTO:
         anbieter = await erkenne(klient, host, schema)
@@ -130,6 +142,7 @@ class HaigsFluss(config_entries.ConfigFlow, domain=DOMAIN):
             schema = schema_aus_eingabe(benutzereingabe[CONF_HOST])
             token = (benutzereingabe.get(CONF_TOKEN) or "").strip() or None
             anbieter = str(benutzereingabe.get(CONF_PROVIDER) or ANBIETER_AUTO)
+            zertifikat_pruefen = bool(benutzereingabe.get(CONF_VERIFY_SSL, True))
             if anbieter not in ANBIETER_NAMEN:
                 fehler["base"] = "anbieter_unbekannt"
             # Die Leerpruefung steht absichtlich VOR dem Verbindungs-
@@ -140,7 +153,7 @@ class HaigsFluss(config_entries.ConfigFlow, domain=DOMAIN):
             else:
                 try:
                     funde, erkannt = await verbindung_pruefen(
-                        self.hass, host, token, anbieter, schema
+                        self.hass, host, token, anbieter, schema, zertifikat_pruefen
                     )
                 except AnbieterUnbekannt as fehlgeschlag:
                     fehler["base"] = "anbieter_unerkannt"
@@ -168,6 +181,7 @@ class HaigsFluss(config_entries.ConfigFlow, domain=DOMAIN):
                             CONF_TOKEN: token or "",
                             CONF_PROVIDER: erkannt,
                             CONF_SCHEMA: schema,
+                            CONF_VERIFY_SSL: zertifikat_pruefen,
                         },
                         description="verbunden",
                         description_placeholders={
@@ -188,6 +202,11 @@ class HaigsFluss(config_entries.ConfigFlow, domain=DOMAIN):
                     default=(benutzereingabe or {}).get(CONF_PROVIDER, ANBIETER_AUTO),
                 ): vol.In(ANBIETER_WAHL),
                 vol.Optional(CONF_TOKEN, description={"hint": "token_hint"}): str,
+                vol.Optional(
+                    CONF_VERIFY_SSL,
+                    description={"hint": "verify_ssl_hint"},
+                    default=(benutzereingabe or {}).get(CONF_VERIFY_SSL, True),
+                ): bool,
             }
         )
         return self.async_show_form(

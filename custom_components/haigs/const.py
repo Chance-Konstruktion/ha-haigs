@@ -13,6 +13,11 @@ CONF_PROVIDER = "provider"
 #: Das Schema der Instanz (``https`` oder ``http``, Issue GitHub #1).
 #: Eintraege aus der Zeit davor tragen keins -- dann gilt ``https``.
 CONF_SCHEMA = "schema"
+#: Zertifikat pruefen? Aus, sobald der Mensch die Instanz mit einem
+#: selbstsignierten Zertifikat betreibt (#26). Eintraege aus der Zeit
+#: davor tragen das Feld nicht -- dann gilt ``True`` (geprueft), und
+#: ihr Verhalten bleibt Stueck fuer Stueck dasselbe.
+CONF_VERIFY_SSL = "verify_ssl"
 
 #: Der Wert "auto" im Dialog: die Schmiede soll erkennen, welcher
 #: Anbieter unter der Adresse antwortet (Flug 2088). Die anderen

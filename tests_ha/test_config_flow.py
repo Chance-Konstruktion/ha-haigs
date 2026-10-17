@@ -78,6 +78,23 @@ async def test_dialog_erscheint(hass: HomeAssistant) -> None:
     assert ergebnis["errors"] == {}
 
 
+async def test_dialog_zeigt_den_zertifikats_schalter(
+    hass: HomeAssistant,
+) -> None:
+    """#26: der Schalter steht im Dialog und ist standardmaessig AN."""
+    ergebnis = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": SOURCE_USER}
+    )
+    schema: vol.Schema = ergebnis["data_schema"]
+    felder = {
+        naehe.key if hasattr(naehe, "key") else naehe: naehe for naehe in schema.schema
+    }
+    assert "verify_ssl" in felder
+    # Standardmaessig an: ein unangetasteter Dialog prueft das Zertifikat.
+    schluessel = felder["verify_ssl"]
+    assert schluessel.default() is True
+
+
 async def test_verbindung_gelingt(hass: HomeAssistant, sitzung_einpflanzen) -> None:
     # Zwei Antworten: eine fuer die Pruefung im Dialog, eine fuer den
     # ersten Herzschlag -- Home Assistant richtet den Eintrag nach dem
@@ -100,11 +117,14 @@ async def test_verbindung_gelingt(hass: HomeAssistant, sitzung_einpflanzen) -> N
         CONF_PROVIDER: "gitlab",
         CONF_TOKEN: "",
         "schema": "https",
+        "verify_ssl": True,
     }
     assert len(attrappe.abrufe) == 2
     assert attrappe.abrufe[0][0].startswith("https://gitlab.example.net/api/v4/projects")
     # Ohne Token reist keine Berechtigungskopfzeile.
     assert "Authorization" not in (attrappe.abrufe[0][2] or {})
+    # Ohne Umschalten bleibt der Zertifikats-Weg der gepruefte (#26).
+    assert attrappe.sitzungs_wahl == [True, True]
     # Der Eintrag steht: Dialog und erster Herzschlag sind beide durch.
     eintraege = hass.config_entries.async_entries(DOMAIN)
     assert len(eintraege) == 1
@@ -130,6 +150,69 @@ async def test_verbindung_ueber_http(hass: HomeAssistant, sitzung_einpflanzen) -
     assert len(attrappe.abrufe) == 2
     for url, *_ in attrappe.abrufe:
         assert url.startswith("http://gitlab.lan:8080/api/v4/")
+
+
+async def test_selbstsignierte_instanz(hass: HomeAssistant, sitzung_einpflanzen) -> None:
+    """#26: der Schalter aus -- Probe im Dialog UND Eintrag ohne Pruefung.
+
+    Der Dialog koennte die Verbindung an der geprueften Sitzung messen
+    und eine real stehende selbstsignierte Instanz verneinen -- genau
+    das fiel Chance-konstruktion/ha-haigs#1 auf. Deshalb nehmen die
+    Probe und der gerichtete Eintrag denselben ungeprueften Weg.
+    """
+    attrappe = sitzung_einpflanzen([antwort(), antwort()])
+    ergebnis = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": SOURCE_USER}
+    )
+    ergebnis = await hass.config_entries.flow.async_configure(
+        ergebnis["flow_id"],
+        {
+            CONF_HOST: "gitlab.example.net",
+            CONF_PROVIDER: "gitlab",
+            CONF_TOKEN: "",
+            "verify_ssl": False,
+        },
+    )
+    await hass.async_block_till_done()
+
+    assert ergebnis["type"] is FlowResultType.CREATE_ENTRY
+    assert ergebnis["data"]["verify_ssl"] is False
+    # Beide Sitzungs-Griffe -- Probe im Dialog, Richten des Eintrags --
+    # gingen den ungeprueften Weg: GEMESSEN, nicht behauptet.
+    assert attrappe.sitzungs_wahl == [False, False]
+    # Der Eintrag steht trotzdem: Herzschlag durch die Attrappe.
+    eintraege = hass.config_entries.async_entries(DOMAIN)
+    assert eintraege[0].state is ConfigEntryState.LOADED
+
+
+async def test_http_ohne_tls_kennt_keine_ungepruefte_sitzung(
+    hass: HomeAssistant, sitzung_einpflanzen
+) -> None:
+    """#26: ueber http:// gibt es kein Zertifikat -- der Schalter bleibt ohne Wirkung.
+
+    Ein http-Eintrag mit abgeschalteter Pruefung darf nicht etwa die
+    ungepruefte Sitzung oeffnen: dort laeuft nichts zu verifizieren,
+    und die gemeinsame gepruefte Sitzung bleibt der ehrliche Weg.
+    """
+    attrappe = sitzung_einpflanzen([antwort(), antwort()])
+    ergebnis = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": SOURCE_USER}
+    )
+    ergebnis = await hass.config_entries.flow.async_configure(
+        ergebnis["flow_id"],
+        {
+            CONF_HOST: "http://gitlab.lan:8080",
+            CONF_PROVIDER: "gitlab",
+            CONF_TOKEN: "",
+            "verify_ssl": False,
+        },
+    )
+    await hass.async_block_till_done()
+
+    assert ergebnis["type"] is FlowResultType.CREATE_ENTRY
+    assert ergebnis["data"]["verify_ssl"] is False
+    # Weder die Probe noch der Eintrag nehmen die ungepruefte Sitzung.
+    assert attrappe.sitzungs_wahl == [True, True]
 
 
 async def test_probe_holt_hoechstens_eine_seite(
