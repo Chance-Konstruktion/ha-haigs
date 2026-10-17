@@ -18,12 +18,18 @@ from haigs.core.identity import FORGEJO, GITEA
 from haigs.core.schmiede import erkenne, schmiede
 
 ERWARTET = {"gitea": GITEA, "forgejo": FORGEJO}
-#: Die Saat aus ci/forgen_saat.py: Repo -> erwartete letzte Version.
-SAAT = {
-    "haigs/ha-powerline": "261008",
-    "haigs/ha-gaming-assistant": "261011",  # HAIGS streicht das v
-    "haigs/ha-spatial-matter": "",
-}
+#: Die Saat aus ci/forgen_saat.py: Repos, die ein Release auf dem
+#: neuesten Tag bekommen. Die erwartete Version wird zur Laufzeit
+#: gegen den NEUESTEN TAG des migrierten Repos gewogen, nicht gegen
+#: eine gepinnte Zahl: die Saat migriert echte Repos aus dem eigenen
+#: GitLab -- jeder neue Tag dort (261008 -> 261016, 17.10.) liesse
+#: eine Pin altern und den Job rot stehen (Flug 2820, roter Build
+#: in MR !61, Pipeline 23970/23972).
+SAAT = (
+    "haigs/ha-powerline",
+    "haigs/ha-gaming-assistant",  # HAIGS streicht das v
+    "haigs/ha-spatial-matter",
+)
 LOCKVOGEL = "haigs/kein-hacs-json"
 
 
@@ -52,11 +58,17 @@ async def test_entdeckung_findet_die_saat_und_verwirft_den_lockvogel(
     _, forge = await _forge(eingabe, klient)
     funde = {fund.info.full_name: fund for fund in await entdecke(forge)}
 
-    for pfad, version in SAAT.items():
+    for pfad in SAAT:
         assert pfad in funde, f"{pfad} fehlt in {sorted(funde)}"
         fund = funde[pfad]
         assert fund.uebernehmen, (pfad, fund.befund.fehler)
-        assert fund.letzte_version == version, pfad
+        # Die letzte Version ist der NEUESTE Tag -- derselbe, auf den
+        # die Saat ihr Release legt. GEMESSEN am lebenden Bestand,
+        # nicht an einer gepinnten Zahl, die mit dem naechsten Tag
+        # im eigenen GitLab veraltet.
+        tags = await forge.tags(pfad)
+        assert tags, pfad
+        assert fund.letzte_version == tags[0], (pfad, fund.letzte_version, tags[0])
     assert LOCKVOGEL in funde
     assert not funde[LOCKVOGEL].uebernehmen, "ohne hacs.json darf nichts durch"
     assert all(url.startswith("http://") for url in spur), spur
@@ -75,12 +87,16 @@ async def test_datei_zweig_und_archiv_ueber_http(eingabe, klient_und_spur):
     assert len(kopf.sha) == 40
 
     releases = await forge.releases(pfad)
-    assert [r.tag for r in releases] == ["261008"]
-    assert "261008" in await forge.tags(pfad)
+    tags = await forge.tags(pfad)
+    assert tags, pfad
+    # Das Release steht auf dem NEUESTEN Tag (so saet es forgen_saat.py) --
+    # drift-robust gewogen, nicht gepinnt.
+    assert [r.tag for r in releases] == [tags[0]]
+    neuester = tags[0]
 
-    adresse = await forge.archiv_url(pfad, "261008")
+    adresse = await forge.archiv_url(pfad, neuester)
     assert adresse.startswith(eingabe + "/"), adresse
-    with zipfile.ZipFile(io.BytesIO(await forge.archiv(pfad, "261008"))) as archiv:
+    with zipfile.ZipFile(io.BytesIO(await forge.archiv(pfad, neuester))) as archiv:
         assert any(
             n.endswith("custom_components/") or "/custom_components/" in n
             for n in archiv.namelist()
