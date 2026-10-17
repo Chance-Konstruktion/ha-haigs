@@ -63,7 +63,7 @@
         "description": "Derzeit beobachtet:\n{liste}",
         "data": {
           "entfernen": "Zu entfernendes Repository",
-          "dateien_deinstallieren": "Installierte Dateien ebenfalls entfernen (ab Stufe M4)"
+          "dateien_deinstallieren": "Installierte Dateien ebenfalls entfernen"
         }
       },
       "katalog": {
@@ -95,6 +95,9 @@
     "abort": {
       "liste_leer": "Noch keine Repositories in Beobachtung",
       "katalog_entfernt": "Der Eintrag für den HACS-Katalog wurde entfernt."
+    },
+    "errors": {
+      "deinstallation_nicht_moeglich": "Dateien lassen sich nicht mit entfernen -- {grund}"
     }
   },
   "issues": {

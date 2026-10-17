@@ -58,19 +58,13 @@ from .core.entdeckung import entdecke
 from .core.forge import ForgeFehler, NichtGefunden
 from .core.identity import SUFFIX, RepositoryIdentity
 from .core.validierung import KATEGORIEN
-from .core.zielpfade import ist_flach
+from .deinstallation import DeinstallationNichtMoeglich, deinstalliere_eintrag
 from .eintraege import (
     BereitsVorhanden,
     KategorieUnbekannt,
     NichtVorhanden,
 )
-from .installation import (
-    InstallationsFehler,
-    deinstalliere_version,
-    rekonstruiere_dateiliste,
-)
 from .lager import LagerFehler, _entity_id, zeile_aus_fund
-from .neustart import neustart_hinweis
 from .sichtbarkeit import anreichern
 
 if TYPE_CHECKING:
@@ -600,85 +594,21 @@ async def ws_deinstallieren(
 
     Der Eintrag bleibt in der Liste (dafuer gibt es ``entfernen``);
     hier verschwinden nur die Dateien, und der Stand vergisst Version
-    und Weg. Ohne verzeichneten Weg (installiert vor M4b) kommt die
-    ehrliche Ansage: erst neu installieren, dann laesst sich auch
-    sauber entfernen.
-
-    Review zu !50, Befund 2: ein Altbestand aus 0.6.3 (Wurzel
-    verzeichnet, keine Dateiliste) ist keine Sackgasse mehr -- die
-    Liste wird aus dem Archiv der installierten Version
-    rekonstruiert (nur INHALTSGLEICHE Dateien gelten als eigene) und
-    VOR dem Entfernen verzeichnet: schlaegt das Entfernen mittendrin
-    ab, laesst es sich wiederholen.
+    und Weg. Der Weg selbst steht in :mod:`.deinstallation` -- Panel
+    und Optionsdialog (#24) teilen ihn. Ohne verzeichneten Weg
+    (installiert vor M4b) kommt die ehrliche Ansage: erst neu
+    installieren, dann laesst sich auch sauber entfernen.
     """
     schluessel = str(msg["storage_key"])
     for laufzeit in _laufzeiten(hass).values():
         eintrag = laufzeit.eintraege.finde(schluessel)
         if eintrag is None:
             continue
-        stand = laufzeit.staende.stand(schluessel)
-        if not stand.installiert and not stand.dateien:
-            # Ein Bruchstueck ohne Version (Review zu !50, Befund 1) ist
-            # trotzdem ein ehrlicher Grund aufzuraeumen -- die Liste ist
-            # ja verzeichnet, nur die Version kam nie ganz an.
-            connection.send_error(msg["id"], "nichts_installiert", "nichts installiert")
-            return
-        if not stand.pfad:
-            connection.send_error(
-                msg["id"],
-                "kein_weg",
-                "kein installierter Pfad verzeichnet (installiert vor M4b?) "
-                "-- einmal neu installieren, dann laesst sich auch "
-                "entfernen",
-            )
-            return
-        dateien = stand.dateien
-        if not dateien and ist_flach(eintrag.kategorie):
-            # Altbestand aus 0.6.3 -- die Liste fehlt, der Weg fuehrt
-            # ueber das Archiv der installierten Version.
-            try:
-                dateien = await rekonstruiere_dateiliste(
-                    hass, laufzeit.forge, eintrag, stand.installiert
-                )
-            except (InstallationsFehler, ForgeFehler) as fehlschlag:
-                connection.send_error(
-                    msg["id"],
-                    "altbestand_unlesbar",
-                    "die Dateiliste des Altbestands laesst sich nicht mehr "
-                    "rekonstruieren ("
-                    + str(fehlschlag)
-                    + ") -- einmal neu installieren, dann laesst sich auch "
-                    "sauber entfernen",
-                )
-                return
-            if not dateien:
-                connection.send_error(
-                    msg["id"],
-                    "altbestand_leer",
-                    "keine Datei in "
-                    + stand.pfad
-                    + " ist mit der installierten Version inhaltsgleich -- "
-                    "veraenderte oder fremde Dateien bleiben liegen, die "
-                    "Wurzel gehoert allen",
-                )
-                return
-            # Vor dem Entfernen verzeichnet: ein Abbruch dazwischen ist
-            # wiederholbar, kein Neubeginn.
-            await laufzeit.staende.setzen(schluessel, dateien=list(dateien))
         try:
-            await deinstalliere_version(hass, stand.pfad, dateien=dateien)
-        except InstallationsFehler as fehlschlag:
-            connection.send_error(
-                msg["id"], "deinstallation_fehlgeschlagen", str(fehlschlag)
-            )
+            await deinstalliere_eintrag(hass, laufzeit, eintrag, schluessel)
+        except DeinstallationNichtMoeglich as fehlschlag:
+            connection.send_error(msg["id"], fehlschlag.code, str(fehlschlag))
             return
-        await laufzeit.staende.setzen(schluessel, installiert="", pfad="", dateien=[])
-        lager = getattr(laufzeit, "lager", None)
-        if lager is not None:
-            await lager.stand_geaendert(schluessel, installiert="", zielweg="")
-        neustart_hinweis(
-            hass, eintrag, stand.installiert, "deinstallation", pfad=stand.pfad
-        )
         _LOGGER.info(
             "Custom Repository ueber die Oberflaeche deinstalliert: %s",
             eintrag.anzeigename,
