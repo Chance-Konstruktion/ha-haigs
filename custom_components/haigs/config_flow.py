@@ -35,6 +35,11 @@ from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.selector import (
+    TextSelector,
+    TextSelectorConfig,
+    TextSelectorType,
+)
 
 from .const import (
     ANBIETER_AUTO,
@@ -201,7 +206,9 @@ class HaigsFluss(config_entries.ConfigFlow, domain=DOMAIN):
                     CONF_PROVIDER,
                     default=(benutzereingabe or {}).get(CONF_PROVIDER, ANBIETER_AUTO),
                 ): vol.In(ANBIETER_WAHL),
-                vol.Optional(CONF_TOKEN, description={"hint": "token_hint"}): str,
+                vol.Optional(
+                    CONF_TOKEN, description={"hint": "token_hint"}
+                ): TextSelector(TextSelectorConfig(type=TextSelectorType.PASSWORD)),
                 vol.Optional(
                     CONF_VERIFY_SSL,
                     description={"hint": "verify_ssl_hint"},
