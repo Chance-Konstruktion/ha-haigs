@@ -208,9 +208,7 @@ class HaigsFluss(config_entries.ConfigFlow, domain=DOMAIN):
                 ): vol.In(ANBIETER_WAHL),
                 vol.Optional(
                     CONF_TOKEN, description={"hint": "token_hint"}
-                ): TextSelector(
-                    TextSelectorConfig(type=TextSelectorType.PASSWORD)
-                ),
+                ): TextSelector(TextSelectorConfig(type=TextSelectorType.PASSWORD)),
                 vol.Optional(
                     CONF_VERIFY_SSL,
                     description={"hint": "verify_ssl_hint"},
