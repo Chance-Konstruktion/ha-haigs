@@ -21,8 +21,9 @@ Der Optionsdialog verwaltet seit Stufe M3 ausserdem die Liste der
 Custom Repositories: volle Adresse eingeben, Identitaet ueber die API
 klaeren, Kategorie waehlen (Vorbelegung aus ``hacs-<kategorie>``),
 Fehler beim Namen nennen. Doppelte Eintraege weist er ab, bevor er
-anlegt; Entfernen geht mit und ohne Deinstallation -- die Dateien
-selbst sind Stufe M4.
+anlegt; Entfernen geht mit und ohne Deinstallation -- seit #24 haelt
+die Checkbox ihr Versprechen, und der Weg dahinter steht in
+:mod:`.deinstallation` (mit dem Panel-Befehl geteilt).
 """
 
 from __future__ import annotations
@@ -62,6 +63,11 @@ from .core.http_aiohttp import AiohttpClient
 from .core.identity import FORGEJO, GITEA, GITHUB, GITLAB, RepositoryIdentity
 from .core.schmiede import AnbieterUnbekannt, erkenne, schmiede
 from .core.validierung import KATEGORIEN
+from .deinstallation import (
+    DeinstallationNichtMoeglich,
+    NichtsInstalliert,
+    deinstalliere_eintrag,
+)
 from .eintraege import (
     CONF_ADRESSE,
     CONF_DATEIEN_DEINSTALLIEREN,
@@ -505,6 +511,11 @@ class HaigsOptionen(config_entries.OptionsFlow):
             return self.async_abort(reason="liste_leer")
 
         fehler: dict[str, str] = {}
+        platzhalter: dict[str, str] = {
+            "liste": "\n".join(
+                f"{eintrag.anzeigename} ({eintrag.kategorie})" for eintrag in liste
+            )
+        }
         if benutzereingabe is not None:
             schluessel = str(benutzereingabe.get(CONF_ENTFERNEN) or "")
             mit_dateien = bool(benutzereingabe.get(CONF_DATEIEN_DEINSTALLIEREN))
@@ -512,18 +523,16 @@ class HaigsOptionen(config_entries.OptionsFlow):
                 fehler["base"] = "nicht_bereit"
             else:
                 try:
-                    entfernt = await laufzeit.eintraege.entfernen(schluessel)
+                    await self._entferne_mit_dateien(laufzeit, schluessel, mit_dateien)
                 except KeyError:
                     fehler["base"] = "nicht_mehr_da"
+                except DeinstallationNichtMoeglich as fehlschlag:
+                    # Der Eintrag bleibt stehen: erst wenn die Dateien
+                    # sauber weg sind, verschwindet er -- halbe Zustaende
+                    # (Eintrag weg, Dateien als Geister) gibt es nicht.
+                    fehler["base"] = "deinstallation_nicht_moeglich"
+                    platzhalter["grund"] = str(fehlschlag)
                 else:
-                    if mit_dateien:
-                        # Ehrlich statt halb: Dateien entfernen kann erst
-                        # Stufe M4. Die Entscheidung des Menschen wird
-                        # dokumentiert, nicht verschwiegen.
-                        _LOGGER.info(
-                            "Dateien von %s mitzuentfernen ist Stufe M4",
-                            entfernt.anzeigename,
-                        )
                     return self.async_create_entry(
                         title="", data=dict(self._eintrag.options)
                     )
@@ -535,14 +544,39 @@ class HaigsOptionen(config_entries.OptionsFlow):
                 vol.Optional(CONF_DATEIEN_DEINSTALLIEREN, default=False): bool,
             }
         )
-        platzhalter = {
-            "liste": "\n".join(
-                f"{eintrag.anzeigename} ({eintrag.kategorie})" for eintrag in liste
-            )
-        }
         return self.async_show_form(
             step_id="eintraege",
             data_schema=schema,
             errors=fehler,
             description_placeholders=platzhalter,
         )
+
+    async def _entferne_mit_dateien(
+        self, laufzeit: Any, schluessel: str, mit_dateien: bool
+    ) -> None:
+        """Eintrag entfernen -- mit Dateien in EINER Transaktion (#24).
+
+        Bei ``mit_dateien`` verschwinden die Dateien VOR dem Eintrag:
+        schlaegt die Deinstallation ab, bleibt der Eintrag stehen und der
+        Dialog zeigt den Grund (die Checkbox abwaehlen und erneut
+        entfernen ist dann der ehrliche Ausweg). Steht nichts im Stand,
+        gibt es keine Dateien -- dann reist nur der Eintrag. Der Weg
+        selbst ist der aus :mod:`.deinstallation`, denselben teilt der
+        Panel-Befehl.
+        """
+        if not mit_dateien:
+            await laufzeit.eintraege.entfernen(schluessel)
+            return
+        eintrag = laufzeit.eintraege.finde(schluessel)
+        if eintrag is None:
+            raise KeyError(schluessel)
+        try:
+            await deinstalliere_eintrag(self.hass, laufzeit, eintrag, schluessel)
+        except NichtsInstalliert:
+            pass  # kein Stand: keine Dateien -- nur den Eintrag mitnehmen
+        else:
+            _LOGGER.info(
+                "Custom Repository ueber den Optionsdialog deinstalliert: %s",
+                eintrag.anzeigename,
+            )
+        await laufzeit.eintraege.entfernen(schluessel)

@@ -4,14 +4,17 @@ from __future__ import annotations
 
 import json
 from datetime import timedelta
+from pathlib import Path
 
 import pytest
 import voluptuous as vol
 from homeassistant.config_entries import SOURCE_USER, ConfigEntryState
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
+from homeassistant.helpers import issue_registry
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.haigs.aktualisierer import _kennung
 from custom_components.haigs.const import (
     CONF_ABSTAND_MINUTEN,
     CONF_HOST,
@@ -988,3 +991,118 @@ async def test_entfernen_ohne_eintraege_bricht_ab(
 
     assert ergebnis["type"] is FlowResultType.ABORT
     assert ergebnis["reason"] == "liste_leer"
+
+
+async def test_entfernen_mit_dateien_haelt_das_versprechen(
+    hass: HomeAssistant, sitzung_einpflanzen, hass_storage
+) -> None:
+    """#24 Punkt 3: die Checkbox nimmt die Dateien wirklich mit.
+
+    Dateien verschwinden VOR dem Eintrag (eine Transaktion: schlaegt
+    die Deinstallation ab, bleibt der Eintrag), der Nachbar bleibt
+    unberuehrt, der Stand vergisst Version und Weg, und die Integration
+    bekommt ihren Neustart-Hinweis -- derselbe Weg, den der
+    Panel-Befehl faehrt.
+    """
+    schluessel = "gitlab@gitlab.example.net:789012"
+    hass_storage["haigs.gitlab_example_net"] = {
+        "version": 1,
+        "minor_version": 1,
+        "key": "haigs.gitlab_example_net",
+        "data": {
+            "eintraege": [dict(EINTRAG)],
+            "stand": {
+                schluessel: {
+                    "installiert": "v1.2.0",
+                    "pfad": "custom_components/beispiel_integration",
+                }
+            },
+        },
+    }
+    sitzung_einpflanzen([antwort(), antwort()])
+    mock = MockConfigEntry(
+        domain=DOMAIN,
+        title="gitlab.example.net",
+        data={CONF_HOST: "gitlab.example.net", CONF_PROVIDER: "gitlab", CONF_TOKEN: ""},
+        unique_id="gitlab.example.net",
+    )
+    mock.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(mock.entry_id)
+    await hass.async_block_till_done()
+
+    ziel = Path(hass.config.config_dir) / "custom_components" / "beispiel_integration"
+    ziel.mkdir(parents=True)
+    (ziel / "manifest.json").write_text("{}", encoding="utf-8")
+    nachbar = Path(hass.config.config_dir) / "custom_components" / "andere"
+    nachbar.mkdir(parents=True)
+    (nachbar / "manifest.json").write_text("{}", encoding="utf-8")
+
+    ergebnis = await menue_waehlen(hass, mock, "eintraege")
+    ergebnis = await hass.config_entries.options.async_configure(
+        ergebnis["flow_id"],
+        {CONF_ENTFERNEN: schluessel, CONF_DATEIEN_DEINSTALLIEREN: True},
+    )
+    await hass.async_block_till_done()
+
+    assert ergebnis["type"] is FlowResultType.CREATE_ENTRY
+    assert not ziel.exists()  # die Dateien sind mitgereist
+    assert (nachbar / "manifest.json").exists()  # der Nachbar bleibt
+    laufzeit = hass.data[DOMAIN][mock.entry_id]
+    assert len(laufzeit.eintraege) == 0
+    stand = hass_storage["haigs.gitlab_example_net"]["data"]["stand"][schluessel]
+    assert stand["installiert"] == ""
+    assert stand["pfad"] == ""
+    register = issue_registry.async_get(hass)
+    neustart = [
+        kennung
+        for (bereich, kennung) in register.issues
+        if bereich == DOMAIN and kennung.startswith("neustart_")
+    ]
+    assert neustart == ["neustart_" + _kennung(schluessel)]
+
+
+async def test_entfernen_mit_dateien_ohne_weg_bleibt_stehen(
+    hass: HomeAssistant, sitzung_einpflanzen, hass_storage
+) -> None:
+    """Vor M4b installiert: kein Weg verzeichnet -- der Dialog bleibt ehrlich.
+
+    Der Eintrag bleibt stehen (keine halbe Entfernung), der Fehler nennt
+    den Grund, und die Checkbox abzuwaehlen ist der Ausweg.
+    """
+    schluessel = "gitlab@gitlab.example.net:789012"
+    hass_storage["haigs.gitlab_example_net"] = {
+        "version": 1,
+        "minor_version": 1,
+        "key": "haigs.gitlab_example_net",
+        "data": {
+            "eintraege": [dict(EINTRAG)],
+            "stand": {schluessel: {"installiert": "1.1.0", "vorabversionen": False}},
+        },
+    }
+    sitzung_einpflanzen([antwort(), antwort()])
+    mock = MockConfigEntry(
+        domain=DOMAIN,
+        title="gitlab.example.net",
+        data={CONF_HOST: "gitlab.example.net", CONF_PROVIDER: "gitlab", CONF_TOKEN: ""},
+        unique_id="gitlab.example.net",
+    )
+    mock.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(mock.entry_id)
+    await hass.async_block_till_done()
+
+    ergebnis = await menue_waehlen(hass, mock, "eintraege")
+    ergebnis = await hass.config_entries.options.async_configure(
+        ergebnis["flow_id"],
+        {CONF_ENTFERNEN: schluessel, CONF_DATEIEN_DEINSTALLIEREN: True},
+    )
+    await hass.async_block_till_done()
+
+    assert ergebnis["type"] is FlowResultType.FORM
+    assert ergebnis["step_id"] == "eintraege"
+    assert ergebnis["errors"] == {"base": "deinstallation_nicht_moeglich"}
+    assert (
+        "kein installierter Pfad verzeichnet"
+        in (ergebnis["description_placeholders"]["grund"])
+    )
+    laufzeit = hass.data[DOMAIN][mock.entry_id]
+    assert len(laufzeit.eintraege) == 1  # der Eintrag bleibt stehen

@@ -63,7 +63,7 @@
         "description": "Currently watched:\n{liste}",
         "data": {
           "entfernen": "Repository to remove",
-          "dateien_deinstallieren": "Also remove installed files (from stage M4)"
+          "dateien_deinstallieren": "Also remove installed files"
         }
       },
       "katalog": {
@@ -95,6 +95,9 @@
     "abort": {
       "liste_leer": "No repositories are being watched yet",
       "katalog_entfernt": "The HACS catalog entry was removed."
+    },
+    "errors": {
+      "deinstallation_nicht_moeglich": "Files could not be removed along -- {grund}"
     }
   },
   "issues": {
