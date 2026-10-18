@@ -90,14 +90,12 @@
       "bereits_vorhanden": "Bereits beobachtet -- {grund}",
       "kategorie_unbekannt": "Unbekannte Kategorie -- {grund}",
       "nicht_bereit": "Die Integration ist gerade nicht bereit; gleich nochmal versuchen",
-      "nicht_mehr_da": "Dieses Repository war bereits entfernt"
+      "nicht_mehr_da": "Dieses Repository war bereits entfernt",
+      "deinstallation_nicht_moeglich": "Dateien lassen sich nicht mit entfernen -- {grund}"
     },
     "abort": {
       "liste_leer": "Noch keine Repositories in Beobachtung",
       "katalog_entfernt": "Der Eintrag für den HACS-Katalog wurde entfernt."
-    },
-    "errors": {
-      "deinstallation_nicht_moeglich": "Dateien lassen sich nicht mit entfernen -- {grund}"
     }
   },
   "issues": {
