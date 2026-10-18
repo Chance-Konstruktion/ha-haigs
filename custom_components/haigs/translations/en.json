@@ -90,14 +90,12 @@
       "bereits_vorhanden": "Already watched -- {grund}",
       "kategorie_unbekannt": "Unknown category -- {grund}",
       "nicht_bereit": "The integration is not ready; try again shortly",
-      "nicht_mehr_da": "This repository was already removed"
+      "nicht_mehr_da": "This repository was already removed",
+      "deinstallation_nicht_moeglich": "Files could not be removed too -- {grund}"
     },
     "abort": {
       "liste_leer": "No repositories are being watched yet",
       "katalog_entfernt": "The HACS catalog entry was removed."
-    },
-    "errors": {
-      "deinstallation_nicht_moeglich": "Files could not be removed along -- {grund}"
     }
   },
   "issues": {
