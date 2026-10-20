@@ -39,11 +39,35 @@ import asyncio
 import json
 from collections.abc import Awaitable, Callable, Mapping
 from typing import Protocol
+from urllib.parse import urlsplit
 
 from .forge import ForgeFehler, NichtGefunden
 
 #: Wartezeit in Sekunden, wenn der Anbieter bei 429 keine vorgibt.
 STANDARD_WARTEZEIT = 1.0
+
+
+def _host_und_port(adresse: str) -> tuple[str, int] | None:
+    """(Host klein, wirksamer Port) einer Adresse -- fuer den Vergleich
+    "ist das der eigene Forge-Host?" (Ticket #20).
+
+    ``host`` ohne Schema ist erlaubt (so steht es in der Konfiguration);
+    der Standardport wird je Schema ergaenzt, damit ``forge.example``
+    und ``forge.example:443`` derselbe Host sind. Gross/Klein und ein
+    Punkt am Ende spielen keine Rolle. ``None``, wenn kein Host dasteht
+    -- dann reist kein Token.
+    """
+    text = adresse.strip()
+    if "//" not in text:
+        text = "//" + text
+    teile = urlsplit(text)
+    host = (teile.hostname or "").rstrip(".").lower()
+    if not host:
+        return None
+    port = teile.port
+    if port is None:
+        port = 443 if teile.scheme != "http" else 80
+    return host, port
 
 
 class KeinJson(ForgeFehler):
@@ -113,6 +137,10 @@ class AiohttpClient:
     :param sitzung: Sitzung nach dem aiohttp-Massstab, siehe Moduldoku.
     :param token: optionaler Lesetoken. Oeffentliche Projekte gehen ohne;
         er reist als ``Authorization``-Kopfzeile, nie in der URL.
+    :param token_host: der Host der konfigurierten Forge. Das Token
+        reist NUR dorthin (Ticket #20): Release-Anhaenge duerfen auf
+        fremde Adressen zeigen, und ein Token ohne genannten Host wird
+        deshalb abgelehnt statt ueberall mitgeschickt.
     :param warte: Ersatz fuer ``asyncio.sleep`` -- vor allem fuer Tests.
     :param warte_versuche: wie oft bei 429 nochmal versucht wird.
     :param max_seiten: Obergrenze beim Verfolgen von ``X-Next-Page``.
@@ -125,13 +153,21 @@ class AiohttpClient:
         warte: Callable[[float], Awaitable[None]] | None = None,
         warte_versuche: int = 3,
         max_seiten: int = 200,
+        token_host: str | None = None,
     ) -> None:
         self.sitzung = sitzung
+        if token and not token_host:
+            raise ValueError(
+                "ein Token ohne token_host wuerde an jede Adresse reisen "
+                "(Ticket #20) — den Host der Forge mitgeben"
+            )
+        self._token = token or None
+        self._token_host = _host_und_port(token_host) if token_host else None
+        if token and self._token_host is None:
+            raise ValueError(f"token_host ohne Host: {token_host!r}")
         # Wer abfragt, nennt sich: die Betreiber von Katalog und Forges
         # sehen sonst nur "HomeAssistant/aiohttp" und keinen Absender.
         self._kopfzeilen: dict[str, str] = {"User-Agent": BENUTZERKENNUNG}
-        if token:
-            self._kopfzeilen["Authorization"] = "Bearer " + token
         self._warte = warte or asyncio.sleep
         self.warte_versuche = warte_versuche
         self.max_seiten = max_seiten
@@ -159,7 +195,7 @@ class AiohttpClient:
         params = dict(params or {})
         schluessel: _Schluessel = (url, tuple(sorted(params.items())))
         antwort, kopf = await self._anfordern(
-            url, params, self._kopfzeilen_mit_etag(schluessel)
+            url, params, self._kopfzeilen_mit_etag(url, schluessel)
         )
         if antwort.status == 304:
             return _kopie(self._aus_speicher(schluessel, url))
@@ -184,7 +220,9 @@ class AiohttpClient:
                     # Liste ohne Ende ist ein Fehler, kein Ergebnis.
                     raise ForgeFehler(f"{url} liefert mehr als {self.max_seiten} Seiten")
                 params["page"] = naechste
-                antwort, kopf = await self._anfordern(url, params, self._kopfzeilen)
+                antwort, kopf = await self._anfordern(
+                    url, params, self._kopfzeilen_fuer(url)
+                )
                 self._pruefen(url, antwort.status, kopf)
                 seite = await self._als_json(url, antwort)
                 if not isinstance(seite, list):
@@ -212,7 +250,7 @@ class AiohttpClient:
         """Holt rohe Bytes, mit demselben ETag-Zwischenspeicher."""
         schluessel: _Schluessel = url
         antwort, kopf = await self._anfordern(
-            url, None, self._kopfzeilen_mit_etag(schluessel)
+            url, None, self._kopfzeilen_mit_etag(url, schluessel)
         )
         if antwort.status == 304:
             return _kopie(self._aus_speicher(schluessel, url))
@@ -239,8 +277,19 @@ class AiohttpClient:
             await self._warte(self._wartezeit(kopf))
             versuch += 1
 
-    def _kopfzeilen_mit_etag(self, schluessel: _Schluessel) -> dict[str, str]:
+    def _kopfzeilen_fuer(self, url: str) -> dict[str, str]:
+        """Die Kopfzeilen fuer eine Adresse.
+
+        Der Absender reist immer mit; das Token nur zum eigenen
+        Forge-Host (Ticket #20) -- sonst reist es nirgends mit.
+        """
         kopfzeilen = dict(self._kopfzeilen)
+        if self._token is not None and _host_und_port(url) == self._token_host:
+            kopfzeilen["Authorization"] = "Bearer " + self._token
+        return kopfzeilen
+
+    def _kopfzeilen_mit_etag(self, url: str, schluessel: _Schluessel) -> dict[str, str]:
+        kopfzeilen = self._kopfzeilen_fuer(url)
         etag = self._etags.get(schluessel)
         if etag:
             kopfzeilen["If-None-Match"] = etag

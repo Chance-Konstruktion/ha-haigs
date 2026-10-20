@@ -69,7 +69,9 @@ async def test_params_reisen_mit_und_bleiben_beim_aufrufer():
 
 @pytest.mark.asyncio
 async def test_token_reist_in_der_kopfzeile_und_nie_in_der_url():
-    k, sitzung, _ = klient([antwort({})], token="geheimer-lese-token")
+    k, sitzung, _ = klient(
+        [antwort({})], token="geheimer-lese-token", token_host="gitlab.example.net"
+    )
     await k.get_json(URL)
     url, _, kopfzeilen = sitzung.abrufe[0]
     assert "geheimer-lese-token" not in url
@@ -183,6 +185,7 @@ async def test_seitenanfragen_tragen_weiterhin_den_token():
             antwort([2], kopfzeilen={"X-Next-Page": ""}),
         ],
         token="geheimer-lese-token",
+        token_host="gitlab.example.net",
     )
     await k.get_json(URL)
     assert sitzung.abrufe[1][2]["Authorization"] == "Bearer geheimer-lese-token"

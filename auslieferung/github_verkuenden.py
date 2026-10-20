@@ -32,6 +32,12 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
+from auslieferung.umleitungen import oeffner
+
+#: Die Aufrufe gehen durch diesen Opener: bei einer Umleitung auf einen
+#: fremden Host verliert die Anfrage den Bearer (Ticket #20).
+UMLEITUNGS_OEFFNER = oeffner()
+
 BESITZER = os.environ.get("GITHUB_OWNER", "Chance-Konstruktion").strip()
 
 
@@ -69,7 +75,7 @@ def _ruf(
         },
     )
     try:
-        with urllib.request.urlopen(anfrage, timeout=120) as antwort:
+        with UMLEITUNGS_OEFFNER.open(anfrage, timeout=120) as antwort:
             koerper = antwort.read()
     except urllib.error.HTTPError as fehler:
         raise GithubFehler(

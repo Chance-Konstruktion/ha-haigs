@@ -236,8 +236,9 @@ class ForgejoForge:
         """Laedt einen Release-Anhang (Stufe M4b) ueber den HTTP-Zugang.
 
         Die Adresse stammt aus ``browser_download_url`` eines Release-
-        Assets -- eine Anbieteradresse, also Sitzung und Token wie bei
-        jedem anderen Abruf.
+        Assets und darf nach Ticket #20 auf JEDEN Host zeigen -- das
+        Token reist nur zum konfigurierten Forge-Host, ein fremder
+        Anhang wird deshalb ohne Token geladen.
         """
         return await self.http.get_bytes(url)
 

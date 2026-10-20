@@ -171,9 +171,11 @@ class GitLabForge:
     async def anhang(self, url: str) -> bytes:
         """Laedt einen Release-Anhang (Stufe M4b) ueber den HTTP-Zugang.
 
-        Die Adresse stammt aus den Anhaengen eines Releases -- sie ist
-        eine Anbieteradresse (Paketregister oder Link), braucht also
-        Sitzung und Token wie jeder andere Abruf auch.
+        Die Adresse stammt aus den Anhaengen eines Releases und darf
+        nach Ticket #20 auf JEDEN Host zeigen. Das Token reist dorthin
+        NICHT mit -- es geht nur zum konfigurierten Forge-Host (der
+        HTTP-Zugang entscheidet das je Adresse); ein fremder Anhang
+        wird deshalb ohne Token geladen.
         """
         return await self.http.get_bytes(url)
 

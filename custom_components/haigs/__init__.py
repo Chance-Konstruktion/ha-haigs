@@ -205,7 +205,11 @@ async def async_setup_entry(hass: HomeAssistant, eintrag: ConfigEntry) -> bool:
         )
     else:
         sitzung = async_get_clientsession(hass)
-    klient = AiohttpClient(sitzung, eintrag.data.get(CONF_TOKEN) or None)
+    klient = AiohttpClient(
+        sitzung,
+        eintrag.data.get(CONF_TOKEN) or None,
+        token_host=eintrag.data[CONF_HOST],
+    )
     # Die Schmiede formt den Forge nach dem Namen im Eintrag (Flug
     # 2088). Eintraege aus der Zeit davor tragen keinen -- dann gilt
     # GitLab, die einzige Schmiedung, die es damals gab; das Verhalten
