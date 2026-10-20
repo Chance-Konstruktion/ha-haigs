@@ -484,6 +484,40 @@ async def test_auto_erkent_gitlab(hass: HomeAssistant, sitzung_einpflanzen) -> N
     assert len(attrappe.abrufe) == 3
 
 
+async def test_erkennung_ohne_token_probe_mit_token(
+    hass: HomeAssistant, sitzung_einpflanzen
+) -> None:
+    """Ticket #20: waehrend der Erkennung reist KEIN Token — der Host ist
+    noch nicht als Forge bestaetigt, und 401/403 ist selbst eine Antwort.
+    Erst die Probe danach (und spaeter der Eintrag) traegt es — und nur
+    zum eigenen Host."""
+    attrappe = sitzung_einpflanzen(
+        [version_frage("17.9.0"), antwort(), antwort()]  # Erkennung, Probe, Herzschlag
+    )
+
+    ergebnis = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": SOURCE_USER}
+    )
+    ergebnis = await hass.config_entries.flow.async_configure(
+        ergebnis["flow_id"],
+        {
+            CONF_HOST: "gitlab.example.net",
+            CONF_PROVIDER: "auto",
+            CONF_TOKEN: "geheimer-lese-token",
+        },
+    )
+    await hass.async_block_till_done()
+
+    assert ergebnis["type"] is FlowResultType.CREATE_ENTRY
+    # Die Erkennung (Abruf 0) fragt ohne Token.
+    assert "Authorization" not in (attrappe.abrufe[0][2] or {})
+    # Probe und erster Herzschlag tragen es — jeder Abruf zum eigenen Host.
+    assert len(attrappe.abrufe) == 3
+    for url, _, kopfzeilen in attrappe.abrufe[1:]:
+        assert url.startswith("https://gitlab.example.net/")
+        assert (kopfzeilen or {}).get("Authorization") == ("Bearer geheimer-lese-token")
+
+
 async def test_auto_erkent_forgejo(hass: HomeAssistant, sitzung_einpflanzen) -> None:
     """Forgejo nennt die eigene Nummer (ab v7, 2024) -- die reicht."""
     attrappe = sitzung_einpflanzen(
