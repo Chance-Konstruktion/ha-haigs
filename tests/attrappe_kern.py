@@ -17,9 +17,18 @@ from haigs.core.forge import NichtGefunden
 class FakeHttp:
     """Antworten werden ueber ein Praefix der URL zugeordnet."""
 
-    def __init__(self, json_antworten: dict | None = None, dateien: dict | None = None):
+    def __init__(
+        self,
+        json_antworten: dict | None = None,
+        dateien: dict | None = None,
+        datei_fehler: dict | None = None,
+    ):
         self.json_antworten = json_antworten or {}
         self.dateien = dateien or {}
+        #: Schluessel wie in ``dateien`` -- der Abruf scheitert dann mit
+        #: genau dieser Ausnahme (Ticket #22: ein 5xx oder Netzfehler
+        #: fuer EIN Projekt, waehrend die anderen antworten).
+        self.datei_fehler = datei_fehler or {}
         self.aufrufe: list[tuple[str, dict]] = []
         self.seitenwuensche: list[int | None] = []
 
@@ -41,6 +50,9 @@ class FakeHttp:
 
     async def get_bytes(self, url: str) -> bytes:
         self.aufrufe.append((url, {}))
+        for schluessel, fehler in self.datei_fehler.items():
+            if schluessel in url:
+                raise fehler
         for schluessel, wert in self.dateien.items():
             if schluessel in url:
                 if isinstance(wert, bytes):
