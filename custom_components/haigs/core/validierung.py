@@ -21,6 +21,25 @@ KATEGORIEN = (
 )
 
 
+def kategorie_aus_topics(topics: tuple[str, ...] | list[str] | None) -> str | None:
+    """Vorbelegung der Kategorie aus den Topics des Projekts.
+
+    Sagt der Besitzer mit ``hacs-<kategorie>`` (z. B. ``hacs-plugin``),
+    was er plant, glaubt der Aufrufer das (Dialog beim Anlegen,
+    Entdeckung beim Scan). Gesucht wird ueber ``KATEGORIEN``, nie ueber
+    die Topic-Reihenfolge: Zusatz-Topics wie ``hacs-custom`` oder
+    ``hacs-ready`` aendern nichts, und bei mehreren gueltigen Kategorien
+    gewinnt die Ordnung dieser Liste (``integration`` zuerst). Ohne
+    bekanntes Topic bleibt die Wahl beim Aufrufer -- der entscheidet,
+    ob ``integration`` als Normalfall gilt.
+    """
+    menge = set(topics or ())
+    for kategorie in KATEGORIEN:
+        if "hacs-" + kategorie in menge:
+            return kategorie
+    return None
+
+
 @dataclass
 class Befund:
     """Ergebnis einer Pruefung: gueltig, plus alles Auffaellige."""

@@ -20,7 +20,11 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
 from .core.identity import RepositoryIdentity, strip_suffix
+
+# kategorie_aus_topics wohnt im Kern; hier nur die Adresse weitergereicht,
+# damit Dialog, Lager und Tests unveraendert zugreifen (eine Implementierung).
 from .core.validierung import KATEGORIEN
+from .core.validierung import kategorie_aus_topics as kategorie_aus_topics
 
 if TYPE_CHECKING:
     from .ablage import Ablage
@@ -89,21 +93,6 @@ def adresse_zerlegen(adresse: str) -> tuple[str, str]:
             "der Pfad braucht die Form gruppe/projekt, nicht nur " + pfad
         )
     return host, pfad
-
-
-def kategorie_aus_topics(topics: tuple[str, ...] | list[str] | None) -> str | None:
-    """Vorbelegung der Kategorie aus den Topics des Projekts.
-
-    Sagt der Besitzer mit ``hacs-<kategorie>`` (z. B. ``hacs-plugin``),
-    was er plant, glaubt das der Dialog beim Anlegen. Ohne so ein Topic
-    bleibt die Wahl beim Menschen -- ``integration`` ist der Normalfall,
-    deshalb steht sie in KATEGORIEN zuerst.
-    """
-    menge = set(topics or ())
-    for kategorie in KATEGORIEN:
-        if "hacs-" + kategorie in menge:
-            return kategorie
-    return None
 
 
 @dataclass(frozen=True)
