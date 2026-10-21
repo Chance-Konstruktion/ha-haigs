@@ -125,9 +125,12 @@ async def verbindung_pruefen(
     sitzung = async_get_clientsession(
         hass, verify_ssl=(schema != "https" or zertifikat_pruefen)
     )
-    klient = AiohttpClient(sitzung, token)
+    klient = AiohttpClient(sitzung, token, token_host=host)
     if anbieter == ANBIETER_AUTO:
-        anbieter = await erkenne(klient, host, schema)
+        # Die Erkennung laeuft OHNE Token (Ticket #20): der Host ist
+        # noch nicht als Forge bestaetigt, und 401/403 ist selbst eine
+        # Antwort. Mit Token geprueft wird erst danach — die Probe.
+        anbieter = await erkenne(AiohttpClient(sitzung), host, schema)
     forge = schmiede(klient, host, anbieter, schema)
     # Eine Probe, kein Bestandsabruf: hoechstens ein Eintrag, genau
     # eine Seite. Ohne die Grenze holte ein Klick auf "Absenden"

@@ -11,6 +11,9 @@ liegt dafuer in ``tests/attrappe_kern.py``.
 
 from __future__ import annotations
 
+import threading
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
 
 class Aufzeichnung:
     """Eine aufgezeichnete HTTP-Antwort: Status, Kopfzeilen, Koerper.
@@ -83,3 +86,54 @@ def projekt(
     }
     daten.update(rest)
     return daten
+
+
+class LokaleWache:
+    """Ein winziger HTTP-Server fuer die Umleitungs-Proben (Ticket #20).
+
+    Laeuft in einem eigenen Faden auf einem freien Loopback-Port. Jede
+    Anfrage wird samt Kopfzeilen aufgezeichnet — damit ist beweisbar,
+    WELCHE Koepfe tatsaechlich beim Ziel ankamen. Antwortet mit 200 und
+    dem Koerper; wer ``umleitung_pfad`` und ``umleitung_ziel`` setzt,
+    bekommt auf genau diesem Pfad eine 302 dorthin (die Umleitung darf
+    auf denselben oder einen anderen Port zeigen — Port zaehlt als
+    fremder Host, genau wie in der echten Welt).
+    """
+
+    def __init__(self, koerper: bytes = b"{}") -> None:
+        self.koerper = koerper
+        self.aufzeichnung: list[tuple[str, dict[str, str]]] = []
+        self.umleitung_pfad: str | None = None
+        self.umleitung_ziel: str | None = None
+        wache = self
+
+        class _Behandler(BaseHTTPRequestHandler):
+            def do_GET(self):  # noqa: N802 - so heisst die Schnittstelle
+                wache.aufzeichnung.append(
+                    (self.path, {k.lower(): v for k, v in self.headers.items()})
+                )
+                if wache.umleitung_pfad and self.path == wache.umleitung_pfad:
+                    self.send_response(302)
+                    self.send_header("Location", wache.umleitung_ziel or "")
+                    self.end_headers()
+                    return
+                self.send_response(200)
+                self.send_header("Content-Length", str(len(wache.koerper)))
+                self.end_headers()
+                self.wfile.write(wache.koerper)
+
+            def log_message(self, *args):
+                pass  # keine Logzeilen im Testlauf
+
+        self._server = ThreadingHTTPServer(("127.0.0.1", 0), _Behandler)
+        self._faden = threading.Thread(target=self._server.serve_forever, daemon=True)
+        self._faden.start()
+
+    @property
+    def url(self) -> str:
+        host, port = self._server.server_address[:2]
+        return f"http://{host}:{port}"
+
+    def schliessen(self) -> None:
+        self._server.shutdown()
+        self._server.server_close()

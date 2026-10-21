@@ -37,6 +37,11 @@ from auslieferung.release_bauen import (
     lies_version,
     normalisiere_version,
 )
+from auslieferung.umleitungen import oeffner
+
+#: Die Aufrufe gehen durch diesen Opener: bei einer Umleitung auf einen
+#: fremden Host verliert die Anfrage das JOB-TOKEN (Ticket #20).
+UMLEITUNGS_OEFFNER = oeffner()
 
 #: Der Ort, an dem der Bau seinen ZIP ablegt (Artefakt des Baus).
 STANDARD_ZIP_VERZEICHNIS = Path("dist")
@@ -68,13 +73,17 @@ def rufe(
     er heisst. Netzwerkfehler ganz ohne Statuscode (Instanz weg,
     DNS tot) fliegen als Ausnahme weiter: dafuer gibt es keine
     ehrliche Zahl.
+
+    Das ``JOB-TOKEN`` reist nur zum eigenen Host: folgt die Antwort
+    einer Umleitung auf eine andere Adresse, verliert die Anfrage den
+    Kopf (Ticket #20, :mod:`auslieferung.umleitungen`).
     """
     anfrage = urllib.request.Request(url, data=inhalt, method=methode)
     anfrage.add_header("JOB-TOKEN", token)
     if inhaltstyp:
         anfrage.add_header("Content-Type", inhaltstyp)
     try:
-        with urllib.request.urlopen(anfrage) as antwort:
+        with UMLEITUNGS_OEFFNER.open(anfrage) as antwort:
             return antwort.status, antwort.read()
     except urllib.error.HTTPError as fehler:
         return fehler.code, fehler.read()
