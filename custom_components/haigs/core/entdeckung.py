@@ -23,7 +23,7 @@ from dataclasses import dataclass
 
 from .forge import ForgeFehler, NichtGefunden, Release, RepositoryInfo
 from .identity import GITLAB, RepositoryIdentity
-from .validierung import Befund, pruefe_hacs_json
+from .validierung import Befund, kategorie_aus_topics, pruefe_hacs_json
 from .versionen import waehle_version
 
 
@@ -52,15 +52,6 @@ class Fund:
         return self.identitaet.display_full_name
 
 
-def _kategorie_aus_topics(topics: tuple[str, ...]) -> str:
-    """Erlaubt ``hacs-plugin`` & Co. als Zusatz-Topic zur Kategorie."""
-    for topic in topics:
-        klein = topic.lower()
-        if klein.startswith("hacs-") and klein != "hacs-development":
-            return klein[len("hacs-") :]
-    return "integration"
-
-
 async def entdecke(
     forge,
     gruppe: str | None = None,
@@ -85,6 +76,11 @@ async def entdecke(
     eigene Topic oder archivierte Projekte fallen hier noch einmal
     raus -- was als Treffer gilt, entscheidet der Kern, nicht die
     Gnade der API.
+
+    Fehler sind je Kandidat gekapselt: ein kaputtes Repo wird ein Fund
+    mit Fehlertext, die uebrigen kommen an (Ticket #22). Nur die Suche
+    selbst darf den Scan beenden -- ohne Kandidaten gibt es nichts zu
+    retten.
     """
     # Ein Anbieter, der seine Funde schon geprueft liefert (der HACS-
     # Katalog), braucht weder Topic-Scan noch hacs.json je Kandidat.
@@ -128,14 +124,21 @@ async def _letzte_version(forge, pfad: str) -> str:
 
 
 async def pruefe_kandidat(forge, info: RepositoryInfo) -> Fund:
-    """Liest ``hacs.json`` im Standardzweig und bewertet den Kandidaten."""
+    """Liest ``hacs.json`` im Standardzweig und bewertet den Kandidaten.
+
+    Die Kategorie kommt aus ``kategorie_aus_topics`` (dieselbe Quelle
+    wie im Dialog) -- Topic-Reihenfolge und Zusatz-Topics aendern
+    nichts. Ein Forge-Fehler beim Lesen wird zum Befund mit Fehlertext
+    statt zur Ausnahme: ein einzelnes kaputtes Repo darf den ganzen
+    Scan nicht kosten (Ticket #22).
+    """
     identitaet = RepositoryIdentity(
         provider=getattr(forge, "provider", GITLAB),
         host=forge.host,
         provider_id=info.provider_id,
         full_name=info.full_name,
     )
-    kategorie = _kategorie_aus_topics(info.topics)
+    kategorie = kategorie_aus_topics(info.topics) or "integration"
     try:
         roh = await forge.datei(info.full_name, "hacs.json", info.standardzweig)
     except NichtGefunden:
@@ -143,5 +146,16 @@ async def pruefe_kandidat(forge, info: RepositoryInfo) -> Fund:
             identitaet,
             info,
             Befund(False, kategorie=kategorie, fehler=["hacs.json fehlt"]),
+        )
+    except ForgeFehler as fehler:
+        grund = str(fehler) or fehler.__class__.__name__
+        return Fund(
+            identitaet,
+            info,
+            Befund(
+                False,
+                kategorie=kategorie,
+                fehler=["hacs.json nicht lesbar: " + grund],
+            ),
         )
     return Fund(identitaet, info, pruefe_hacs_json(roh, kategorie))
