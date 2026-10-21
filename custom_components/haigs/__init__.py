@@ -18,6 +18,7 @@ das Verzeichnis, das die Integration enthaelt, enthaelt auch den Kern.
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import timedelta
 from typing import Any
@@ -118,6 +119,25 @@ class HaigsKoordinator(DataUpdateCoordinator[dict[str, int | str]]):
             update_interval=timedelta(minutes=minuten),
         )
         self.forge = forge
+        #: Der stille Zuhoerer, der den Takt haelt (s. _async_refresh_
+        #: finished) -- seine Abmeldung verwaist mit dem Koordinator.
+        self._takthalter: Callable[[], None] | None = None
+
+    @callback
+    def _async_refresh_finished(self) -> None:
+        """Der Takt bleibt scharf, auch ohne Entity (Ticket #23).
+
+        Wie beim Lager (Flug 2084): der Koordinator von Home
+        Assistant haengt seinen Takt an Zuhoerer -- der erste
+        bewaffnet ihn. Der Herzschlag hat keine (nichts liest
+        ``koordinator.data``), also haelt er sich nach dem ersten Lauf
+        selbst einen stillen Zuhoerer. Vorher wirkte das
+        ``abstand_minuten`` des Herzschlags nicht: der erste Lauf
+        geschah, danach nie wieder einer. Erst nach dem ersten Lauf
+        bewusst -- der Start gehoert dem Richten.
+        """
+        if self._takthalter is None and not self.hass.is_stopping:
+            self._takthalter = self.async_add_listener(lambda: None)
 
     async def _async_update_data(self) -> dict[str, int | str]:
         try:
@@ -273,11 +293,19 @@ async def async_setup_entry(hass: HomeAssistant, eintrag: ConfigEntry) -> bool:
 
 
 async def async_unload_entry(hass: HomeAssistant, eintrag: ConfigEntry) -> bool:
-    """Eintrag abmelden. Die Sitzung gehoert Home Assistant und bleibt."""
-    laufzeit: Laufzeit | None = hass.data.get(DOMAIN, {}).pop(eintrag.entry_id, None)
+    """Eintrag abmelden. Die Sitzung gehoert Home Assistant und bleibt.
+
+    Ticket #23: erst entladen, dann aufraeumen. Vorher verschwand die
+    Laufzeit aus ``hass.data`` und die Koordinatoren wurden
+    abgeschaltet, selbst wenn das Entladen der Waben fehlschlug -- der
+    Eintrag blieb geladen, war danach aber taub, bis zum Neustart.
+    """
     waben_entladen = await hass.config_entries.async_unload_platforms(
         eintrag, ("update", "switch")
     )
+    if not waben_entladen:
+        return False
+    laufzeit: Laufzeit | None = hass.data.get(DOMAIN, {}).pop(eintrag.entry_id, None)
     if laufzeit is not None:
         await laufzeit.koordinator.async_shutdown()
         aktualisierer = getattr(laufzeit, "aktualisierer", None)
@@ -285,7 +313,7 @@ async def async_unload_entry(hass: HomeAssistant, eintrag: ConfigEntry) -> bool:
             await aktualisierer.async_shutdown()
         if laufzeit.lager is not None:
             await laufzeit.lager.async_shutdown()
-    return waben_entladen
+    return True
 
 
 async def _abstand_geaendert(hass: HomeAssistant, eintrag: ConfigEntry) -> None:

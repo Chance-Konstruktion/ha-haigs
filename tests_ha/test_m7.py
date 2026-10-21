@@ -34,6 +34,7 @@ from tests.attrappe import Aufzeichnung
 
 from .test_m5 import (
     eintrag_daten,
+    herzschlag_stilllegen,
     release_objekt,
     speichern,
     stammdaten,
@@ -515,7 +516,9 @@ async def test_voller_durchgang_ohne_yaml(
             zip_aufzeichnung("v1.3.0"),  # Aktualisieren
         ]
     )
-    await richten(hass, mock_eintrag())
+    mock = mock_eintrag()
+    await richten(hass, mock)
+    await herzschlag_stilllegen(hass, mock)
     client = await hass_ws_client(hass)
 
     # -- Hinzufuegen ueber die Oberflaeche --------------------------

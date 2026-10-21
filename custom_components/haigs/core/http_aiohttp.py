@@ -15,7 +15,7 @@ Von der Sitzung wird genau dies verlangt::
     antwort.status                    # int
     antwort.headers                   # Abbildung, Gross-/Kleinschreibung egal
     await antwort.text() -> str
-    await antwort.read() -> bytes
+    await antwort.content.read(n) -> bytes
 
 Nach der Vereinbarung aus ``forge.py`` kennt der Kern keine Statuscodes
 -- die Uebersetzung wohnt hier: 404 wirft :class:`NichtGefunden`, bei
@@ -31,6 +31,11 @@ einer Seite auskamen, werden gespeichert -- ein mehrseitiges Ergebnis
 kann sich zwischen den Seiten aendern, also wird es immer neu geholt.
 Und wer den Zwischenspeicher loswerden will, baut einen neuen Klienten;
 die Sitzung gehoert dem Aufrufer und wird von hier nie geschlossen.
+
+Grenzen hat auch die Antwort selbst (Ticket #23): ein Archiv wird
+gestueckelt und gedeckelt geladen -- angekuendigte Ueberlaenge fliegt
+vor dem ersten Block, unangekuendigte beim Lesen. Und eine
+``Retry-After``-Bitte hat einen Deckel, kennt aber die Datumsform.
 """
 
 from __future__ import annotations
@@ -38,6 +43,8 @@ from __future__ import annotations
 import asyncio
 import json
 from collections.abc import Awaitable, Callable, Mapping
+from datetime import UTC, datetime
+from email.utils import parsedate_to_datetime
 from typing import Protocol
 from urllib.parse import urlsplit
 
@@ -45,6 +52,21 @@ from .forge import ForgeFehler, NichtGefunden
 
 #: Wartezeit in Sekunden, wenn der Anbieter bei 429 keine vorgibt.
 STANDARD_WARTEZEIT = 1.0
+
+#: Obergrenze fuer eine vom Anbieter verlangte Wartezeit (Ticket #23).
+#: Der Anbieter darf um Geduld bitten, aber die Integration nicht
+#: stundenlang stilllegen -- danach wird erneut gefragt, und die
+#: ``warte_versuche`` bleiben endlich.
+HOECHSTE_WARTEZEIT = 60.0
+
+#: Obergrenze fuer eine geladene Antwort in Bytes (Ticket #23).
+#: Entspricht der Gesamtgrenze des Entpackers -- was er entpacken
+#: wuerde, darf auch geladen werden; mehr aber waechst nicht
+#: unbegrenzt in den Speicher.
+HOECHSTE_ANTWORT_BYTES = 256 * 1024 * 1024
+
+#: Groesse eines Leseblocks beim gestueckelten Laden.
+LESEBLOCK = 64 * 1024
 
 
 def _host_und_port(adresse: str) -> tuple[str, int] | None:
@@ -68,6 +90,36 @@ def _host_und_port(adresse: str) -> tuple[str, int] | None:
     if port is None:
         port = 443 if teile.scheme != "http" else 80
     return host, port
+
+
+def _ganzzahl(roh: str | None) -> int | None:
+    """Eine Kopfzeilen-Zahl, oder ``None`` -- fremde Formen sind kein Fehler."""
+    try:
+        return int(roh or "")
+    except (TypeError, ValueError):
+        return None
+
+
+def _sekunden_aus_retry_after(roh: str) -> float | None:
+    """``Retry-After`` in Sekunden -- Zahl oder HTTP-Datum, sonst ``None``.
+
+    Die Datumsform darf auch ohne Zeitzone kommen; dann gilt UTC. Ein
+    Zeitpunkt, der schon vorbei ist, ergibt einen negativen Wert --
+    der Aufrufer deckelt ihn nach unten auf null.
+    """
+    try:
+        return float(roh)
+    except ValueError:
+        pass
+    try:
+        zeitpunkt = parsedate_to_datetime(roh)
+    except (TypeError, ValueError):
+        return None
+    if zeitpunkt is None:
+        return None
+    if zeitpunkt.tzinfo is None:
+        zeitpunkt = zeitpunkt.replace(tzinfo=UTC)
+    return (zeitpunkt - datetime.now(UTC)).total_seconds()
 
 
 class KeinJson(ForgeFehler):
@@ -95,15 +147,25 @@ class TorVerriegelt(ForgeFehler):
 _Schluessel = str | tuple[str, tuple[tuple[str, str], ...]]
 
 
+class Inhalt(Protocol):
+    """Was der Klient vom Antwortkoerper braucht: gestueckeltes Lesen.
+
+    ``aiohttp`` liefert das als ``antwort.content`` -- so kann der
+    Klient eine Obergrenze ziehen, ohne etwas vorauszusetzen, was die
+    Sitzung nicht ohnehin anbietet (Ticket #23).
+    """
+
+    async def read(self, anzahl: int = -1) -> bytes: ...
+
+
 class Antwort(Protocol):
     """Was der Klient von einem Antwortobjekt braucht."""
 
     status: int
     headers: Mapping[str, str]
+    content: Inhalt
 
     async def text(self) -> str: ...
-
-    async def read(self) -> bytes: ...
 
 
 class Sitzung(Protocol):
@@ -144,6 +206,7 @@ class AiohttpClient:
     :param warte: Ersatz fuer ``asyncio.sleep`` -- vor allem fuer Tests.
     :param warte_versuche: wie oft bei 429 nochmal versucht wird.
     :param max_seiten: Obergrenze beim Verfolgen von ``X-Next-Page``.
+    :param max_bytes: Obergrenze fuer eine geladene Antwort (Ticket #23).
     """
 
     def __init__(
@@ -154,7 +217,10 @@ class AiohttpClient:
         warte_versuche: int = 3,
         max_seiten: int = 200,
         token_host: str | None = None,
+        max_bytes: int = HOECHSTE_ANTWORT_BYTES,
     ) -> None:
+        if max_bytes <= 0:
+            raise ValueError(f"max_bytes muss positiv sein: {max_bytes!r}")
         self.sitzung = sitzung
         if token and not token_host:
             raise ValueError(
@@ -171,6 +237,7 @@ class AiohttpClient:
         self._warte = warte or asyncio.sleep
         self.warte_versuche = warte_versuche
         self.max_seiten = max_seiten
+        self.max_bytes = max_bytes
         self._etags: dict[_Schluessel, str] = {}
         self._speicher: dict[_Schluessel, object] = {}
 
@@ -247,7 +314,15 @@ class AiohttpClient:
         return daten
 
     async def get_bytes(self, url: str) -> bytes:
-        """Holt rohe Bytes, mit demselben ETag-Zwischenspeicher."""
+        """Holt rohe Bytes, mit demselben ETag-Zwischenspeicher.
+
+        Gelesen wird gestueckelt und gedeckelt (Ticket #23): eine
+        angekuendigte Ueberlaenge wird abgewiesen, bevor der erste
+        Block im Speicher landet; ohne Ankuendigung bricht das Lesen
+        ab, sobald die Grenze ueberschritten ist. Erst ein
+        vollstaendiges, erlaubtes Lesen fuellt den Zwischenspeicher --
+        ein abgebrochener Download ist keine gueltige Antwort.
+        """
         schluessel: _Schluessel = url
         antwort, kopf = await self._anfordern(
             url, None, self._kopfzeilen_mit_etag(url, schluessel)
@@ -255,12 +330,38 @@ class AiohttpClient:
         if antwort.status == 304:
             return _kopie(self._aus_speicher(schluessel, url))
         self._pruefen(url, antwort.status, kopf)
-        daten = await antwort.read()
+        daten = await self._mit_grenze_lesen(url, kopf, antwort)
         etag = kopf.get("etag")
         if etag:
             self._etags[schluessel] = etag
             self._speicher[schluessel] = daten
         return daten
+
+    async def _mit_grenze_lesen(
+        self, url: str, kopf: dict[str, str], antwort: Antwort
+    ) -> bytes:
+        """Der Antwortkoerper, gestueckelt und gedeckelt (Ticket #23)."""
+        angekuendigt = _ganzzahl(kopf.get("content-length"))
+        if angekuendigt is not None and angekuendigt > self.max_bytes:
+            raise ForgeFehler(
+                f"{url} kuendigt {angekuendigt} Bytes an, die Obergrenze "
+                f"ist {self.max_bytes} -- nicht geladen"
+            )
+        block = min(LESEBLOCK, self.max_bytes)
+        stuecke: list[bytes] = []
+        gelesen = 0
+        while True:
+            stueck = await antwort.content.read(block)
+            if not stueck:
+                break
+            gelesen += len(stueck)
+            if gelesen > self.max_bytes:
+                raise ForgeFehler(
+                    f"{url} liefert mehr als {self.max_bytes} Bytes -- "
+                    "abgebrochen, ohne den Rest zu laden"
+                )
+            stuecke.append(stueck)
+        return b"".join(stuecke)
 
     # -- intern -------------------------------------------------------
 
@@ -296,11 +397,22 @@ class AiohttpClient:
         return kopfzeilen
 
     def _wartezeit(self, kopf: dict[str, str]) -> float:
-        """``Retry-After`` in Sekunden; fehlt er, gilt eine hoefliche Sekunde."""
-        try:
-            return float(kopf.get("retry-after", ""))
-        except (TypeError, ValueError):
+        """``Retry-After`` in Sekunden; fehlt er, gilt eine hoefliche Sekunde.
+
+        Zwei Formen sind erlaubt (RFC 9110): die Zahl der Sekunden und
+        ein HTTP-Datum. Das Datum wurde vorher zum ``ValueError`` und
+        fiel still auf die hoefliche Sekunde zurueck -- jetzt wird es
+        gelesen und zum Abstand bis jetzt gerechnet (Ticket #23).
+        Gedeckelt wird beides: ``Retry-After: 3600`` waere eine Stunde
+        Stillstand fuer einen einzigen Fehlversuch.
+        """
+        roh = (kopf.get("retry-after") or "").strip()
+        if not roh:
             return STANDARD_WARTEZEIT
+        sekunden = _sekunden_aus_retry_after(roh)
+        if sekunden is None:
+            return STANDARD_WARTEZEIT
+        return min(HOECHSTE_WARTEZEIT, max(0.0, sekunden))
 
     def _pruefen(self, url: str, status: int, kopf: dict[str, str]) -> None:
         """Wirft die vereinbarte Ausnahme, wenn der Status keine Arbeit zulaesst."""

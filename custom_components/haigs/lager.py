@@ -33,6 +33,7 @@ nur ein leerer Laden fuer einen Moment.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from collections.abc import Callable
 from datetime import timedelta
@@ -220,6 +221,13 @@ class Lager(DataUpdateCoordinator[dict[str, Any]]):
         #: Der stille Zuhoerer, der den Takt haelt (s. _async_refresh_
         #: finished) -- seine Abmeldung verwaist mit dem Lager selbst.
         self._takthalter: Callable[[], None] | None = None
+        #: Die Sperre um Lauf und Mutatoren (Ticket #23): der volle
+        #: Lauf baut seine Zeilen am Anfang und schreibt sie erst nach
+        #: den Netz-Awaits zurueck. Ohne Sperre ging eine Mutation aus
+        #: der Zwischenzeit beim Zurueckschreiben verloren -- die Liste
+        #: zeigte sie nicht mehr, bis ein spaeterer Lauf sie zufaellig
+        #: wiederfand.
+        self._schloss = asyncio.Lock()
         #: Die Zeilen der Liste (eintraege) -- vollstaendig, wie das
         #: Panel sie zeigt.
         self.zeilen: list[dict[str, Any]] = []
@@ -303,19 +311,20 @@ class Lager(DataUpdateCoordinator[dict[str, Any]]):
         Geschrieben wird still, ohne Ereignis: die Oberflaeche sortiert
         die Zeile selbst um.
         """
-        if not any(f.get("full_name") == full_name for f in self.funde):
-            return False
-        if full_name not in self.gesehen:
-            self.gesehen.add(full_name)
-            await self._store.async_save(
-                {
-                    "eintraege": self.zeilen,
-                    "funde": self.funde,
-                    "gesehen": sorted(self.gesehen),
-                    "aktualisiert_am": self.aktualisiert_am,
-                }
-            )
-        return True
+        async with self._schloss:
+            if not any(f.get("full_name") == full_name for f in self.funde):
+                return False
+            if full_name not in self.gesehen:
+                self.gesehen.add(full_name)
+                await self._store.async_save(
+                    {
+                        "eintraege": self.zeilen,
+                        "funde": self.funde,
+                        "gesehen": sorted(self.gesehen),
+                        "aktualisiert_am": self.aktualisiert_am,
+                    }
+                )
+            return True
 
     def _finde(self, storage_key: str) -> dict[str, Any] | None:
         for zeile in self.zeilen:
@@ -347,55 +356,63 @@ class Lager(DataUpdateCoordinator[dict[str, Any]]):
         eine einzelne Zeile, traegt die alte ihre Kosmetik weiter.
         Misslingt ALLES, gilt der Lauf als gescheitert und der
         Koordinator wiederholt ihn.
+
+        Der ganze Lauf steht unter der Sperre (Ticket #23): eine
+        Mutation waehrend der Netz-Awaits wartet, bis er durch ist,
+        und arbeitet dann auf seinem Ergebnis -- statt unterwegs
+        ueberschrieben zu werden.
         """
-        laufzeit = self._laufzeit
-        stammdaten_ok = 0
-        zeilen: list[dict[str, Any]] = []
-        for eintrag in laufzeit.eintraege.alle():
-            info = None
-            grund = ""
+        async with self._schloss:
+            laufzeit = self._laufzeit
+            stammdaten_ok = 0
+            zeilen: list[dict[str, Any]] = []
+            for eintrag in laufzeit.eintraege.alle():
+                info = None
+                grund = ""
+                try:
+                    info = await laufzeit.forge.repository_nach_id(
+                        eintrag.identitaet.provider_id,
+                        pfad=eintrag.identitaet.full_name,
+                    )
+                    stammdaten_ok += 1
+                except Exception as fehler:  # noqa: BLE001 - s. Moduldoku
+                    grund = str(fehler) or fehler.__class__.__name__
+                    _LOGGER.debug(
+                        "Stammdaten zu %s gescheitert: %s", eintrag.anzeigename, grund
+                    )
+                zeilen.append(
+                    zeile_aus_eintrag(
+                        self.hass,
+                        laufzeit,
+                        eintrag,
+                        info,
+                        alt=self._finde(eintrag.storage_key),
+                        grund=grund,
+                    )
+                )
+
+            scan_grund = ""
             try:
-                info = await laufzeit.forge.repository_nach_id(
-                    eintrag.identitaet.provider_id, pfad=eintrag.identitaet.full_name
+                funde = await entdecke(laufzeit.forge)
+                self.funde = [zeile_aus_fund(laufzeit, fund) for fund in funde]
+            except Exception as fehler:  # noqa: BLE001 - alte Funde bleiben
+                scan_grund = str(fehler) or fehler.__class__.__name__
+                _LOGGER.warning(
+                    "Scan von %s gescheitert: %s", laufzeit.forge.host, scan_grund
                 )
-                stammdaten_ok += 1
-            except Exception as fehler:  # noqa: BLE001 - s. Moduldoku
-                grund = str(fehler) or fehler.__class__.__name__
-                _LOGGER.debug(
-                    "Stammdaten zu %s gescheitert: %s", eintrag.anzeigename, grund
-                )
-            zeilen.append(
-                zeile_aus_eintrag(
-                    self.hass,
-                    laufzeit,
-                    eintrag,
-                    info,
-                    alt=self._finde(eintrag.storage_key),
-                    grund=grund,
-                )
+
+            eintraege_da = bool(laufzeit.eintraege.alle())
+            alles_tot = bool(scan_grund) and (
+                (eintraege_da and stammdaten_ok == 0)
+                or (not eintraege_da and not self.funde)
             )
+            if alles_tot:
+                raise LagerFehler(scan_grund)
 
-        scan_grund = ""
-        try:
-            funde = await entdecke(laufzeit.forge)
-            self.funde = [zeile_aus_fund(laufzeit, fund) for fund in funde]
-        except Exception as fehler:  # noqa: BLE001 - alte Funde bleiben
-            scan_grund = str(fehler) or fehler.__class__.__name__
-            _LOGGER.warning(
-                "Scan von %s gescheitert: %s", laufzeit.forge.host, scan_grund
-            )
-
-        eintraege_da = bool(laufzeit.eintraege.alle())
-        alles_tot = bool(scan_grund) and (
-            (eintraege_da and stammdaten_ok == 0) or (not eintraege_da and not self.funde)
-        )
-        if alles_tot:
-            raise LagerFehler(scan_grund)
-
-        self.zeilen = zeilen
-        self.aktualisiert_am = dt_util.utcnow().isoformat()
-        await self._sichern()
-        return self.antwort()
+            self.zeilen = zeilen
+            self.aktualisiert_am = dt_util.utcnow().isoformat()
+            await self._sichern()
+            return self.antwort()
 
     async def live_uebernehmen(self) -> None:
         """Einmal live bauen -- der Notausgang fuer ein leeres Lager.
@@ -404,26 +421,29 @@ class Lager(DataUpdateCoordinator[dict[str, Any]]):
         der Start-Lauf noch nicht geschehen), baut dieser Lauf die
         Zeilen frisch ueber den Pfad -- wie es die Liste vor dem Lager
         tat. Kein Scan: der gehoert in den vollen Lauf, und der Betritt
-        rueckt ihn ohnehin nach.
+        rueckt ihn ohnehin nach. Unter der Sperre wie der volle Lauf
+        (Ticket #23): auch dieser Aufbau darf eine gleichzeitige
+        Mutation nicht ueberschreiben.
         """
-        laufzeit = self._laufzeit
-        zeilen: list[dict[str, Any]] = []
-        for eintrag in laufzeit.eintraege.alle():
-            info = None
-            grund = ""
-            try:
-                info = await laufzeit.forge.repository(eintrag.identitaet.full_name)
-            except Exception as fehler:  # noqa: BLE001 - s. Moduldoku
-                grund = str(fehler) or fehler.__class__.__name__
-                _LOGGER.debug(
-                    "Stammdaten zu %s gescheitert: %s", eintrag.anzeigename, grund
+        async with self._schloss:
+            laufzeit = self._laufzeit
+            zeilen: list[dict[str, Any]] = []
+            for eintrag in laufzeit.eintraege.alle():
+                info = None
+                grund = ""
+                try:
+                    info = await laufzeit.forge.repository(eintrag.identitaet.full_name)
+                except Exception as fehler:  # noqa: BLE001 - s. Moduldoku
+                    grund = str(fehler) or fehler.__class__.__name__
+                    _LOGGER.debug(
+                        "Stammdaten zu %s gescheitert: %s", eintrag.anzeigename, grund
+                    )
+                zeilen.append(
+                    zeile_aus_eintrag(self.hass, laufzeit, eintrag, info, grund=grund)
                 )
-            zeilen.append(
-                zeile_aus_eintrag(self.hass, laufzeit, eintrag, info, grund=grund)
-            )
-        self.zeilen = zeilen
-        self.aktualisiert_am = dt_util.utcnow().isoformat()
-        await self._sichern()
+            self.zeilen = zeilen
+            self.aktualisiert_am = dt_util.utcnow().isoformat()
+            await self._sichern()
 
     # -- Mutationen: das Lager folgt der Liste sofort -----------------
 
@@ -434,31 +454,33 @@ class Lager(DataUpdateCoordinator[dict[str, Any]]):
         kostet der Griff kein Netz. Der Fund des Scans, falls er
         dasselbe Projekt nennt, dreht seine ``vorhanden``-Flagge.
         """
-        zeile = zeile_aus_eintrag(
-            self.hass,
-            self._laufzeit,
-            eintrag,
-            info,
-            alt=self._finde(eintrag.storage_key),
-        )
-        self.zeilen = [
-            z for z in self.zeilen if z.get("storage_key") != eintrag.storage_key
-        ]
-        self.zeilen.append(zeile)
-        for fund in self.funde:
-            if fund.get("full_name") == eintrag.identitaet.full_name:
-                fund["vorhanden"] = True
-        await self._sichern()
+        async with self._schloss:
+            zeile = zeile_aus_eintrag(
+                self.hass,
+                self._laufzeit,
+                eintrag,
+                info,
+                alt=self._finde(eintrag.storage_key),
+            )
+            self.zeilen = [
+                z for z in self.zeilen if z.get("storage_key") != eintrag.storage_key
+            ]
+            self.zeilen.append(zeile)
+            for fund in self.funde:
+                if fund.get("full_name") == eintrag.identitaet.full_name:
+                    fund["vorhanden"] = True
+            await self._sichern()
 
     async def zeile_weg(self, eintrag: Eintrag) -> None:
         """Der entfernte Eintrag verschwindet aus dem Lager."""
-        self.zeilen = [
-            z for z in self.zeilen if z.get("storage_key") != eintrag.storage_key
-        ]
-        for fund in self.funde:
-            if fund.get("full_name") == eintrag.identitaet.full_name:
-                fund["vorhanden"] = False
-        await self._sichern()
+        async with self._schloss:
+            self.zeilen = [
+                z for z in self.zeilen if z.get("storage_key") != eintrag.storage_key
+            ]
+            for fund in self.funde:
+                if fund.get("full_name") == eintrag.identitaet.full_name:
+                    fund["vorhanden"] = False
+            await self._sichern()
 
     async def stand_geaendert(
         self, storage_key: str, installiert: str, zielweg: str | None = None
@@ -470,9 +492,10 @@ class Lager(DataUpdateCoordinator[dict[str, Any]]):
         wandern zusammen -- ein Weg ohne Version waer gelogen, eine
         Version ohne Weg heisst "ungewiss".
         """
-        for zeile in self.zeilen:
-            if zeile.get("storage_key") == storage_key:
-                zeile["installiert"] = installiert
-                if zielweg is not None:
-                    zeile["zielweg"] = zielweg
-        await self._sichern()
+        async with self._schloss:
+            for zeile in self.zeilen:
+                if zeile.get("storage_key") == storage_key:
+                    zeile["installiert"] = installiert
+                    if zielweg is not None:
+                        zeile["zielweg"] = zielweg
+            await self._sichern()

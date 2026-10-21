@@ -732,7 +732,10 @@ async def installiere_version(
     """
     pfad = eintrag.identitaet.full_name
     archiv, _herkunft = await beschaffe_archiv(forge, pfad, tag)
-    zielname = _zielname(eintrag, archiv)
+    # Ticket #23: der Zielname oeffnet bei Integrationen die
+    # manifest.json im Archiv -- Dateiarbeit, und darum gehoert sie in
+    # den Vorfuehrer, nicht in den Ereigniskreis.
+    zielname = await hass.async_add_executor_job(_zielname, eintrag, archiv)
     konfiguration = Path(hass.config.config_dir)
     return await hass.async_add_executor_job(
         _installiere_sync,
