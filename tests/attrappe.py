@@ -15,6 +15,31 @@ import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 
+class Inhalt:
+    """Der Antwortkoerper als Strom -- wie ``antwort.content`` bei aiohttp.
+
+    ``get_bytes`` liest gestueckelt (Ticket #23), damit eine Antwort
+    ohne ``Content-Length`` nicht erst vollstaendig im Speicher landen
+    muss. ``gelesen`` zaehlt mit: Tests belegen damit, dass ein
+    abgewiesener Download wirklich abbrach, statt nur zu behaupten,
+    dass er es taete.
+    """
+
+    def __init__(self, daten: bytes):
+        self._daten = daten
+        self._position = 0
+        self.gelesen = 0
+
+    async def read(self, anzahl: int = -1) -> bytes:
+        if anzahl is None or anzahl < 0:
+            stueck = self._daten[self._position :]
+        else:
+            stueck = self._daten[self._position : self._position + anzahl]
+        self._position += len(stueck)
+        self.gelesen += len(stueck)
+        return stueck
+
+
 class Aufzeichnung:
     """Eine aufgezeichnete HTTP-Antwort: Status, Kopfzeilen, Koerper.
 
@@ -34,14 +59,18 @@ class Aufzeichnung:
         self.headers = kopfzeilen or {}
         self._text = text
         self._rohbytes = rohbytes
+        self.content = Inhalt(self._bytes())
+
+    def _bytes(self) -> bytes:
+        if self._rohbytes is not None:
+            return self._rohbytes
+        return self._text.encode("utf-8")
 
     async def text(self) -> str:
         return self._text
 
     async def read(self) -> bytes:
-        if self._rohbytes is not None:
-            return self._rohbytes
-        return self._text.encode("utf-8")
+        return self._bytes()
 
 
 class SitzungsAttrappe:
