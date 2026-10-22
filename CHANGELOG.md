@@ -4,6 +4,17 @@ Alle nennenswerten Änderungen an HAIGS. Die Versionen folgen
 [SemVer](https://semver.org/lang/de/); installiert wird aus den
 [GitHub-Releases](https://github.com/Chance-Konstruktion/ha-haigs/releases).
 
+## Unveröffentlicht
+
+### Behoben
+- Der HACS-Katalog packt Quellarchive und Einzeldatei-Releases nicht mehr auf
+  der Ereignisschleife von Home Assistant um, sondern in einem Thread. Große
+  Archive ließen HA sonst kurz hängen. Hinweis aus dem Review von @frenck
+  ([hacs/default#11671](https://github.com/hacs/default/pull/11671)).
+- Das Token reist nur zum Host der eingestellten Forge, nie zu fremden
+  Release-Links ([#20](https://gitlab.schanz.ipv64.net/chance-konstruktion/haigs/-/work_items/20),
+  ebenfalls aus diesem Review).
+
 ## 0.6.7.1 — 2026-10-15
 
 ### Behoben

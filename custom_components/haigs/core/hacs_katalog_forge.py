@@ -19,6 +19,7 @@ braucht die API). Er bleibt den eigenen Schmieden vorbehalten.
 
 from __future__ import annotations
 
+import asyncio
 import io
 import json
 import stat
@@ -74,6 +75,15 @@ def _ohne_symlinks(archiv: bytes) -> bytes:
             return ziel.getvalue()
     except zipfile.BadZipFile:
         return archiv
+
+
+def _einzel_zip(hacs: dict[str, Any], gewuenscht: str, inhalt: bytes) -> bytes:
+    """Release-Datei und ``hacs.json`` als ZIP (CPU-Arbeit, laeuft im Thread)."""
+    puffer = io.BytesIO()
+    with zipfile.ZipFile(puffer, "w", zipfile.ZIP_DEFLATED) as zip_datei:
+        zip_datei.writestr("hacs.json", json.dumps(hacs or {"filename": gewuenscht}))
+        zip_datei.writestr(gewuenscht, inhalt)
+    return puffer.getvalue()
 
 
 def _info(repo_id: str, roh: dict[str, Any], kategorie: str) -> RepositoryInfo:
@@ -319,7 +329,10 @@ class HacsKatalogForge:
         return f"https://codeload.github.com/{pfad}/zip/{ref}"
 
     async def archiv(self, pfad: str, ref: str) -> bytes:
-        return _ohne_symlinks(await self.http.get_bytes(await self.archiv_url(pfad, ref)))
+        roh = await self.http.get_bytes(await self.archiv_url(pfad, ref))
+        # Entpacken und neu packen ist CPU-Arbeit: nie auf der Ereignisschleife
+        # von Home Assistant (Review frenck, hacs/default#11671).
+        return await asyncio.to_thread(_ohne_symlinks, roh)
 
     async def anhang(self, url: str) -> bytes:
         if not url.endswith(_EINZELDATEI):
@@ -349,8 +362,4 @@ class HacsKatalogForge:
                     continue
         if inhalt is None:
             raise NichtGefunden(f"{name} liegt weder im Release {tag} noch im Tag")
-        puffer = io.BytesIO()
-        with zipfile.ZipFile(puffer, "w", zipfile.ZIP_DEFLATED) as zip_datei:
-            zip_datei.writestr("hacs.json", json.dumps(hacs or {"filename": gewuenscht}))
-            zip_datei.writestr(gewuenscht, inhalt)
-        return puffer.getvalue()
+        return await asyncio.to_thread(_einzel_zip, hacs, gewuenscht, inhalt)
