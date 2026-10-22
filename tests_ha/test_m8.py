@@ -32,6 +32,7 @@ from .test_m5 import (
     STORAGE_KEY,
     eintrag_daten,
     herzschlag,
+    herzschlag_stilllegen,
     mock_eintrag,
     nicht_gefunden,
     release_objekt,
@@ -184,7 +185,9 @@ async def test_token_problem_wird_meldung_und_heilt(
 ) -> None:
     speichern(hass_storage, [])
     attrappe = sitzung_einpflanzen([herzschlag()])
-    await richten(hass, mock_eintrag())
+    mock = mock_eintrag()
+    await richten(hass, mock)
+    await herzschlag_stilllegen(hass, mock)
 
     laufzeit = laufzeit_von(hass)
     identitaet = RepositoryIdentity(
@@ -207,7 +210,8 @@ async def test_token_problem_wird_meldung_und_heilt(
     # Runde (im M5-Test erprobt). Der Lager-Start (Flug 2084) feuert
     # zuerst -- Zeile ueber die ID, dann die leere Suche --, danach
     # fragt die gesunde Runde des Aktualisierers zuerst die Stammdaten
-    # und dann die Releases.
+    # und dann die Releases. (Der Herzschlag ist fuer diesen Test
+    # stillgelegt, s. test_m5.)
     attrappe.aufzeichnungen.extend(
         [
             stammdaten(),  # Lager: die Zeile ueber die ID
@@ -237,7 +241,9 @@ async def test_instanz_weg_behaelt_alte_daten(
     attrappe = sitzung_einpflanzen(
         [herzschlag(), stammdaten(), releases(release_objekt("v1.2.0"))]
     )
-    await richten(hass, mock_eintrag())
+    mock = mock_eintrag()
+    await richten(hass, mock)
+    await herzschlag_stilllegen(hass, mock)
     assert zustand(hass, "update").state == "on"
 
     laufzeit = laufzeit_von(hass)
@@ -256,7 +262,8 @@ async def test_instanz_weg_behaelt_alte_daten(
     # Es geht wieder: alles kehrt zurueck, nichts ging verloren. Auch hier
     # der Takt-Vorlauf (Debounce), nicht die direkte Bitte. Der Lager-
     # Start (Flug 2084) feuert zuerst -- Zeile ueber die ID, leere
-    # Suche --, danach die gesunde Runde des Aktualisierers.
+    # Suche --, danach die gesunde Runde des Aktualisierers. (Der
+    # Herzschlag ist fuer diesen Test stillgelegt, s. test_m5.)
     attrappe.aufzeichnungen.extend(
         [
             stammdaten(),  # Lager: die Zeile ueber die ID

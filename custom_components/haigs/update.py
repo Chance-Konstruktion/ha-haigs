@@ -60,7 +60,12 @@ async def async_setup_entry(
     if aktualisierer is None:
         return
     await laufzeit.staende.laden()
-    await aktualisierer.async_config_entry_first_refresh()
+    # Ticket #23: der erste Lauf wirft seinen Fehler NICHT mehr hoch.
+    # Bei genau einem beobachteten Eintrag hiess "alle Funde
+    # fehlerhaft" gleich "der eine" -- und die ganze update-Wabe
+    # wurde gar nicht erst angelegt. Jetzt entsteht die Entity und
+    # meldet ehrlich "nicht verfuegbar"; der Takt versucht es erneut.
+    await aktualisierer.async_refresh()
 
     entities: dict[str, HaigsUpdateEntity] = {}
 
