@@ -325,7 +325,13 @@ def entpacke(
                                 f"{grenzen.gesamtgroesse}"
                             )
                         senke.write(stueck)
-    except (zipfile.BadZipFile, zipfile.LargeZipFile, zlib.error) as schaden:
+    except (
+        zipfile.BadZipFile,
+        zipfile.LargeZipFile,
+        zlib.error,
+        ValueError,
+        EOFError,
+    ) as schaden:
         shutil.rmtree(ziel, ignore_errors=True)
         raise ArchivBeschaedigt(f"Archiv beim Lesen gescheitert: {schaden}") from schaden
     except OSError as schaden:
