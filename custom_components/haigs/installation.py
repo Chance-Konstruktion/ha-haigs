@@ -32,6 +32,7 @@ import json
 import os
 import shutil
 import zipfile
+import zlib
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from typing import TYPE_CHECKING
@@ -176,7 +177,7 @@ def lese_archiv_datei(archiv: bytes, name: str) -> bytes | None:
                 return zip_datei.read(flach[0])
             if not flach and len(treffer) == 1:
                 return zip_datei.read(treffer[0])
-    except zipfile.BadZipFile as fehlschlag:
+    except (zipfile.BadZipFile, ValueError, zlib.error, EOFError) as fehlschlag:
         raise InstallationsFehler(
             "das Archiv ist kein ZIP -- ein Release-Anhang, der kein ZIP "
             "ist, wird nicht installiert (Befund M4b)"
@@ -201,7 +202,7 @@ def _manifest_ordner(archiv: bytes) -> list[tuple[str, bytes]]:
                 ordner = (info.filename or "").rsplit("/", 1)[0]
                 fund.append((ordner, zip_datei.read(info.filename)))
             return fund
-    except zipfile.BadZipFile as fehlschlag:
+    except (zipfile.BadZipFile, ValueError, zlib.error, EOFError) as fehlschlag:
         raise InstallationsFehler(
             "das Archiv ist kein ZIP -- ein Release-Anhang, der kein ZIP "
             "ist, wird nicht installiert (Befund M4b)"
