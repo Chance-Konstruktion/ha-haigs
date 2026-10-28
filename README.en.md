@@ -195,6 +195,33 @@ the test suite and must be rejected *before* anything is written. The
 integrity of an interrupted install never lies: staged first, switched
 atomically, rolled back on failure.
 
+## Troubleshooting & known limits
+
+- **The connection test fails:** Leave *Provider* set to `auto` first. If
+  detection cannot identify the server, choose GitLab, Gitea, or Forgejo
+  explicitly. Public repositories usually need no token; private repositories
+  need a read token (`read_api` on GitLab, or a token with read permission on
+  Gitea/Forgejo).
+- **A server uses a self-signed certificate:** Keep TLS verification enabled
+  for normal HTTPS connections. Disable it only for a certificate you trust.
+  Use an explicit `http://` address only on a trusted network — a token sent
+  over HTTP is unencrypted.
+- **A repository is missing from *New*:** Automatic discovery requires the
+  `hacs` topic and a valid `hacs.json` on the default branch. A repository
+  added explicitly through *Custom repositories* does not need the topic.
+- **An update does not appear immediately:** Each instance is checked on its
+  configured heartbeat interval; the default is 720 minutes (12 hours). Use
+  the panel's refresh action for an immediate check. If a forge is unreachable,
+  the cached list may remain visible until a later check succeeds.
+- **An installed integration is not available:** Restart Home Assistant after
+  installation, then add the integration under *Settings → Devices & services*
+  if it exposes a config flow. Integrations with `config_flow: false` require
+  their documented YAML setup and do not appear in the add-integration dialog.
+- **Know what is being installed:** HAIGS supports GitLab, Gitea, and
+  Forgejo/Codeberg, plus the separate official HACS catalog source. Archive
+  checks protect installation paths; they do not audit the downloaded code or
+  make an unfamiliar repository trustworthy.
+
 ## Repository layout
 
 ```
