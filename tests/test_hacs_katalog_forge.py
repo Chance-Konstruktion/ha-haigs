@@ -195,6 +195,20 @@ async def test_quellarchiv_verliert_seine_symlinks():
         assert z.namelist() == ["r-1/hacs.json"]
 
 
+def test_symlink_filter_weist_doppelte_zip_namen_ab():
+    """Ein Symlink darf einen gleichnamigen Dateieintrag nicht verdecken."""
+    puffer = io.BytesIO()
+    with zipfile.ZipFile(puffer, "w") as z:
+        z.writestr("repo/gleich.py", b"regulaere datei")
+        link = zipfile.ZipInfo("repo/gleich.py")
+        link.external_attr = 0o120777 << 16
+        with pytest.warns(UserWarning, match="Duplicate name"):
+            z.writestr(link, "../outside")
+
+    with pytest.raises(entpacken.BoesesArtefakt, match="doppelt"):
+        _ohne_symlinks(puffer.getvalue())
+
+
 def test_symlink_filter_begrenzt_entpackte_dateien(monkeypatch):
     """Auch beim Entfernen von Symlinks duerfen ZIP-Inhalte nicht explodieren."""
     original = entpacken.EntpackGrenzen
