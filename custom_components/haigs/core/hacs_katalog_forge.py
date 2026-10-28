@@ -90,7 +90,7 @@ def _ohne_symlinks(archiv: bytes) -> bytes:
             # dem Oeffnen irgendeines Dateiinhalts abgewiesen werden.
             gesamt_metadaten = 0
             for info in infos:
-                if info.filename in symlinks or info.is_dir():
+                if id(info) in symlinks or info.is_dir():
                     continue
                 if info.file_size > grenzen.einzeldatei:
                     raise entpacken.GrenzeUeberschritten(
