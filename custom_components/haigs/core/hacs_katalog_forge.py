@@ -71,8 +71,15 @@ def _ohne_symlinks(archiv: bytes) -> bytes:
                 raise entpacken.GrenzeUeberschritten(
                     f"{len(infos)} Eintraege, Grenze ist {grenzen.eintraege}"
                 )
+            gesehen: set[str] = set()
+            for info in infos:
+                if info.filename in gesehen:
+                    raise entpacken.BoesesArtefakt(
+                        f"Name kommt doppelt vor: {info.filename!r}"
+                    )
+                gesehen.add(info.filename)
             symlinks = {
-                info.filename
+                id(info)
                 for info in infos
                 if stat.S_ISLNK(info.external_attr >> 16)
             }
@@ -101,7 +108,7 @@ def _ohne_symlinks(archiv: bytes) -> bytes:
             gelesen_gesamt = 0
             with zipfile.ZipFile(ziel, "w", zipfile.ZIP_DEFLATED) as neu:
                 for info in infos:
-                    if info.filename in symlinks:
+                    if id(info) in symlinks:
                         continue
                     if info.is_dir():
                         neu.writestr(copy.copy(info), b"")
