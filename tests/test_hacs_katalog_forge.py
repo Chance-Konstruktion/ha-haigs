@@ -5,9 +5,10 @@ import json
 import zipfile
 
 import pytest
+from haigs.core import entpacken
 from haigs.core.entdeckung import entdecke
 from haigs.core.forge import ForgeFehler, NichtGefunden
-from haigs.core.hacs_katalog_forge import HacsKatalogForge
+from haigs.core.hacs_katalog_forge import HacsKatalogForge, _ohne_symlinks
 from haigs.core.identity import GITHUB
 from haigs.core.schmiede import schmiede
 
@@ -192,3 +193,22 @@ async def test_quellarchiv_verliert_seine_symlinks():
     f = forge(dateien={"codeload.github.com": puffer.getvalue()})
     with zipfile.ZipFile(io.BytesIO(await f.archiv("foo/ha-bar", "1.2.3"))) as z:
         assert z.namelist() == ["r-1/hacs.json"]
+
+
+def test_symlink_filter_begrenzt_entpackte_dateien(monkeypatch):
+    """Auch beim Entfernen von Symlinks duerfen ZIP-Inhalte nicht explodieren."""
+    original = entpacken.EntpackGrenzen
+    monkeypatch.setattr(
+        entpacken,
+        "EntpackGrenzen",
+        lambda: original(eintraege=16, gesamtgroesse=16, einzeldatei=4),
+    )
+    puffer = io.BytesIO()
+    with zipfile.ZipFile(puffer, "w") as z:
+        link = zipfile.ZipInfo("repo/link")
+        link.external_attr = 0o120777 << 16
+        z.writestr(link, "../outside")
+        z.writestr("repo/zu_gross.py", b"12345")
+
+    with pytest.raises(entpacken.GrenzeUeberschritten, match="Grenze"):
+        _ohne_symlinks(puffer.getvalue())

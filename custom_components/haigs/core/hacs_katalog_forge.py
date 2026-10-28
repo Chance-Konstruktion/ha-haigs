@@ -20,14 +20,17 @@ braucht die API). Er bleibt den eigenen Schmieden vorbehalten.
 from __future__ import annotations
 
 import asyncio
+import copy
 import io
 import json
 import stat
 import time
 import zipfile
+import zlib
 from pathlib import PurePosixPath
 from typing import Any
 
+from . import entpacken
 from .entdeckung import Fund
 from .forge import Commit, ForgeFehler, HttpClient, NichtGefunden, Release, RepositoryInfo
 from .identity import GITHUB, RepositoryIdentity
@@ -52,28 +55,90 @@ _EINZELDATEI = "#haigs-einzeldatei"
 
 
 def _ohne_symlinks(archiv: bytes) -> bytes:
-    """Das Quellarchiv ohne Symlinks.
+    """Das Quellarchiv ohne Symlinks, mit begrenzter Dekomprimierung.
 
-    GitHub-Quellarchive enthalten Symlinks aus dem Repository (etwa
-    ``docs/chlog.md``). Der Kern weist solche Eintraege bewusst ab --
-    ein Symlink ist ein klassischer Weg aus dem Zielordner heraus.
-    Fuer den Katalog fallen sie hier einfach weg: sie sind nie der
-    Inhalt, den HACS installiert. Archive ohne Symlink bleiben
-    unberuehrt, kaputte Archive ebenfalls (der Kern meldet sie dann).
+    GitHub-Quellarchive enthalten manchmal Symlinks, die der Kern
+    bewusst abweist. Beim Entfernen wird jeder andere Eintrag in ein
+    neues ZIP kopiert. Die zentrale Dateigroesse allein ist dabei kein
+    ausreichender Schutz: geoeffnet wird gestreamt und die tatsaechlich
+    gelesenen Bytes werden je Datei und ueber das ganze Archiv gezaehlt.
     """
+    grenzen = entpacken.EntpackGrenzen()
     try:
         with zipfile.ZipFile(io.BytesIO(archiv)) as quelle:
             infos = quelle.infolist()
-            if not any(stat.S_ISLNK(i.external_attr >> 16) for i in infos):
+            if len(infos) > grenzen.eintraege:
+                raise entpacken.GrenzeUeberschritten(
+                    f"{len(infos)} Eintraege, Grenze ist {grenzen.eintraege}"
+                )
+            symlinks = {
+                info.filename
+                for info in infos
+                if stat.S_ISLNK(info.external_attr >> 16)
+            }
+            if not symlinks:
                 return archiv
+
+            # Erst die Metadaten pruefen, damit bekannte Ueberlaengen vor
+            # dem Oeffnen irgendeines Dateiinhalts abgewiesen werden.
+            gesamt_metadaten = 0
+            for info in infos:
+                if info.filename in symlinks or info.is_dir():
+                    continue
+                if info.file_size > grenzen.einzeldatei:
+                    raise entpacken.GrenzeUeberschritten(
+                        f"{info.filename!r} entpackt {info.file_size} Bytes, "
+                        f"Grenze je Datei ist {grenzen.einzeldatei}"
+                    )
+                gesamt_metadaten += info.file_size
+                if gesamt_metadaten > grenzen.gesamtgroesse:
+                    raise entpacken.GrenzeUeberschritten(
+                        "Archiv ueberschreitet die Grenze von "
+                        f"{grenzen.gesamtgroesse} entpackten Bytes"
+                    )
+
             ziel = io.BytesIO()
+            gelesen_gesamt = 0
             with zipfile.ZipFile(ziel, "w", zipfile.ZIP_DEFLATED) as neu:
                 for info in infos:
-                    if stat.S_ISLNK(info.external_attr >> 16):
+                    if info.filename in symlinks:
                         continue
-                    neu.writestr(info, quelle.read(info.filename))
+                    if info.is_dir():
+                        neu.writestr(copy.copy(info), b"")
+                        continue
+
+                    gelesen_datei = 0
+                    with (
+                        quelle.open(info) as eingabe,
+                        neu.open(copy.copy(info), "w") as ausgabe,
+                    ):
+                        while True:
+                            # Ein Byte ueber der verbleibenden Grenze reicht
+                            # aus, um eine falsche Dateigroessen-Angabe zu
+                            # erkennen, ohne einen grossen Puffer anzulegen.
+                            max_lesen = min(
+                                1024 * 1024,
+                                grenzen.einzeldatei - gelesen_datei + 1,
+                                grenzen.gesamtgroesse - gelesen_gesamt + 1,
+                            )
+                            block = eingabe.read(max_lesen)
+                            if not block:
+                                break
+                            gelesen_datei += len(block)
+                            gelesen_gesamt += len(block)
+                            if gelesen_datei > grenzen.einzeldatei:
+                                raise entpacken.GrenzeUeberschritten(
+                                    f"{info.filename!r} ueberschreitet die "
+                                    f"Grenze je Datei von {grenzen.einzeldatei} Bytes"
+                                )
+                            if gelesen_gesamt > grenzen.gesamtgroesse:
+                                raise entpacken.GrenzeUeberschritten(
+                                    "Archiv ueberschreitet die Grenze von "
+                                    f"{grenzen.gesamtgroesse} entpackten Bytes"
+                                )
+                            ausgabe.write(block)
             return ziel.getvalue()
-    except zipfile.BadZipFile:
+    except (zipfile.BadZipFile, ValueError, zlib.error, EOFError):
         return archiv
 
 

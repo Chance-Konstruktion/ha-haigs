@@ -57,6 +57,11 @@ _MANIFEST = "manifest.json"
 #: Der Name der HACS-Beschreibung im Archiv.
 _HACS_JSON = "hacs.json"
 
+#: Manifest und HACS-Metadaten sind kleine Konfigurationsdateien.
+#: Ein eigenes Limit verhindert, dass ein ansonsten gueltiges ZIP hier
+#: noch einen unnoetig grossen Puffer erzwingt.
+_METADATEN_MAX_BYTES = 1024 * 1024
+
 
 @dataclass(frozen=True)
 class InstallationsErgebnis:
@@ -149,6 +154,56 @@ async def beschaffe_archiv(forge: Forge, pfad: str, tag: str) -> tuple[bytes, st
 # ------------------------------------------------- Ziel und Tausch
 
 
+def _sicherer_plan(archiv: bytes) -> list[entpacken.ArchivEintrag]:
+    """Prueft alle ZIP-Metadaten-Grenzen, bevor Eintraege dekomprimiert werden.
+
+    Metadateien wie ``manifest.json`` werden schon zur Zielnamenermittlung
+    gelesen, also bevor die eigentliche Installation ihren Entpackplan baut.
+    Deshalb muss auch dieser fruehe Pfad dieselben Eintrags- und Groessengrenzen
+    durchsetzen.
+    """
+    try:
+        return entpacken.plane(archiv)
+    except entpacken.ArchivBeschaedigt as fehlschlag:
+        raise InstallationsFehler(
+            "das Archiv ist kein ZIP -- ein Release-Anhang, der kein ZIP "
+            "ist, wird nicht installiert (Befund M4b)"
+        ) from fehlschlag
+    except entpacken.EntpackFehler as fehlschlag:
+        raise InstallationsFehler(
+            f"Archiv vor dem Lesen abgewiesen: {fehlschlag}"
+        ) from fehlschlag
+    except (zipfile.BadZipFile, ValueError, zlib.error, EOFError) as fehlschlag:
+        raise InstallationsFehler(
+            "das Archiv ist kein ZIP -- ein Release-Anhang, der kein ZIP "
+            "ist, wird nicht installiert (Befund M4b)"
+        ) from fehlschlag
+
+
+def _lese_metadatei(zip_datei: zipfile.ZipFile, info: zipfile.ZipInfo) -> bytes:
+    """Liest eine kleine Archiv-Metadatei mit einer eigenen Byte-Obergrenze."""
+    if info.file_size > _METADATEN_MAX_BYTES:
+        raise InstallationsFehler(
+            f"{info.filename!r} ueberschreitet das Metadatenlimit von "
+            f"{_METADATEN_MAX_BYTES} Bytes"
+        )
+    teile: list[bytes] = []
+    gelesen = 0
+    with zip_datei.open(info) as quelle:
+        while True:
+            block = quelle.read(min(64 * 1024, _METADATEN_MAX_BYTES - gelesen + 1))
+            if not block:
+                break
+            gelesen += len(block)
+            if gelesen > _METADATEN_MAX_BYTES:
+                raise InstallationsFehler(
+                    f"{info.filename!r} ueberschreitet das Metadatenlimit von "
+                    f"{_METADATEN_MAX_BYTES} Bytes"
+                )
+            teile.append(block)
+    return b"".join(teile)
+
+
 def lese_archiv_datei(archiv: bytes, name: str) -> bytes | None:
     """Liest eine Datei aus dem Archiv, ohne etwas zu entpacken.
 
@@ -165,18 +220,19 @@ def lese_archiv_datei(archiv: bytes, name: str) -> bytes | None:
     beiden Stufen ein Fehlschlag: Raterei beim Installieren hilft
     niemandem.
     """
+    _sicherer_plan(archiv)
     try:
         with zipfile.ZipFile(io.BytesIO(archiv)) as zip_datei:
             treffer = [
-                info.filename
+                info
                 for info in zip_datei.infolist()
                 if not info.is_dir() and (info.filename or "").split("/")[-1] == name
             ]
-            flach = [t for t in treffer if len(t.split("/")) <= 2]
+            flach = [info for info in treffer if len(info.filename.split("/")) <= 2]
             if len(flach) == 1:
-                return zip_datei.read(flach[0])
+                return _lese_metadatei(zip_datei, flach[0])
             if not flach and len(treffer) == 1:
-                return zip_datei.read(treffer[0])
+                return _lese_metadatei(zip_datei, treffer[0])
     except (zipfile.BadZipFile, ValueError, zlib.error, EOFError) as fehlschlag:
         raise InstallationsFehler(
             "das Archiv ist kein ZIP -- ein Release-Anhang, der kein ZIP "
@@ -193,6 +249,7 @@ def _manifest_ordner(archiv: bytes) -> list[tuple[str, bytes]]:
     als Ordner ``""`` mit: ``content_in_root``-Repos haben ihre
     manifest.json dort, sind aber keine Lagerform.
     """
+    _sicherer_plan(archiv)
     try:
         with zipfile.ZipFile(io.BytesIO(archiv)) as zip_datei:
             fund: list[tuple[str, bytes]] = []
@@ -200,7 +257,7 @@ def _manifest_ordner(archiv: bytes) -> list[tuple[str, bytes]]:
                 if info.is_dir() or (info.filename or "").split("/")[-1] != _MANIFEST:
                     continue
                 ordner = (info.filename or "").rsplit("/", 1)[0]
-                fund.append((ordner, zip_datei.read(info.filename)))
+                fund.append((ordner, _lese_metadatei(zip_datei, info)))
             return fund
     except (zipfile.BadZipFile, ValueError, zlib.error, EOFError) as fehlschlag:
         raise InstallationsFehler(
@@ -450,7 +507,7 @@ def _installiere_sync(
     gleichnamigen Dateien des Archivs den Platz (siehe
     :func:`_installiere_flach`).
     """
-    plan = entpacken.plane(archiv)
+    plan = _sicherer_plan(archiv)
     namen = [eintrag.name for eintrag in plan if not eintrag.ist_verzeichnis]
     zuordnung = _kopierplan(archiv, kategorie, zielname, namen)
 
@@ -662,7 +719,7 @@ def _beanspruche_altbestand(
     Zurueck kommt die Liste als Grundlage der Deinstallation --
     leer heisst: nichts zu erkennen, der Aufrufer meldet Klartext.
     """
-    plan = entpacken.plane(archiv)
+    plan = _sicherer_plan(archiv)
     namen = [eintrag.name for eintrag in plan if not eintrag.ist_verzeichnis]
     zuordnung = _kopierplan(archiv, kategorie, zielname, namen)
     ziel = konfiguration / zielpfade.zielverzeichnis(kategorie, zielname)
