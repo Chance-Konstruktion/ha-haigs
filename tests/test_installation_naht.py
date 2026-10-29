@@ -26,8 +26,8 @@ import os
 import zipfile
 from pathlib import Path, PurePosixPath
 
-import pytest
 import haigs.installation as installation
+import pytest
 from haigs.core import entpacken
 from haigs.core.forge import Release
 from haigs.core.zielpfade import ist_zielpfad
