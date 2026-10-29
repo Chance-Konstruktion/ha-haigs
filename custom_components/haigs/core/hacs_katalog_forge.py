@@ -79,9 +79,7 @@ def _ohne_symlinks(archiv: bytes) -> bytes:
                     )
                 gesehen.add(info.filename)
             symlinks = {
-                id(info)
-                for info in infos
-                if stat.S_ISLNK(info.external_attr >> 16)
+                id(info) for info in infos if stat.S_ISLNK(info.external_attr >> 16)
             }
             if not symlinks:
                 return archiv
