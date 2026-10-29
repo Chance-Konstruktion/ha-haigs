@@ -26,7 +26,9 @@ import os
 import zipfile
 from pathlib import Path, PurePosixPath
 
+import haigs.installation as installation
 import pytest
+from haigs.core import entpacken
 from haigs.core.forge import Release
 from haigs.core.zielpfade import ist_zielpfad
 from haigs.installation import (
@@ -167,6 +169,24 @@ class TestIstZielpfad:
         assert not ist_zielpfad("")
         assert not ist_zielpfad("..")
 
+    @pytest.mark.parametrize(
+        "pfad",
+        [
+            "custom_components",
+            "www/community",
+            "apps",
+            "templates",
+            "custom_components/beispiel/unterordner",
+            "www/community/beispiel/unterordner",
+            "apps/beispiel/unterordner",
+            "templates/beispiel/unterordner",
+            "themes/unterordner",
+            "python_scripts/unterordner",
+        ],
+    )
+    def test_kategorie_wurzeln_und_zu_tiefe_pfade_zaehlen_nicht(self, pfad):
+        assert not ist_zielpfad(pfad)
+
 
 # ---------------------------------------------------- Deinstallation
 
@@ -182,6 +202,21 @@ class TestDeinstallation:
         assert not ziel.exists()
         zwischen = tmp_path / ".haigs_zwischenlager"
         assert not list(zwischen.glob("*.weg"))  # auch das Lager ist leer
+
+    @pytest.mark.parametrize(
+        "wurzel", ["custom_components", "www/community", "apps", "templates"]
+    )
+    def test_deinstallation_schont_kategorie_wurzeln(self, wurzel: str, tmp_path: Path):
+        """Ein manipulierter Stand darf keine ganze HA-Kategorie entfernen."""
+        ziel = tmp_path.joinpath(*PurePosixPath(wurzel).parts)
+        marker = ziel / "weiter_installiert" / "marker.txt"
+        marker.parent.mkdir(parents=True)
+        marker.write_text("bleib", encoding="utf-8")
+
+        with pytest.raises(InstallationsFehler, match="untauglicher installierter Pfad"):
+            _deinstalliere_sync(wurzel, tmp_path)
+
+        assert marker.read_text(encoding="utf-8") == "bleib"
 
     def test_untauglicher_weg_wird_abgewiesen(self, tmp_path: Path):
         """Die Ablage ist eine Datei -- Vertrauen ist keine Pruefung."""
@@ -222,6 +257,26 @@ class TestLeseArchivDatei:
         """Ein Release-Anhang, der kein ZIP ist, wird nicht installiert."""
         with pytest.raises(InstallationsFehler, match="kein ZIP"):
             lese_archiv_datei(b"definitiv kein zip", "manifest.json")
+
+    def test_groessengrenze_greift_vor_dem_lesen_der_metadatei(self, monkeypatch):
+        """Eine riesige manifest.json wird vor ZipFile.read abgewiesen."""
+        original = entpacken.EntpackGrenzen
+        monkeypatch.setattr(
+            entpacken,
+            "EntpackGrenzen",
+            lambda: original(eintraege=16, gesamtgroesse=16, einzeldatei=4),
+        )
+        archiv = _zip({"manifest.json": b"12345"})
+
+        with pytest.raises(InstallationsFehler, match="Grenze"):
+            lese_archiv_datei(archiv, "manifest.json")
+
+    def test_metadatei_hat_eine_eigene_byte_obergrenze(self, monkeypatch):
+        monkeypatch.setattr(installation, "_METADATEN_MAX_BYTES", 4)
+        archiv = _zip({"manifest.json": b"12345"})
+
+        with pytest.raises(InstallationsFehler, match="Metadatenlimit"):
+            lese_archiv_datei(archiv, "manifest.json")
 
 
 # ------------------------------------------------ Lagerform (Befund #15)

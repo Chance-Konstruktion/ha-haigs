@@ -131,11 +131,11 @@ def ist_zielpfad(pfad: PurePosixPath | str) -> bool:
     Loeschen geprueft, nicht geglaubt. Ein gueltiger Weg ist relativ,
     beginnt mit einer bekannten Kategorie-Wurzel (auch einer
     zweiteiligen wie ``www/community``) und enthaelt nichts, was aus
-    ihm herausfuehrt. Die Wurzel allein zaehlt dabei -- flache
-    Kategorien (``themes``, ``python_scripts``) installieren direkt
-    hinein. Alles andere (absolut, ``..``, fremde Wurzel) ist eine
-    Absage, kein Fehler -- die Antwort ist Ja/Nein, und der Klartext
-    gehoert zum Aufrufer.
+    ihm herausfuehrt. Nicht-flache Kategorien muessen genau einen
+    Eintragsordner unter der Wurzel haben; ein zu tiefer Weg oder die
+    Wurzel selbst ist ungueltig. Die Wurzel flacher Kategorien
+    (``themes``, ``python_scripts``) bleibt fuer dateilistenbasierte
+    Operationen gueltig, wird aber nie als Ordnerzug entfernt.
     """
     if isinstance(pfad, str):
         try:
@@ -148,12 +148,16 @@ def ist_zielpfad(pfad: PurePosixPath | str) -> bool:
     for teil in teile:
         if teil in ("", ".", "..") or "/" in teil or "\\" in teil or "\x00" in teil:
             return False
-    wurzeln = sorted(
-        PurePosixPath(wurzel).parts for wurzel in _KATEGORIE_WURZELN.values()
-    )
-    for wurzel in wurzeln:
-        if teile[: len(wurzel)] == wurzel:
-            return True
+    for kategorie, wurzel_name in _KATEGORIE_WURZELN.items():
+        wurzel = PurePosixPath(wurzel_name).parts
+        if teile[: len(wurzel)] != wurzel:
+            continue
+        # Geteilte flache Wurzeln duerfen nur mit protokollierter
+        # Dateiliste angefasst werden; eigene Installationsordner haben
+        # exakt eine Ebene unter ihrer Kategorie-Wurzel.
+        if kategorie in FLACHE_KATEGORIEN:
+            return teile == wurzel
+        return len(teile) == len(wurzel) + 1
     return False
 
 
