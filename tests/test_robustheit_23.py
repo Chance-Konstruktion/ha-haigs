@@ -177,6 +177,56 @@ async def test_download_unter_der_grenze_kommt_vollstaendig_an():
     assert await k.get_bytes(URL) == b"kleines archiv"
 
 
+# -- Codex C03, Befund 3: die Grenze gilt fuer JSON genauso -----------
+
+
+@pytest.mark.asyncio
+async def test_json_ueber_grenze_wird_abgewiesen():
+    """Eine JSON-Antwort folgt derselben Obergrenze wie jede Datei —
+    ein fremder oder kaputter Server darf die Instanz nicht mit einer
+    Riesen-Antwort aufdruecken (vorher las _als_json den Koerper
+    vollstaendig, nur get_bytes trug die Grenze)."""
+    aufzeichnung = Aufzeichnung(status=200, rohbytes=b'{"x": "' + b"y" * 4096)
+    k, _ = klient([aufzeichnung], max_bytes=1024)
+    with pytest.raises(ForgeFehler, match="1024"):
+        await k.get_json(URL)
+    assert aufzeichnung.content.gelesen < 4096, "abgebrochen, nicht alles gelesen"
+
+
+@pytest.mark.asyncio
+async def test_json_angekuendigte_ueberlaenge_wird_nicht_geladen():
+    """Die angekuendigte Ueberlaenge wird abgewiesen, bevor der erste
+    Block im Speicher landet — derselbe Griff wie beim Download."""
+    aufzeichnung = Aufzeichnung(
+        status=200,
+        rohbytes=b'{"x": 1}',
+        kopfzeilen={"Content-Length": "999999"},
+    )
+    k, _ = klient([aufzeichnung], max_bytes=1024)
+    with pytest.raises(ForgeFehler, match="999999"):
+        await k.get_json(URL)
+    assert aufzeichnung.content.gelesen == 0
+
+
+@pytest.mark.asyncio
+async def test_json_unter_der_grenze_kommt_vollstaendig_an():
+    """Die Grenze darf den Normalfall nicht anfassen."""
+    k, _ = klient([antwort({"id": 7})], max_bytes=1024)
+    assert await k.get_json(URL) == {"id": 7}
+
+
+@pytest.mark.asyncio
+async def test_json_liste_ueber_grenze_bricht_bei_der_seite_ab():
+    """Auch die Folgeseiten einer Liste folgen der Grenze."""
+    erste = Aufzeichnung(
+        status=200, rohbytes=b'[{"id": 1}]', kopfzeilen={"X-Next-Page": "2"}
+    )
+    zweite = Aufzeichnung(status=200, rohbytes=b'[{"id": "' + b"y" * 4096 + b'"}]')
+    k, _ = klient([erste, zweite], max_bytes=1024)
+    with pytest.raises(ForgeFehler, match="1024"):
+        await k.get_json(URL)
+
+
 # -- Punkt 6: der Zielname wird im Vorfuehrer gelesen ----------------
 
 
