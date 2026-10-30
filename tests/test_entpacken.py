@@ -428,3 +428,53 @@ def test_guter_kopierplan_entpackt_unterordner_und_bleibt_drin(tmp_path):
     assert (ziel / "a.py").read_bytes() == b"a"
     assert (ziel / "b" / "c.py").read_bytes() == b"c"
     assert sorted(p.name for p in (tmp_path / "staging").iterdir()) == ["probe"]
+
+
+def test_parallele_installationen_packen_nacheinander(tmp_path, monkeypatch):
+    """Codex C03, Befund 4: parallele Installationen teilten die
+    Zwischenlager-Namen — der zweite Lauf loeschte dem ersten mit
+    ``rmtree(neu)`` die Arbeit unterm Ruecken, alle flachen Themes
+    teilten ``themes.neu``. Die Tausch-Sperre laesst die Laeufe
+    nacheinander: niemals entpacken zwei zugleich in dasselbe Lager."""
+    import threading
+
+    from haigs.core import entpacken
+
+    lager = tmp_path / "lager"
+    zustand = {"im_gang": 0, "hoechststand": 0}
+    echter_entpacke = entpacken.entpacke
+
+    def gemessenes_entpacke(archiv, ort, grenzen=None, **kwargs):
+        zustand["im_gang"] += 1
+        zustand["hoechststand"] = max(zustand["hoechststand"], zustand["im_gang"])
+        try:
+            return echter_entpacke(archiv, ort, grenzen, **kwargs)
+        finally:
+            zustand["im_gang"] -= 1
+
+    monkeypatch.setattr(entpacken, "entpacke", gemessenes_entpacke)
+
+    start = threading.Barrier(2)
+    ergebnisse: list[str] = []
+
+    def lauf(inhalt: str):
+        start.wait()
+        installiere(baue_zip({"datei.txt": inhalt.encode()}), lager, tmp_path / "ziel")
+        ergebnisse.append(inhalt)
+
+    draehte = [
+        threading.Thread(target=lauf, args=("erstes",)),
+        threading.Thread(target=lauf, args=("zweites",)),
+    ]
+    for d in draehte:
+        d.start()
+    for d in draehte:
+        d.join(30)
+
+    assert sorted(ergebnisse) == ["erstes", "zweites"]
+    assert zustand["hoechststand"] == 1, (
+        "zwei Entpackungen liefen zugleich — das Zwischenlager ist "
+        f"geteilt (Hoechststand {zustand['hoechststand']})"
+    )
+    assert (tmp_path / "ziel" / "datei.txt").exists()
+    assert list(lager.iterdir()) == []
