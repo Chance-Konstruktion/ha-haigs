@@ -69,6 +69,37 @@ async def test_host_darf_mit_schema_genannt_werden():
     assert _kopf(sitzung)["Authorization"] == "Bearer " + TOKEN
 
 
+async def test_http_forge_mit_schema_bleibt_bei_http():
+    """Codex C03, Befund 5: eine selbst gehostete Forge ohne TLS
+    (``const.schema_aus_eingabe`` erlaubt http:// ausdruecklich) nennt
+    ihren token_host MIT Schema — ``http://`` bleibt bei Port 80 und
+    wird nicht still zum https-Nachbarn erhoben."""
+    k, sitzung = klient([antwort()], token=TOKEN, token_host="http://" + EIGEN)
+    await k.get_json(f"http://{EIGEN}/api/v4/projects")
+    assert _kopf(sitzung)["Authorization"] == "Bearer " + TOKEN
+
+
+async def test_https_token_reist_nicht_ueber_http():
+    """Und andersrum: wer https genannt hat, schickt sein Token nicht
+    an die Klartext-Adresse desselben Namens (anderer Dienst, anderer
+    Port)."""
+    k, sitzung = klient([antwort()], token=TOKEN, token_host="https://" + EIGEN)
+    await k.get_json(f"http://{EIGEN}/api/v4/projects")
+    assert "Authorization" not in _kopf(sitzung)
+
+
+def test_token_host_mit_schema():
+    """Der Helfer der Bau-Stellen (Einrichtungsdialog und Setup): der
+    schemalose Speicher-Host reist MIT dem Schema des Eintrags zum
+    Klienten — ohne Schema gilt https wie bisher."""
+    from haigs.const import token_host_mit_schema
+
+    assert token_host_mit_schema("forgejo.lan", "http") == "http://forgejo.lan"
+    assert token_host_mit_schema("gitlab.com", "https") == "https://gitlab.com"
+    assert token_host_mit_schema("gitlab.com", None) == "https://gitlab.com"
+    assert token_host_mit_schema("forgejo.lan", "") == "https://forgejo.lan"
+
+
 async def test_standards_port_ist_derselbe_host():
     """Ohne Port genannt deckt ``:443`` mit ab — und umgekehrt."""
     k, sitzung = klient([antwort()], token=TOKEN, token_host=EIGEN)

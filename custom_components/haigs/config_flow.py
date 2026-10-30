@@ -56,6 +56,7 @@ from .const import (
     STANDARD_ABSTAND_MINUTEN,
     host_normalisieren,
     schema_aus_eingabe,
+    token_host_mit_schema,
 )
 from .core.forge import ForgeFehler, NichtGefunden, RepositoryInfo
 from .core.hacs_katalog_forge import KATALOG_HOST
@@ -125,7 +126,10 @@ async def verbindung_pruefen(
     sitzung = async_get_clientsession(
         hass, verify_ssl=(schema != "https" or zertifikat_pruefen)
     )
-    klient = AiohttpClient(sitzung, token, token_host=host)
+    # Codex C03, Befund 5: der token_host reist mit dem Schema der
+    # Eingabe — der schemalose Host galt im Klienten still als https,
+    # und bei einer http-Forge fehlte das Authorization-Kopf dann still.
+    klient = AiohttpClient(sitzung, token, token_host=token_host_mit_schema(host, schema))
     if anbieter == ANBIETER_AUTO:
         # Die Erkennung laeuft OHNE Token (Ticket #20): der Host ist
         # noch nicht als Forge bestaetigt, und 401/403 ist selbst eine

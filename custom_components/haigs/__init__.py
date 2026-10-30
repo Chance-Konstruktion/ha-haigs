@@ -52,6 +52,7 @@ from .const import (
     LAGER_START_VERZOEGERUNG_SEK,
     STANDARD_ABSTAND_MINUTEN,
     ablage_schluessel,
+    token_host_mit_schema,
 )
 from .core.forge import Forge, ForgeFehler
 from .core.http_aiohttp import AiohttpClient
@@ -228,7 +229,11 @@ async def async_setup_entry(hass: HomeAssistant, eintrag: ConfigEntry) -> bool:
     klient = AiohttpClient(
         sitzung,
         eintrag.data.get(CONF_TOKEN) or None,
-        token_host=eintrag.data[CONF_HOST],
+        # Codex C03, Befund 5: der token_host reist mit dem Schema des
+        # Eintrags — der schemalose Host galt im Klienten still als
+        # https (Port 443), und bei einer http-Forge fehlte das Token
+        # dann still. Eintraege ohne Schema-Feld bleiben bei https.
+        token_host=token_host_mit_schema(eintrag.data[CONF_HOST], schema),
     )
     # Die Schmiede formt den Forge nach dem Namen im Eintrag (Flug
     # 2088). Eintraege aus der Zeit davor tragen keinen -- dann gilt
