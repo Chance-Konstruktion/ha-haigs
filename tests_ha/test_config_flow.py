@@ -155,6 +155,36 @@ async def test_verbindung_ueber_http(hass: HomeAssistant, sitzung_einpflanzen) -
         assert url.startswith("http://gitlab.lan:8080/api/v4/")
 
 
+async def test_http_forge_bekommt_das_token(
+    hass: HomeAssistant, sitzung_einpflanzen
+) -> None:
+    """Codex C03, Befund 5: die http-Forge mit Token — der schemalose
+    Speicher-Host galt im Klienten still als https (Port 443), die echte
+    URL traegt Port 80, und das Authorization-Kopf fehlte still. Der
+    token_host reist jetzt mit dem Schema des Eintrags."""
+    attrappe = sitzung_einpflanzen([antwort(0)])
+
+    ergebnis = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": SOURCE_USER}
+    )
+    ergebnis = await hass.config_entries.flow.async_configure(
+        ergebnis["flow_id"],
+        {
+            CONF_HOST: "http://gitlab.lan:8080",
+            CONF_PROVIDER: "gitlab",
+            CONF_TOKEN: "geheimes-ding",
+        },
+    )
+    await hass.async_block_till_done()
+
+    assert ergebnis["type"] is FlowResultType.CREATE_ENTRY
+    assert ergebnis["data"]["schema"] == "http"
+    assert len(attrappe.abrufe) == 1
+    url, _, kopfzeilen = attrappe.abrufe[0]
+    assert url.startswith("http://gitlab.lan:8080/api/v4/")
+    assert (kopfzeilen or {}).get("Authorization") == "Bearer geheimes-ding"
+
+
 async def test_selbstsignierte_instanz(hass: HomeAssistant, sitzung_einpflanzen) -> None:
     """#26: der Schalter aus -- Probe im Dialog UND Eintrag ohne Pruefung.
 

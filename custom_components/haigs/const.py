@@ -91,6 +91,21 @@ def schema_aus_eingabe(host: str) -> str:
     return "http" if host.strip().lower().startswith("http://") else "https"
 
 
+def token_host_mit_schema(host: str, schema: str | None) -> str:
+    """Der token_host MIT Schema fuer den Forge-Klienten (Codex C03,
+    Befund 5).
+
+    Der gespeicherte Host ist schemalos — er ist der Speicherschluessel.
+    Der Klient vergleicht aber Schema und Port: ein schemaloser Host
+    zaehlte dort still als https (Port 443), waehrend die echte URL
+    einer http-Forge Port 80 traegt — das ``Authorization``-Kopf fehlte
+    still. Der token_host reist deshalb mit dem Schema des Eintrags;
+    Eintraege ohne Schema-Feld bleiben bei https, wie sie es immer
+    waren.
+    """
+    return f"{schema or 'https'}://{host}"
+
+
 def ablage_schluessel(host: str) -> str:
     """Speicherschlüssel der Ablage für eine Instanz.
 
