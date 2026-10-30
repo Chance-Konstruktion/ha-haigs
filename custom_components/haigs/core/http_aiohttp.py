@@ -267,7 +267,7 @@ class AiohttpClient:
         if antwort.status == 304:
             return _kopie(self._aus_speicher(schluessel, url))
         self._pruefen(url, antwort.status, kopf)
-        daten = await self._als_json(url, antwort)
+        daten = await self._als_json(url, kopf, antwort)
 
         if isinstance(daten, list):
             naechste = kopf.get("x-next-page", "")
@@ -291,7 +291,7 @@ class AiohttpClient:
                     url, params, self._kopfzeilen_fuer(url)
                 )
                 self._pruefen(url, antwort.status, kopf)
-                seite = await self._als_json(url, antwort)
+                seite = await self._als_json(url, kopf, antwort)
                 if not isinstance(seite, list):
                     raise ForgeFehler(f"Seite {naechste} von {url} ist keine Liste")
                 daten.extend(seite)
@@ -435,9 +435,15 @@ class AiohttpClient:
             raise ForgeFehler(f"HTTP 304 ohne ETag-Speicher: {url}")
         return self._speicher[schluessel]
 
-    async def _als_json(self, url: str, antwort: Antwort):
-        text = await antwort.text()
+    async def _als_json(self, url: str, kopf: dict[str, str], antwort: Antwort):
+        """Der JSON-Koerper, gestueckelt und gedeckelt (Codex C03,
+        Befund 3): dieselbe Obergrenze wie beim Download — ein fremder
+        oder kaputter Server darf die Instanz nicht mit einer
+        Riesen-Antwort aufdruecken. ``json.loads`` liest die Bytes und
+        versteht selbst die UTF-Familie mit Stueckliste."""
+        roh = await self._mit_grenze_lesen(url, kopf, antwort)
         try:
-            return json.loads(text)
+            return json.loads(roh)
         except ValueError as fehler:
-            raise KeinJson(f"Antwort von {url} ist kein JSON: {text[:50]!r}") from fehler
+            anfang = roh[:60].decode("utf-8", errors="replace")
+            raise KeinJson(f"Antwort von {url} ist kein JSON: {anfang!r}") from fehler
