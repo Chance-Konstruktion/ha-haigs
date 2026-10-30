@@ -169,6 +169,68 @@ async def test_plugin_mit_filename_wird_als_zip_aus_dem_release_geholt():
         assert json.loads(z.read("hacs.json"))["filename"] == "karte.js"
 
 
+def _katalog_mit_tag(last_version: str) -> dict:
+    return {
+        "203": {
+            "full_name": "baz/lovelace-karte",
+            "description": "Eine Karte",
+            "stargazers_count": 9,
+            "last_version": last_version,
+        }
+    }
+
+
+async def test_tag_mit_schraegstrich_wird_ganz_genommen():
+    """Codex C03, Befund 6: ein GitHub-Tag darf einen Schraegstrich
+    tragen (die README nennt solche Tags als unterstuetzt). Der
+    Einzeldatei-Weg schnitt den Tag am ersten Segment ab und fragte das
+    falsche Tag — hier bleibt er ganz. Die Datei liegt NUR unter
+    ``dist/`` im Tag: der Rueckgriff muss den GANZEN Tag nennen, sonst
+    schlägt er fehl."""
+    hacs = {"filename": "karte.js"}
+    f = HacsKatalogForge(
+        FakeHttp(
+            json_antworten={"/plugin/data.json": _katalog_mit_tag("v1.0/beta")},
+            dateien={
+                "raw.githubusercontent.com/baz/lovelace-karte/v1.0/beta/hacs.json": hacs,
+                "raw.githubusercontent.com/baz/lovelace-karte/v1.0/beta/dist/"
+                "karte.js": "console.log(1)",
+            },
+        )
+    )
+    release = (await f.releases("baz/lovelace-karte"))[0]
+    assert release.tag == "v1.0/beta"
+    ((name, adresse),) = release.anhaenge.items()
+    paket = await f.anhang(adresse)
+    with zipfile.ZipFile(io.BytesIO(paket)) as z:
+        assert z.read("karte.js") == b"console.log(1)"
+        assert json.loads(z.read("hacs.json"))["filename"] == "karte.js"
+
+
+async def test_tag_mit_leerzeichen_wird_gequotet():
+    """Codex C03, Befund 6: die Release-Adresse baute den Tag ungequotet
+    ein — ein Leerzeichen macht daraus eine ungueltige URL. Jetzt reist
+    er gequotet (so fragt GitHub an) und wird beim Zuruecklesen wieder
+    entpackt. Die Attrappe kennt daher die gequotete Release-Adresse."""
+    hacs = {"filename": "karte.js"}
+    f = HacsKatalogForge(
+        FakeHttp(
+            json_antworten={"/plugin/data.json": _katalog_mit_tag("release 1.0")},
+            dateien={
+                "raw.githubusercontent.com/baz/lovelace-karte/release 1.0/"
+                "hacs.json": hacs,
+                "releases/download/release%201.0/karte.js": "console.log(1)",
+            },
+        )
+    )
+    release = (await f.releases("baz/lovelace-karte"))[0]
+    ((name, adresse),) = release.anhaenge.items()
+    assert " " not in adresse, "ungequotete Adresse: " + adresse
+    paket = await f.anhang(adresse)
+    with zipfile.ZipFile(io.BytesIO(paket)) as z:
+        assert z.read("karte.js") == b"console.log(1)"
+
+
 async def test_einzeldatei_faellt_auf_dist_im_tag_zurueck():
     hacs = {"filename": "karte.js"}
     f = forge(

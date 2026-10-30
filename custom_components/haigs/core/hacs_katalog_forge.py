@@ -29,6 +29,7 @@ import zipfile
 import zlib
 from pathlib import PurePosixPath
 from typing import Any
+from urllib.parse import quote, unquote
 
 from . import entpacken
 from .entdeckung import Fund
@@ -361,7 +362,12 @@ class HacsKatalogForge:
         anhaenge: dict[str, str] = {}
         hacs = await self._hacs_json(pfad, tag)
         datei = str(hacs.get("filename") or "")
-        adresse = f"https://github.com/{pfad}/releases/download/{tag}/"
+        # Codex C03, Befund 6: der Tag reist gequotet in die Adresse
+        # (ein Leerzeichen macht daraus sonst eine ungueltige URL),
+        # Schraegstriche bleiben Schraegstriche — GitHub nennt einen
+        # Tag mit Schraegstrich als mehrere Pfadsegmente, und der
+        # Rueckweg in _einzeldatei traegt das ganze Stueck wieder heim.
+        adresse = f"https://github.com/{pfad}/releases/download/{quote(tag, safe='/')}/"
         if hacs.get("zip_release") and datei.lower().endswith(".zip"):
             anhaenge[datei] = adresse + datei
         elif datei and not hacs.get("zip_release") and tag:
@@ -414,10 +420,16 @@ class HacsKatalogForge:
 
         Gibt es sie im Release nicht, sucht die Schmiede wie HACS an den
         ueblichen Stellen des Tags (``dist/`` und Wurzel).
+
+        Codex C03, Befund 6: der Tag wird zwischen ``releases/download/``
+        und dem letzten Schraegstrich ganz gelesen — ein Tag mit
+        Schraegstrich (die README nennt solche) wurde vorher am ersten
+        Segment abgeschnitten, und ``hacs.json``-Suche wie
+        ``dist/``-Rueckgriff fragten das falsche Tag.
         """
+        roh = unquote(url).split("/releases/download/")[1]
         teile = url.split("/releases/download/")[0].removeprefix("https://github.com/")
-        tag = url.split("/releases/download/")[1].split("/", 1)[0]
-        name = url.rsplit("/", 1)[1]
+        tag, name = roh.rsplit("/", 1)
         hacs = await self._hacs_json(teile, tag)
         gewuenscht = str(hacs.get("filename") or name)
         inhalt: bytes | None = None
