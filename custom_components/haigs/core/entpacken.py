@@ -24,6 +24,7 @@ import os
 import re
 import shutil
 import stat
+import threading
 import zipfile
 import zlib
 from collections.abc import Collection, Mapping
@@ -42,6 +43,14 @@ _BLOCK = 1024 * 1024
 
 #: Ein Windows-Laufwerk als erster Teil eines Namens: ``C:`` und Verwandte.
 _LAUFWERK = re.compile(r"[A-Za-z]:")
+
+#: Die Tausch-Sperre (Codex C03, Befund 4): parallele Installationen
+#: teilten die Zwischenlager-Namen — der zweite Lauf loeschte dem
+#: ersten mit ``rmtree(neu)`` die Arbeit unterm Ruecken, und alle
+#: flachen Themes teilten ``themes.neu``. Installationen sind selten:
+#: sie laufen nacheinander, im selben Prozess wie in der Schicht von
+#: ``installation`` (der flache Weg haelt dieselbe Sperre).
+tausch_sperre = threading.Lock()
 
 
 @dataclass(frozen=True)
@@ -361,35 +370,43 @@ def installiere(
     muessen auf demselben Dateisystem liegen, sonst kann der Tausch
     nicht in einem Zug geschehen; M4b waehlt das Lager deshalb unter
     der Home-Assistant-Konfiguration.
+
+    Die Tausch-Sperre (Codex C03, Befund 4) haelt die zwei Laeufe
+    nacheinander: die Zwischenlager-Namen sind pro Zielname geteilt,
+    und ``rmtree(neu)`` zu Beginn wuerde einem gleichzeitig laufenden
+    zweiten Aufruf die Arbeit unterm Ruecken wegloeschen.
     """
     if not ziel.name or ziel.name in (".", ".."):
         raise Schreibfehler(f"untauglicher Name fuer ein Ziel: {str(ziel)!r}")
 
-    zwischenlager.mkdir(parents=True, exist_ok=True)
-    neu = zwischenlager / (ziel.name + ".neu")
-    alt = zwischenlager / (ziel.name + ".alt")
-    shutil.rmtree(neu, ignore_errors=True)
-    shutil.rmtree(alt, ignore_errors=True)
-
-    ergebnis = entpacke(archiv, neu, grenzen, nur=nur)
-
-    ziel.parent.mkdir(parents=True, exist_ok=True)
-    war_da = ziel.exists()
-    if war_da:
-        try:
-            os.replace(ziel, alt)
-        except OSError as schaden:
-            shutil.rmtree(neu)
-            raise Schreibfehler(
-                f"das bisherige Ziel laesst sich nicht wegbewegen: {schaden}"
-            ) from schaden
-    try:
-        os.replace(neu, ziel)
-    except OSError as schaden:
-        if war_da:
-            os.replace(alt, ziel)  # Rueckholung -- das Alte gilt wieder
+    with tausch_sperre:
+        zwischenlager.mkdir(parents=True, exist_ok=True)
+        neu = zwischenlager / (ziel.name + ".neu")
+        alt = zwischenlager / (ziel.name + ".alt")
         shutil.rmtree(neu, ignore_errors=True)
-        raise Schreibfehler(f"Tausch auf das Ziel gescheitert: {schaden}") from schaden
-    if war_da:
         shutil.rmtree(alt, ignore_errors=True)
-    return ergebnis
+
+        ergebnis = entpacke(archiv, neu, grenzen, nur=nur)
+
+        ziel.parent.mkdir(parents=True, exist_ok=True)
+        war_da = ziel.exists()
+        if war_da:
+            try:
+                os.replace(ziel, alt)
+            except OSError as schaden:
+                shutil.rmtree(neu)
+                raise Schreibfehler(
+                    f"das bisherige Ziel laesst sich nicht wegbewegen: {schaden}"
+                ) from schaden
+        try:
+            os.replace(neu, ziel)
+        except OSError as schaden:
+            if war_da:
+                os.replace(alt, ziel)  # Rueckholung -- das Alte gilt wieder
+            shutil.rmtree(neu, ignore_errors=True)
+            raise Schreibfehler(
+                f"Tausch auf das Ziel gescheitert: {schaden}"
+            ) from schaden
+        if war_da:
+            shutil.rmtree(alt, ignore_errors=True)
+        return ergebnis

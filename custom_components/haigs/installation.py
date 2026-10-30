@@ -377,7 +377,31 @@ def _installiere_flach(
     fruehere: tuple[str, ...],
     altbestand: bool = False,
 ) -> tuple[str, ...]:
-    """Flacher Weg fuer geteilte Wurzeln (Befund #19): je Datei.
+    """Flacher Weg fuer geteilte Wurzeln (Befund #19): je Datei — unter
+    der Tausch-Sperre.
+
+    Codex C03, Befund 4: alle flachen Themes teilen denselben
+    Zwischenlager-Namen (die geteilte Wurzel heisst immer gleich) —
+    ohne Sperre loeschte der zweite Lauf dem ersten mit ``rmtree(neu)``
+    die Arbeit unterm Ruecken. Der ganze Weg — Entpacken, Pruefungen,
+    Verteilen — ist der kritische Abschnitt; derselbe Griff wie in
+    ``entpacken.installiere``.
+    """
+    with entpacken.tausch_sperre:
+        return _installiere_flach_gesperrt(
+            archiv, zwischenlager, ziel, zuordnung, fruehere, altbestand
+        )
+
+
+def _installiere_flach_gesperrt(
+    archiv: bytes,
+    zwischenlager: Path,
+    ziel: Path,
+    zuordnung: dict[str, str],
+    fruehere: tuple[str, ...],
+    altbestand: bool = False,
+) -> tuple[str, ...]:
+    """Der flache Weg, wie er ist — der Aufrufer haelt die Tausch-Sperre.
 
     ``theme`` und ``python_script`` teilen sich ihre Wurzel mit allen
     anderen Installationen -- sie zu tauschen (wie es der Ordnerweg
@@ -404,7 +428,6 @@ def _installiere_flach(
     """
     zwischenlager.mkdir(parents=True, exist_ok=True)
     neu = zwischenlager / (ziel.name + ".neu")
-    shutil.rmtree(neu, ignore_errors=True)
     entpacke = entpacken.entpacke
     try:
         entpacke(archiv, neu, nur=zuordnung)
