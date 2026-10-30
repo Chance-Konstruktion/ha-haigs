@@ -162,7 +162,7 @@ async def test_http_forge_bekommt_das_token(
     Speicher-Host galt im Klienten still als https (Port 443), die echte
     URL traegt Port 80, und das Authorization-Kopf fehlte still. Der
     token_host reist jetzt mit dem Schema des Eintrags."""
-    attrappe = sitzung_einpflanzen([antwort(0)])
+    attrappe = sitzung_einpflanzen([antwort(0), antwort(0)])
 
     ergebnis = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": SOURCE_USER}
@@ -179,10 +179,13 @@ async def test_http_forge_bekommt_das_token(
 
     assert ergebnis["type"] is FlowResultType.CREATE_ENTRY
     assert ergebnis["data"]["schema"] == "http"
-    assert len(attrappe.abrufe) == 1
-    url, _, kopfzeilen = attrappe.abrufe[0]
-    assert url.startswith("http://gitlab.lan:8080/api/v4/")
-    assert (kopfzeilen or {}).get("Authorization") == "Bearer geheimes-ding"
+    assert attrappe.abrufe, "die Probe hat nie gefragt"
+    # DAS GESETZ: jeder Abruf zum eigenen http-Host traegt das Token —
+    # wie viele es sind (Probe, Version, ...) entscheidet der Ablauf,
+    # nicht der Test.
+    for url, _, kopfzeilen in attrappe.abrufe:
+        assert url.startswith("http://gitlab.lan:8080/api/v4/")
+        assert (kopfzeilen or {}).get("Authorization") == "Bearer geheimes-ding"
 
 
 async def test_selbstsignierte_instanz(hass: HomeAssistant, sitzung_einpflanzen) -> None:
