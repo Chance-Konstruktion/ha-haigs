@@ -10,41 +10,40 @@ Alle nennenswerten Änderungen an HAIGS. Die Versionen folgen
 - Der HACS-Katalog packt Quellarchive und Einzeldatei-Releases nicht mehr auf
   der Ereignisschleife von Home Assistant um, sondern in einem Thread. Große
   Archive ließen HA sonst kurz hängen. Hinweis aus dem Review von @frenck
-  (acs/default#11671](https://github.com/hacs/default/pull/11671)).
+  ([hacs/default#11671](https://github.com/hacs/default/pull/11671)).
 - Das Token reist nur zum Host der eingestellten Forge, nie zu fremden
-  Release-Links ([#20](https://gitlab.schanz.ipv64.net/chance-konstruktion/haigs/-/work_items/20),
+  Release-Links (#20,
   ebenfalls aus diesem Review).
 - Die Entdeckung bleibt bei einer kaputten Kategorie-Quelle nicht stehen:
   eine Quelle je Kategorie, ein Fehler je Kandidat
-  ([#22](https://gitlab.schanz.ipv64.net/chance-konstruktion/haigs/-/work_items/22)).
-- Robustheit in sieben Punkten: Sperre, kein Hartfehler, Aufräumen,
-  Takthalter, Deckel, Vorführer, Obergrenze
-  ([#23](https://gitlab.schanz.ipv64.net/chance-konstruktion/haigs/-/work_items/23)).
-- Kaputte ZIPs werden ehrlich abgewiesen statt still Verwirrung zu stiften
-  (+57 Tests dafür).
+  (#22).
+- Robustheit in sieben Punkten: Sperre gegen parallele Läufe, kein harter
+  Abbruch, Aufräumen, Intervall, Obergrenzen
+  (#23).
+- Kaputte ZIPs werden mit klarer Meldung abgewiesen (+57 Tests dafür).
 - Übersetzungen: `options.errors` in `options.error` (hassfest).
-- Optionsdialog: die Checkbox hält ihr Versprechen
-  ([#24](https://gitlab.schanz.ipv64.net/chance-konstruktion/haigs/-/work_items/24),
+- Optionsdialog: die Checkbox wirkt wie beschriftet
+  (#24,
   Punkt 3).
-- Forge-Nachheilung: das `v`-Präfix (gaming-assistant taggt `v261011`,
+- Versionen: das `v`-Präfix (gaming-assistant taggt `v261011`,
   HAIGS streicht es) und der leere Tag-Fall (spatial-matter ohne Tags).
 
 ### Neu
 - TLS-Schalter: Zertifikat prüfen kann aus — selbstsignierte Instanzen
-  ([#26](https://gitlab.schanz.ipv64.net/chance-konstruktion/haigs/-/work_items/26)).
+  (#26).
   Die Dialogbeschreibung nennt den Schalter in allen drei Sprachen.
 
 ### Intern
-- FORGEN-TEST DRIFT-ROBUST: gegen den NEUESTEN Tag zur Laufzeit gewogen —
-  dieselbe Laufzeit-Messung, ohne Datum-Falle (roter Build in !61).
-- FORMAT-HEILUNG: ruff format zahlt die CI-Wahrheit (Refs #24).
+- Forge-Integrationstest prüft gegen den neuesten Tag zur Laufzeit statt
+  gegen ein festes Datum.
+- Code mit `ruff format` vereinheitlicht (#24).
 - `requirements-dev` gepinnt, Token-Eingabe versteckt (#24 Kleinkram).
 
 ## 0.6.7.1 — 2026-10-15
 
 ### Behoben
 - Versionsnachträge werden zerlegt statt als Text verglichen
-  ([#21](https://gitlab.schanz.ipv64.net/chance-konstruktion/haigs/-/work_items/21)).
+  (#21).
   `1.0.0-rc10` gilt jetzt als neuer als `1.0.0-rc2`, `beta.11` als neuer als
   `beta.2`, und `1.2.3-10` als neuer als `1.2.3-9`. Vorher wurden solche
   Updates still übersehen. Ein rein numerischer Nachtrag wie `1.2.3-10`
@@ -102,7 +101,7 @@ Alle nennenswerten Änderungen an HAIGS. Die Versionen folgen
 ## 0.6.3 — 2026-10-08
 
 ### Geändert
-- Logo und Seitenleisten-Icon ohne fremde Markenzeichen: der Fuchskopf.
+- Logo und Seitenleisten-Icon ohne fremde Markenzeichen.
 - Lizenzhinweise in `NOTICE.md`, eigener User-Agent.
 - README mit Ein-Klick-Knöpfen für die Einrichtung.
 
