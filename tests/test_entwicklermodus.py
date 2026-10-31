@@ -1,4 +1,4 @@
-"""Flug 2101 -- der Entwicklermodus: der Kopf des Zweigs ist die Version.
+"""Der Entwicklermodus: der Kopf des Zweigs ist die Version.
 
 Wer entwickelt, will nicht auf ein Release warten. Im Entwicklermodus
 fragt der Lauf statt nach Releases nach dem juengsten Commit des

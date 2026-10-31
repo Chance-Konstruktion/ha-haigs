@@ -1,9 +1,9 @@
-"""Flug 2098/2100 -- der Zustands-Hinweis im Panel.
+"""Der Zustands-Hinweis im Panel.
 
 Das Panel ist eine Datei fuer den Browser; was davon in Python pruefbar
 ist, sind die Verdrahtungen: die Klassen, die Knopf-Aktion, der Weg in
 den Einrichtungsdialog und die Texte beider Sprachen. Dasselbe Mittel
-wie bei Markenbild und Fusszeile (Flug 2092, 2097) -- gelesen wird die
+wie bei Markenbild und Fusszeile -- gelesen wird die
 Datei, nicht geraten.
 """
 
@@ -39,7 +39,7 @@ def test_hinzufuegen_fuehrt_zu_geraete_und_diensten() -> None:
 
     Der Weg: die Seite von Geräte & Dienste -- der Einrichtungsdialog
     des Frontend laesst sich von aussen nicht vorbelegen (der Router
-    kuerzt /add?domain= still, bewiesen in Flug 2098).
+    kuerzt /add?domain= still).
     """
     text = panel_text()
     assert 'i.zustand === "hinzufuegen"' in text

@@ -183,7 +183,7 @@ class HaigsAktualisierer(DataUpdateCoordinator[dict[str, Fund]]):
 
     @property
     def entwicklermodus(self) -> bool:
-        """Steht die Instanz im Entwicklermodus (Flug 2101)?"""
+        """Steht die Instanz im Entwicklermodus?"""
         eintrag = self.config_entry
         return bool(eintrag is not None and eintrag.options.get(CONF_ENTWICKLERMODUS))
 

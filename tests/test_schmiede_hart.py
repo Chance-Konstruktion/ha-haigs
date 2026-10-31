@@ -1,7 +1,7 @@
-"""Die Schmiede unter feindlichem Beschuss (Flug 2093).
+"""Die Schmiede unter feindlichem Beschuss.
 
-Captive Portale, Proxe und halbtote Server: die Auto-Erkennung darf
-luegen, aber nicht raten. Bis Flug 2093 stand der 200-mit-HTML-Fall
+Captive Portale, Proxys und halbtote Server: die Auto-Erkennung darf
+luegen, aber nicht raten. Frueher stand der 200-mit-HTML-Fall
 beim verriegelten GitLab-Tor mit drin -- jeder Hotspot zwischen
 Home Assistant und der Welt waere als GitLab ausgegeben worden.
 Jetzt sagt die Schmiede: kein JSON, kein Anbieter, Hand-Wahl.

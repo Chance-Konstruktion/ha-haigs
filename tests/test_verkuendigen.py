@@ -36,7 +36,7 @@ WURZEL = Path(__file__).resolve().parents[1]
 
 #: Version und Tag des ausgecheckten Standes -- aus der manifest.json
 #: gelesen, nie von Hand gepflegt. Diese Pruefungen laufen bei JEDEM
-#: Release-Schnitt weiter (Befund Flug 2082: die hartcodierte Version
+#: Release-Schnitt weiter (die hartcodierte Version
 #: brach die Bahn bei jedem Bump und verdaechtigte den Schnitt).
 VERSION = lies_version(WURZEL)
 TAG = f"v{VERSION}"

@@ -1,6 +1,6 @@
 """Die Sichtbarkeit installierter Integrationen in Home Assistant.
 
-Flug 2098 -- die HA-Haelfte von :mod:`core.sichtbarkeit`. Der Zustands-
+Die HA-Haelfte von :mod:`core.sichtbarkeit`. Der Zustands-
 Chip je Karte entsteht hier aus Home Assistants eigener Wahrheit:
 
 * **Neustart ausstehend?** Das Issue-Register fuehrt Buch: die

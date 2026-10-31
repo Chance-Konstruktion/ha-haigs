@@ -253,13 +253,13 @@ class ForgeAttrappe:
         return self.archiv_bytes
 
 
-def integrations_archiv(domain: str = "bienentanz") -> bytes:
+def integrations_archiv(domain: str = "beispielint") -> bytes:
     """Ein Archiv in der ueblichen HACS-Form, mit ``manifest.json``."""
     puffer = io.BytesIO()
     with zipfile.ZipFile(puffer, "w") as zip_datei:
         zip_datei.writestr(
             f"projekt-v1.2.0/custom_components/{domain}/manifest.json",
-            json.dumps({"domain": domain, "name": "Bienentanz", "version": "1.2.0"}),
+            json.dumps({"domain": domain, "name": "Beispiel", "version": "1.2.0"}),
         )
     return puffer.getvalue()
 
@@ -285,7 +285,7 @@ async def test_zielname_der_integration_wird_im_vorfuehrer_gelesen(monkeypatch, 
     forge = ForgeAttrappe(integrations_archiv())
     eintrag = SimpleNamespace(
         kategorie="integration",
-        identitaet=SimpleNamespace(full_name="foo/bienentanz"),
+        identitaet=SimpleNamespace(full_name="foo/beispielint"),
     )
 
     ergebnis = await installiere_version(hass, forge, eintrag, "v1.2.0")
@@ -293,4 +293,4 @@ async def test_zielname_der_integration_wird_im_vorfuehrer_gelesen(monkeypatch, 
     schleifen_faden = threading.current_thread()
     assert faeden, "der Zielname muss berechnet werden"
     assert faeden[0] is not schleifen_faden, "der Zielname gehoert in den Vorfuehrer"
-    assert ergebnis.pfad == PurePosixPath("custom_components/bienentanz")
+    assert ergebnis.pfad == PurePosixPath("custom_components/beispielint")

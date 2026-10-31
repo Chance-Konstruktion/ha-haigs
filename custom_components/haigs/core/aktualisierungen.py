@@ -38,7 +38,7 @@ class Pruefauftrag:
     pfad: str
     installiert: str = ""
     mit_vorabversionen: bool = False
-    #: Flug 2101, Entwicklermodus: statt Releases zaehlt der Kopf eines
+    #: Entwicklermodus: statt Releases zaehlt der Kopf eines
     #: Zweigs. Leer heisst: der Standardzweig des Projekts.
     entwicklung: bool = False
     zweig: str = ""
@@ -132,7 +132,7 @@ def zweig_version(zweig: str, sha: str) -> str:
 
 
 async def _pruefe_zweig(forge: Forge, auftrag: Pruefauftrag) -> Fund:
-    """Der Entwicklermodus (Flug 2101): der Kopf des Zweigs ist die Version.
+    """Der Entwicklermodus: der Kopf des Zweigs ist die Version.
 
     Kein Release, kein Tag -- wer entwickelt, will den Stand von eben
     testen. Die Version heisst ``zweig@sha7``, der volle SHA ist der Ref

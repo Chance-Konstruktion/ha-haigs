@@ -1,4 +1,4 @@
-"""Der Neustart-Hinweis fuer Integrationen (Stufe M4b, Flug 2098).
+"""Der Neustart-Hinweis fuer Integrationen (Stufe M4b).
 
 Home Assistant laedt ``custom_components`` beim Start -- Dateien, die
 danach erscheinen oder verschwinden, aendern am laufenden nichts.
@@ -7,8 +7,8 @@ Integration ein Hinweis auf dem Reparatur-Brett; er verschwindet, sobald
 der Neustart passiert ist (das Laden der Komponente raeumt jeden
 Neustart-Hinweis ab, siehe ``__init__.py``).
 
-Flug 2098 haengt zwei Stuecke dazu, weil der Imker-Befund lautete:
-installierte Repos sind unter «Geräte & Dienste» nicht zu finden.
+Zwei Stuecke kommen dazu, weil installierte Repos unter
+«Geräte & Dienste» nicht zu finden sind.
 
 * **Die dauerhafte Benachrichtigung.** Das Reparatur-Brett ist ehrlich,
   aber man muss es besuchen. Die Benachrichtigung ( Glocke im Kopf der
@@ -98,7 +98,7 @@ def _benachrichtige(
     aktion: str,
     mit_dialog: bool | None,
 ) -> None:
-    """Die dauerhafte Meldung -- Glocke statt Brett (Flug 2098)."""
+    """Die dauerhafte Meldung -- Glocke statt Brett."""
     name = eintrag.anzeigename
     deutsch = str(hass.config.language or "").lower().startswith("de")
     if aktion == "installation":

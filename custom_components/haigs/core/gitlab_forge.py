@@ -132,7 +132,7 @@ class GitLabForge:
         return [t["name"] for t in roh or [] if t.get("name")]
 
     async def zweig_stand(self, pfad: str, zweig: str) -> Commit:
-        """Kopf eines Zweigs ueber die Branches-API (Flug 2101)."""
+        """Kopf eines Zweigs ueber die Branches-API."""
         roh = await self._json(
             self.api
             + "/projects/"

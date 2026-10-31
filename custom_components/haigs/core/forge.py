@@ -62,7 +62,7 @@ class RepositoryInfo:
     web_url: str = ""
     tickets_url: str = ""
     releases_url: str = ""
-    #: Adresse des Bildzeichens des Projekts (Flug 2084: der Laden
+    #: Adresse des Bildzeichens des Projekts (der Laden
     #: zeigt die Zeichen seiner Karten). Anbieter ohne Bild lassen
     #: das Feld leer; die Oberflaeche faellt auf einen Buchstaben
     #: zurueck, nicht auf ein kaputtes Bild.
@@ -141,7 +141,7 @@ class Forge(Protocol):
         """
 
     async def zweig_stand(self, pfad: str, zweig: str) -> Commit:
-        """Der juengste Commit eines Zweigs (Flug 2101, Entwicklermodus).
+        """Der juengste Commit eines Zweigs (Entwicklermodus).
 
         Wer entwickelt, will nicht auf ein Release warten: der Kopf des
         Zweigs ist dann die Version, sein SHA der Ref fuer das Archiv.

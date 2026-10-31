@@ -139,8 +139,8 @@ class TorVerriegelt(ForgeFehler):
     Nur dieser Fall duerfen die Schmiede als "hier wohnt ein GitLab"
     lesen: GitLab verschliesst seine Versionsfrage, Gitea und Forgejo
     404en sie. Ein 500 oder ein 429 ist KEIN Beweis fuer GitLab --
-    bis Flug 2093 zaehlte jeder ForgeFehler als verriegeltes Tor,
-    und ein halbtoter Server haette als GitLab gegolten.
+    wird jeder ForgeFehler als verriegeltes Tor gezaehlt, gilt ein
+    halbtoter Server still als GitLab.
     """
 
 

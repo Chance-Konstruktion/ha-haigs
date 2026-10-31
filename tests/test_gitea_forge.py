@@ -1,6 +1,6 @@
 """Gitea-Client -- die Tochter von Forgejo, geprueft ohne Netz.
 
-Zwei Dinge unterscheidet die Tochter von der Mutter (Flug 2088): der
+Zwei Dinge unterscheidet die Tochter von der Mutter: der
 Name und der ``topic``-Parameter der Stichwortsuche. Diese Pruefungen
 halten beide fest -- und vor allem das Erbe: alles, was die Mutter
 gegen echte Codeberg-Aufzeichnungen bewiesen hat, gilt unveraendert

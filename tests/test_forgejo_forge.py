@@ -88,7 +88,7 @@ async def test_stammdaten_kommen_vollstaendig_an():
 
 @pytest.mark.asyncio
 async def test_stammdaten_nennen_das_bildzeichen():
-    """Flug 2084: das Zeichen des Projekts -- oder leer, nie geraten."""
+    """Das Zeichen des Projekts -- oder leer, nie geraten."""
     http = FakeHttp(
         json_antworten={
             "/repos/foo/bar": forgejo_repo(avatar_url="https://" + HOST + "/avatars/42")
@@ -264,7 +264,7 @@ async def test_untergruppen_sind_ein_akzeptiertes_no_op():
 
 @pytest.mark.asyncio
 async def test_stichwort_ersetzt_das_suchwort_topic_bleibt_scharf():
-    """Flug 2091: die Kopfsuche -- das Wort tritt als ``q`` an die
+    """Die Kopfsuche -- das Wort tritt als ``q`` an die
     Stelle des Themennamens; die exakte Themen-Filterung laeuft danach
     trotzdem, genau wie ohne Stichwort."""
     antwort = {

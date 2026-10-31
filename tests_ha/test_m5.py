@@ -165,7 +165,7 @@ async def test_neues_release_erscheint_ohne_zutun(
         [eintrag_daten()],
         stand={STORAGE_KEY: {"installiert": "1.1.0", "vorabversionen": False}},
     )
-    # Beim Vorlauf um den Takt feuert der Lager-Start von Flug 2084
+    # Beim Vorlauf um den Takt feuert der Lager-Start
     # zuerst (sein Termin liegt frueher), danach der Aktualisierer
     # (der Herzschlag ist fuer diesen Test stillgelegt, s. o.).
     # Der Lager-Lauf fragt die Zeile ueber die ID und durchsucht dann

@@ -1,6 +1,6 @@
-"""Das Lager: der Zwischenspeicher des Ladens (Flug 2084).
+"""Das Lager: der Zwischenspeicher des Ladens.
 
-Der Befund des Imkers war unmissverstaendlich: der Laden ging leer
+Der Befund war unmissverstaendlich: der Laden ging leer
 auf -- beim Betreten stand nichts da, bis jemand den Knopf drueckte,
 und nach dem Neustart war alles weg. Die Liste haengt aber nicht am
 Takt des Aktualisierers: sie soll voll sein, wenn jemand sie betritt.
@@ -123,7 +123,7 @@ def zeile_aus_eintrag(
     staende = getattr(laufzeit, "staende", None)
     stand = staende.stand(eintrag.storage_key) if staende is not None else None
     zeile["installiert"] = stand.installiert if stand else ""
-    # Flug 2098: der verzeichnete Zielweg reist mit -- die Sichtbarkeit
+    # Der verzeichnete Zielweg reist mit -- die Sichtbarkeit
     # (Zustand der Installation: Neustart? geladen? eingerichtet?) liest
     # ihn, ohne die Ablage selbst zu befragen. Fehlt er, bleibt er leer
     # -- installiert vor Stufe M4b, der Zustand heisst dann "ungewiss".
@@ -242,7 +242,7 @@ class Lager(DataUpdateCoordinator[dict[str, Any]]):
 
     @callback
     def _async_refresh_finished(self) -> None:
-        """Der Takt bleibt scharf, auch ohne Zuhoerer (Flug 2084).
+        """Der Takt bleibt scharf, auch ohne Zuhoerer.
 
         Der Koordinator von Home Assistant haengt seinen Takt an
         Zuhoerer -- Entities, die zuhoeren wollen. Das Lager hat keine:
@@ -487,7 +487,7 @@ class Lager(DataUpdateCoordinator[dict[str, Any]]):
     ) -> None:
         """Der Stand einer Zeile zieht nach (Deinstallation, Stufe M4b).
 
-        Flug 2098: ``zielweg`` None laesst den Weg stehen (Installation
+        ``zielweg`` None laesst den Weg stehen (Installation
         kennt ihn, die Deinstallation loescht ihn mit). Beide Felder
         wandern zusammen -- ein Weg ohne Version waer gelogen, eine
         Version ohne Weg heisst "ungewiss".

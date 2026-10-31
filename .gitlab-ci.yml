@@ -59,7 +59,8 @@ tests:
 # Ort, an dem beide Pakete zusammengehoeren.
 # Das VOLLE python:3.13-Image ist Absicht: slim hat keinen gcc, und
 # lru-dict (Home-Assistant-Abhaengigkeit, C-Erweiterung) baut sonst
-# nicht -- derselbe Sturz wie einst im alten haigs (Flug 0643 dort).
+# nicht -- derselbe Sturz, den der Vorgaenger des Projekts schon
+# einmal hatte.
 tests-homeassistant:
   <<: *ueberall
   stage: test

@@ -25,7 +25,7 @@ GITEA = "gitea"
 #: ``*forge`` -- vom Anbieternamen abgeleitet, in der Liste ebenso
 #: lesbar wie ``*lab`` und von ihm unterscheidbar. Gitea traegt
 #: ``*gitea``: Schwester der Forgejo-Familie in der API, aber eigene
-#: Software -- eigenes Suffix (Flug 2088).
+#: Software -- eigenes Suffix.
 SUFFIX = {
     GITHUB: "",
     GITLAB: "*lab",

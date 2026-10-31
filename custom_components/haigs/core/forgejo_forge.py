@@ -84,7 +84,7 @@ class ForgejoForge:
     provider = FORGEJO
 
     #: Schaltet, ob die Stichwortsuche den Parameter ``topic=true``
-    #: mitschickt. Gitea (die Schwester, Flug 2088) ehrt ihn und setzt
+    #: mitschickt. Gitea (die Schwester) ehrt ihn und setzt
     #: ihn; Forgejo ignoriert ihn -- gemessen an codeberg.org, der
     #: Referenzinstanz -- und laesst ihn weg. Die exakte Filterung auf
     #: ``topics`` geschieht in beiden Faellen client-seitig; der
@@ -194,7 +194,7 @@ class ForgejoForge:
         return [t["name"] for t in roh or [] if t.get("name")]
 
     async def zweig_stand(self, pfad: str, zweig: str) -> Commit:
-        """Kopf eines Zweigs ueber ``/repos/{pfad}/branches/{zweig}`` (Flug 2101)."""
+        """Kopf eines Zweigs ueber ``/repos/{pfad}/branches/{zweig}``."""
         roh = await self._json(
             self.api + "/repos/" + _kodiere(pfad) + "/branches/" + quote(zweig, safe="")
         )

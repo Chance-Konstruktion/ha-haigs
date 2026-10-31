@@ -1,10 +1,10 @@
 """Die Schmiede: der eine Ort, an dem Anbieter zu Forges werden.
 
 Bisher stand ``GitLabForge(...)`` an zwei Stellen (Einrichtungsdialog
-und Geruest) -- ein dritter Anbieter haette beide geaendert. Flug 2088
-zuegt das an einen Ort: :func:`schmiede` nimmt Klient, Host und
+und Geruest) -- ein dritter Anbieter haette beide geaendert. Die
+Schmiede zuegt das an einen Ort: :func:`schmiede` nimmt Klient, Host und
 Anbieternamen und liefert die passende Klasse. Kennt ein Eintrag
-keinen Anbieter (alle aus der Zeit vor Flug 2088), gilt GitLab --
+keinen Anbieter (aeltere Eintraege), gilt GitLab --
 das war vorher die einzige Schmiedung, also bleibt das Verhalten
 dieselben.
 
@@ -126,13 +126,13 @@ async def erkenne(klient: HttpClient, host: str, schema: str = "https") -> str:
         # 200, aber HTML statt JSON: ein Captive Portal oder ein Proxy
         # sitzt vor der Adresse. Das ist KEIN GitLab -- frueher stand
         # dieser Fall beim "verriegelten Tor" mit drin und machte aus
-        # jedem Hotspot ein angebliches GitLab (Flug 2093).
+        # jedem Hotspot ein angebliches GitLab.
         pass
     except TorVerriegelt:
         # Das Tor ist da, aber verriegelt (401/403): nur GitLab
         # verschliesst seine Versionsfrage; Gitea und Forgejo 404en
         # einen Pfad, den es fuer sie nicht gibt. Ein 500 oder 429
-        # ist KEIN Beweis -- der fliegt ehrlich weiter (Flug 2093).
+        # ist KEIN Beweis -- der Fehler wird ehrlich weitergereicht.
         return GITLAB
     else:
         if isinstance(antwort, dict):

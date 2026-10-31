@@ -23,7 +23,7 @@ ERWARTET = {"gitea": GITEA, "forgejo": FORGEJO}
 #: gegen den NEUESTEN TAG des migrierten Repos gewogen, nicht gegen
 #: eine gepinnte Zahl: die Saat migriert echte Repos aus dem eigenen
 #: GitLab -- jeder neue Tag dort (261008 -> 261016, 17.10.) liesse
-#: eine Pin altern und den Job rot stehen (Flug 2820, roter Build
+#: eine Pin altern und den Job rot stehen (roter Build
 #: in MR !61, Pipeline 23970/23972).
 SAAT = (
     "haigs/ha-powerline",
