@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090b0e">
+  <meta name="description" content="HAIGS bringt GitLab, Forgejo und Gitea als eigenen Store nach Home Assistant. Mehrere Instanzen, Repository-Entdeckung und sichere Updates – ohne HACS-Fork.">
+  <meta name="author" content="HAIGS contributors">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="HAIGS">
+  <meta property="og:title" content="HAIGS — Deine Forge. Deine Regeln.">
+  <meta property="og:description" content="Dein Home-Assistant-Store für GitLab, Forgejo und Gitea.">
+  <meta property="og:url" content="https://chance-konstruktion.github.io/ha-haigs/">
+  <meta property="og:image" content="https://chance-konstruktion.github.io/ha-haigs/assets/haigs-logo.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="canonical" href="https://chance-konstruktion.github.io/ha-haigs/">
+  <link rel="icon" href="assets/mark.svg" type="image/svg+xml">
+  <link rel="preload" href="assets/haigs-logo.png" as="image" type="image/png">
+  <link rel="stylesheet" href="assets/site.css">
+  <title>HAIGS — Deine Forge. Deine Regeln.</title>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "HAIGS",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "Home Assistant",
+    "license": "https://github.com/Chance-Konstruktion/ha-haigs/blob/main/LICENSE",
+    "url": "https://chance-konstruktion.github.io/ha-haigs/",
+    "downloadUrl": "https://github.com/Chance-Konstruktion/ha-haigs/releases",
+    "description": "A Home Assistant store for repositories hosted on GitLab, Gitea and Forgejo. Works alongside HACS."
+  }
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main" data-i18n="skip">Zum Inhalt springen</a>
+  <div class="ambient ambient-one" aria-hidden="true"></div>
+  <div class="ambient ambient-two" aria-hidden="true"></div>
+  <div class="grid-noise" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <div class="nav-wrap">
+      <a class="brand" href="#top" aria-label="HAIGS Startseite">
+        <img src="assets/haigs-logo.png" alt="" width="42" height="42">
+        <span class="brand-copy"><strong>HAIGS</strong><small>HOME ASSISTANT · GIT STORAGE</small></span>
+      </a>
+      <button class="mobile-menu" type="button" aria-expanded="false" aria-controls="primary-nav" aria-label="Menü öffnen"><span></span><span></span></button>
+      <nav id="primary-nav" class="primary-nav" aria-label="Hauptnavigation">
+        <a href="#vision" data-i18n="nav_vision">Warum HAIGS</a>
+        <a href="#features" data-i18n="nav_features">Funktionen</a>
+        <a href="#safety" data-i18n="nav_safety">Sicherheit</a>
+        <a href="#install" data-i18n="nav_install">Installation</a>
+      </nav>
+      <div class="nav-actions">
+        <button class="language-switch" type="button" data-language-toggle aria-label="Switch language">EN</button>
+        <a class="nav-github" href="https://github.com/Chance-Konstruktion/ha-haigs" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .8a11.2 11.2 0 0 0-3.54 21.83c.56.1.77-.24.77-.54v-2.1c-3.14.68-3.8-1.33-3.8-1.33-.51-1.3-1.25-1.65-1.25-1.65-1.02-.7.08-.69.08-.69 1.13.08 1.72 1.16 1.72 1.16 1 .1.75 1.4 2.8 1.06.1-.72.4-1.2.72-1.48-2.5-.28-5.13-1.25-5.13-5.58 0-1.23.44-2.24 1.16-3.03-.12-.28-.5-1.43.1-2.98 0 0 .95-.3 3.08 1.16a10.7 10.7 0 0 1 5.6 0c2.13-1.45 3.08-1.16 3.08-1.16.61 1.55.23 2.7.11 2.98.72.79 1.15 1.8 1.15 3.03 0 4.34-2.63 5.3-5.14 5.58.4.35.76 1.03.76 2.08v3.1c0 .3.2.65.78.54A11.2 11.2 0 0 0 12 .8Z"/></svg><span>GitHub</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero section-wrap" id="top">
+      <div class="hero-copy">
+        <div class="eyebrow"><span class="pulse-dot"></span><span data-i18n="hero_eyebrow">OPEN SOURCE · HOME ASSISTANT INTEGRATION</span></div>
+        <h1><span data-i18n="hero_title_a">Deine Forge.</span><span class="orange-text" data-i18n="hero_title_b">Deine Regeln.</span></h1>
+        <p class="hero-lead" data-i18n="hero_lead">Der Store für Home Assistant, der dort sucht, wo dein Code lebt: GitLab, Forgejo und Gitea.</p>
+        <p class="hero-sub" data-i18n="hero_sub">Entdecken, installieren und aktualisieren – in einer Oberfläche, nativ in Home Assistant. Und HACS bleibt genau dort, wo es ist.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="#install"><span data-i18n="hero_cta">HAIGS entdecken</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></a>
+          <a class="button button-quiet" href="https://github.com/Chance-Konstruktion/ha-haigs" target="_blank" rel="noopener noreferrer"><span data-i18n="hero_github">Repository ansehen</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></a>
+        </div>
+        <div class="hero-proof">
+          <span><i class="proof-check">✓</i><span data-i18n="proof_native">Native HA-Integration</span></span>
+          <span><i class="proof-check">✓</i><span data-i18n="proof_parallel">Läuft neben HACS</span></span>
+          <span><i class="proof-check">✓</i><span data-i18n="proof_license">MIT-Lizenz</span></span>
+        </div>
+      </div>
+
+      <div class="hero-art" aria-label="Schematische Vorschau des HAIGS-Stores">
+        <div class="orbit orbit-a" aria-hidden="true"></div><div class="orbit orbit-b" aria-hidden="true"></div>
+        <div class="orbit-node node-one" aria-hidden="true"></div><div class="orbit-node node-two" aria-hidden="true"></div>
+        <div class="store-window">
+          <div class="window-top"><div class="window-dots"><b></b><b></b><b></b></div><span class="window-title">HAIGS <span>/</span> STORE</span><span class="window-live"><i></i> <span data-i18n="preview_live">VORSCHAU</span></span></div>
+          <div class="store-toolbar">
+            <div><span class="micro-label" data-i18n="preview_sources">QUELLEN</span><div class="source-pills"><span class="source-pill gitlab-pill">GitLab</span><span class="source-pill forgejo-pill">Forgejo</span><span class="source-pill gitea-pill">Gitea</span></div></div>
+            <div class="store-total"><strong>03</strong><small data-i18n="preview_repos">BEISPIELE</small></div>
+          </div>
+          <div class="store-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg><span data-i18n="preview_search">Repositories durchsuchen …</span><kbd>⌘ K</kbd></div>
+          <div class="store-filters" aria-label="Demo filter">
+            <button class="filter-button is-active" type="button" data-demo-filter="all" data-i18n="demo_all">Alle</button>
+            <button class="filter-button" type="button" data-demo-filter="integration" data-i18n="demo_integrations">Integrationen</button>
+            <button class="filter-button" type="button" data-demo-filter="theme" data-i18n="demo_themes">Themes</button>
+            <label class="dev-toggle"><span data-i18n="demo_dev">Entwicklermodus</span><input type="checkbox" data-demo-dev><i aria-hidden="true"></i></label>
+          </div>
+          <div class="store-table-head"><span data-i18n="preview_project">PROJEKT</span><span data-i18n="preview_source">QUELLE</span><span data-i18n="preview_state">STATUS</span></div>
+          <div class="repo-row" data-demo-kind="integration"><div class="repo-ident"><span class="repo-avatar avatar-solar">S</span><span><strong>solar-forecast</strong><small>custom_components / integration</small></span></div><span class="repo-origin"><i class="origin-dot gitlab-dot"></i>GitLab</span><span class="repo-state state-update" data-demo-version>Update</span></div>
+          <div class="repo-row" data-demo-kind="integration"><div class="repo-ident"><span class="repo-avatar avatar-zigbee">Z</span><span><strong>zigbee-toolkit</strong><small>custom_components / integration</small></span></div><span class="repo-origin"><i class="origin-dot forgejo-dot"></i>Forgejo</span><span class="repo-state state-installed" data-i18n="preview_installed">Installiert</span></div>
+          <div class="repo-row" data-demo-kind="theme"><div class="repo-ident"><span class="repo-avatar avatar-orbit">O</span><span><strong>orbit-dashboard</strong><small>www / dashboard</small></span></div><span class="repo-origin"><i class="origin-dot gitea-dot"></i>Gitea</span><span class="repo-state state-new" data-i18n="preview_new">Neu</span></div>
+          <div class="store-bottom"><span><i class="status-led"></i><span data-i18n="preview_connected">3 Quellen verbunden</span></span><span class="preview-note" data-i18n="preview_note">SCHEMATISCH · KEINE LIVE-DATEN</span></div>
+        </div>
+        <div class="floating-tag tag-one"><span class="tag-icon">↻</span><span><b data-i18n="float_update">Automatische Updates</b><small data-i18n="float_interval">Dein Intervall. Dein Takt.</small></span></div>
+        <div class="floating-tag tag-two"><span class="tag-icon tag-lock">⌑</span><span><b data-i18n="float_safe">Sicher entpackt</b><small data-i18n="float_archive">Geprüft vor dem Schreiben</small></span></div>
+      </div>
+      <div class="hero-bottomline"><span data-i18n="hero_bottom">DIE QUELLEN, DIE DU SELBST BETREIBST.</span><div class="forge-wordmarks"><span class="forge-wordmark gitlab-word">GitLab</span><span class="forge-divider"></span><span class="forge-wordmark forgejo-word">Forgejo</span><span class="forge-divider"></span><span class="forge-wordmark gitea-word">Gitea</span><span class="forge-divider"></span><span class="forge-wordmark codeberg-word">Codeberg</span></div></div>
+    </section>
+
+    <section class="signal-strip" aria-label="HAIGS auf einen Blick"><div class="signal-grid section-wrap">
+      <div class="signal-item"><strong>01<span>/</span></strong><span data-i18n="signal_one">Ein Store. Mehrere Schmieden.</span></div>
+      <div class="signal-item"><strong>∞</strong><span data-i18n="signal_two">Instanzen ohne künstliches Limit</span></div>
+      <div class="signal-item"><strong>0</strong><span data-i18n="signal_three">HACS-Forks oder HACS-Patches</span></div>
+      <div class="signal-item"><strong>100<span>%</span></strong><span data-i18n="signal_four">Open Source · MIT</span></div>
+    </div></section>
+
+    <section class="section-wrap section-space vision-section" id="vision">
+      <div class="section-index"><span>01</span><i></i><span data-i18n="section_vision">DIE IDEE</span></div>
+      <div class="vision-grid">
+        <div class="vision-heading reveal"><p class="section-kicker" data-i18n="vision_kicker">DEIN CODE. DEINE INFRASTRUKTUR.</p><h2 data-i18n="vision_title">Home Assistant sollte nicht vorschreiben, wo du deinen Code hostest.</h2></div>
+        <div class="vision-copy reveal"><p data-i18n="vision_copy">Viele gute Integrationen, Plugins und Themes leben auf selbst gehosteten Git-Servern oder Codeberg. HAIGS bringt sie in einen Store, der sich in Home Assistant zu Hause fühlt – ohne eine zweite Welt neben deiner bestehenden Installation aufzubauen.</p><div class="vision-note"><span class="note-mark">↗</span><span data-i18n="vision_note">HACS bleibt installiert. HAIGS ergänzt es – nicht mehr und nicht weniger.</span></div><a class="text-link" href="https://github.com/Chance-Konstruktion/ha-haigs/blob/main/docs/features.md" target="_blank" rel="noopener noreferrer"><span data-i18n="vision_link">Alle Funktionen im Detail ↗</span></a></div>
+      </div>
+      <div class="quote-line reveal"><span class="quote-mark">“</span><p data-i18n="quote">Ein Zuhause für Projekte, die nicht auf GitHub wohnen.</p><span class="quote-by">— HAIGS</span></div>
+    </section>
+
+    <section class="section-wrap section-space features-section" id="features">
+      <div class="section-index"><span>02</span><i></i><span data-i18n="section_features">WAS DRINSTECKT</span></div>
+      <div class="section-heading-row reveal"><div><p class="section-kicker" data-i18n="features_kicker">MEHR ALS EIN DOWNLOAD-KNOPF</p><h2 data-i18n="features_title">Ein Store mit Substanz.</h2></div><p data-i18n="features_intro">Vom ersten Verbindungsversuch bis zur sauberen Deinstallation: HAIGS denkt den ganzen Lebenszyklus mit.</p></div>
+
+      <div class="feature-grid">
+        <article class="feature-card feature-large reveal">
+          <div class="feature-top"><span class="feature-number">01</span><span class="feature-icon icon-forge">⌘</span></div>
+          <div class="feature-visual forge-visual"><div class="forge-node"><span class="node-symbol">G</span><small>GITLAB</small></div><div class="forge-node"><span class="node-symbol">F</span><small>FORGEJO</small></div><div class="forge-node"><span class="node-symbol">g</span><small>GITEA</small></div><div class="flow-lines"><i></i><i></i><i></i><b></b></div><div class="home-node"><img src="assets/mark.svg" alt="" width="30" height="30"><small>HOME ASSISTANT</small></div></div>
+          <h3 data-i18n="feature_forge_title">Deine Forge. Ein Store.</h3><p data-i18n="feature_forge_copy">GitLab, Forgejo und Gitea – öffentlich oder selbst gehostet. Beliebig viele Instanzen, jeweils mit eigenem Anbieter, Token und Prüfintervall.</p><div class="feature-tags"><span>GitLab</span><span>Forgejo</span><span>Gitea</span></div>
+        </article>
+        <article class="feature-card reveal"><div class="feature-top"><span class="feature-number">02</span><span class="feature-icon">◎</span></div><div class="feature-graphic search-graphic"><span class="search-ring"></span><span class="search-cross">+</span><span class="search-chip chip-a">topic: hacs</span><span class="search-chip chip-b">hacs-theme</span><span class="search-chip chip-c">hacs-plugin</span></div><h3 data-i18n="feature_discovery_title">Finden statt abtippen.</h3><p data-i18n="feature_discovery_copy">Entdecke Projekte über das Topic hacs. Die passende hacs.json wird geprüft; die Aufnahme bleibt deine Entscheidung.</p></article>
+        <article class="feature-card reveal"><div class="feature-top"><span class="feature-number">03</span><span class="feature-icon">↻</span></div><div class="feature-graphic version-graphic"><div class="version-line"><span>v1.4.1</span><i></i><span class="version-new">v1.5.0</span></div><div class="version-badge"><b>↑</b><span data-i18n="version_available">UPDATE VERFÜGBAR</span></div></div><h3 data-i18n="feature_updates_title">Updates im richtigen Takt.</h3><p data-i18n="feature_updates_copy">Eine Update-Entity pro Repository. Releases haben Vorrang, Tags sind der Rückfall – Vorabversionen bleiben optional.</p></article>
+        <article class="feature-card reveal"><div class="feature-top"><span class="feature-number">04</span><span class="feature-icon">◈</span></div><div class="feature-graphic branch-graphic"><div class="branch-main">main <span>●</span></div><div class="branch-path"><i></i><i></i><i></i></div><div class="branch-build"><b>HEAD</b><small>1a2b3c4</small></div></div><h3 data-i18n="feature_dev_title">Direkt auf den Entwicklungszweig.</h3><p data-i18n="feature_dev_copy">Der Entwicklermodus installiert auf Wunsch den neuesten Stand des Standardzweigs – ideal zum Testen eigener Arbeit, getrennt je Instanz.</p></article>
+        <article class="feature-card feature-wide reveal"><div class="feature-top"><span class="feature-number">05</span><span class="feature-icon">▤</span></div><div class="wide-feature-content"><div><h3 data-i18n="feature_panel_title">Fühlt sich in Home Assistant zu Hause an.</h3><p data-i18n="feature_panel_copy">Native Seitenleiste, HACS-vertraute Tabellenansicht, Suche, Filter, Gruppierung, Detailseiten mit README und Releases – inklusive Statushinweisen nach der Installation.</p></div><div class="mini-table"><div><span>solar-forecast</span><b class="mini-green" data-i18n="mini_ready">Aktuell</b></div><div><span>zigbee-toolkit</span><b class="mini-orange" data-i18n="mini_update">Update</b></div><div><span>orbit-dashboard</span><b class="mini-blue" data-i18n="mini_new">Neu</b></div></div></div></article>
+        <article class="feature-card reveal"><div class="feature-top"><span class="feature-number">06</span><span class="feature-icon">＋</span></div><div class="feature-graphic catalog-graphic"><div class="catalog-counter"><strong>HACS</strong><small data-i18n="catalog_source">KATALOGQUELLE</small></div><div class="catalog-orbit"><i></i><i></i><i></i></div></div><h3 data-i18n="feature_catalog_title">HACS-Katalog optional dabei.</h3><p data-i18n="feature_catalog_copy">Schalte den offiziellen HACS-Katalog als zusätzliche Quelle frei. Ein Store in der Seitenleiste reicht – HACS selbst bleibt unangetastet.</p></article>
+      </div>
+    </section>
+
+    <section class="flow-section"><div class="section-wrap section-space">
+      <div class="section-index"><span>03</span><i></i><span data-i18n="section_flow">DER ABLAUF</span></div>
+      <div class="section-heading-row reveal"><div><p class="section-kicker" data-i18n="flow_kicker">WENIGE SCHRITTE. KLARE KONTROLLE.</p><h2 data-i18n="flow_title">Von der Forge bis ins Zuhause.</h2></div><p data-i18n="flow_intro">Keine Blackbox: Du bestimmst Quelle, Kategorie und Zeitpunkt. HAIGS übernimmt die wiederkehrende Arbeit.</p></div>
+      <div class="flow-steps">
+        <article class="flow-step reveal"><span class="step-index">01</span><div class="step-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M7 8h10M7 12h6M7 16h3"/></svg></div><h3 data-i18n="step_one_title">Verbinden</h3><p data-i18n="step_one_copy">Instanz hinzufügen. Anbieter automatisch erkennen lassen. Für private Projekte ein Read-only-Token hinterlegen.</p><span class="step-foot" data-i18n="step_one_foot">DEIN HOST · DEIN TOKEN</span></article>
+        <article class="flow-step reveal"><span class="step-index">02</span><div class="step-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5M10.5 7v7M7 10.5h7"/></svg></div><h3 data-i18n="step_two_title">Entdecken</h3><p data-i18n="step_two_copy">Nach Gruppen oder Stichworten suchen. HAIGS prüft Topic und Metadaten – du nimmst passende Projekte auf.</p><span class="step-foot" data-i18n="step_two_foot">FINDEN · PRÜFEN · AUSWÄHLEN</span></article>
+        <article class="flow-step reveal"><span class="step-index">03</span><div class="step-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg></div><h3 data-i18n="step_three_title">Installieren</h3><p data-i18n="step_three_copy">Release-ZIP bevorzugen, sonst Tag-Archiv. Der Zielpfad wird anhand der HACS-Kategorie bestimmt.</p><span class="step-foot" data-i18n="step_three_foot">STAGING · PRÜFEN · TAUSCHEN</span></article>
+        <article class="flow-step reveal"><span class="step-index">04</span><div class="step-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M5.8 9A7 7 0 0 1 18 6.5L20 12M4 12l2 5.5A7 7 0 0 0 18.2 15"/></svg></div><h3 data-i18n="step_four_title">Aktuell bleiben</h3><p data-i18n="step_four_copy">HAIGS prüft nach deinem Intervall. Updates, Neustart-Hinweise und Deinstallation haben ihren eigenen, nachvollziehbaren Weg.</p><span class="step-foot" data-i18n="step_four_foot">AUTOMATISCH · NACHVOLLZIEHBAR</span></article>
+      </div>
+    </div></section>
+
+    <section class="section-wrap section-space safety-section" id="safety">
+      <div class="section-index"><span>04</span><i></i><span data-i18n="section_safety">SICHERHEIT & VERTRAUEN</span></div>
+      <div class="safety-grid">
+        <div class="safety-copy reveal"><p class="section-kicker" data-i18n="safety_kicker">SCHUTZ VOR DEM SCHREIBEN</p><h2 data-i18n="safety_title">Ein Archiv darf nicht über dein System bestimmen.</h2><p data-i18n="safety_intro">HAIGS behandelt Installationsarchive als nicht vertrauenswürdige Eingabe. Erst prüfen, dann in einem Zwischenbereich entpacken, anschließend atomar austauschen – bei einem Fehler bleibt der alte Stand erhalten.</p>
+          <div class="safety-points">
+            <div><span class="safety-check">✓</span><span data-i18n="safety_point_one">Schutz gegen Pfad-Ausbrüche, absolute Pfade und Windows-Laufwerksnamen.</span></div>
+            <div><span class="safety-check">✓</span><span data-i18n="safety_point_two">Symlinks, Gerätedateien, doppelte und verschlüsselte ZIP-Einträge werden abgewiesen.</span></div>
+            <div><span class="safety-check">✓</span><span data-i18n="safety_point_three">Grenzen für Dateianzahl, Gesamtgröße und einzelne Dateien – geprüft vor und während des Lesens.</span></div>
+            <div><span class="safety-check">✓</span><span data-i18n="safety_point_four">Deinstallation entfernt nur den aufgezeichneten Installationspfad bzw. die tatsächlich installierten Dateien.</span></div>
+          </div>
+          <p class="safety-honesty" data-i18n="safety_honesty">Wichtig: Das schützt den Installationsvorgang – es ist kein Sicherheitsaudit des heruntergeladenen Codes. Installiere nur Quellen, denen du vertraust.</p>
+        </div>
+        <div class="safety-console reveal">
+          <div class="safety-console-head"><span><i class="pulse-dot"></i><span data-i18n="guard_title">ARCHIV-WÄCHTER</span></span><span class="guard-live" data-i18n="guard_status">AKTIV</span></div>
+          <div class="guard-stage"><span class="guard-icon">ZIP</span><div><b data-i18n="guard_stage_one">Unbekanntes Archiv</b><small data-i18n="guard_stage_one_sub">Noch keine Datei geschrieben</small></div><span class="guard-arrow">↓</span></div>
+          <div class="guard-stage guard-check"><span class="guard-icon">✓</span><div><b data-i18n="guard_stage_two">Inhalt und Pfade geprüft</b><small data-i18n="guard_stage_two_sub">Grenzen · Typen · Zielpfade</small></div><span class="guard-arrow">↓</span></div>
+          <div class="guard-stage guard-stage-final"><span class="guard-icon">⇄</span><div><b data-i18n="guard_stage_three">Atomarer Austausch</b><small data-i18n="guard_stage_three_sub">Rollback, wenn etwas schiefgeht</small></div><span class="guard-ok">●</span></div>
+          <div class="guard-metrics"><div><strong>4,096</strong><small data-i18n="guard_metric_one">MAX. ZIP-EINTRÄGE</small></div><div><strong>256 <small>MiB</small></strong><small data-i18n="guard_metric_two">MAX. ENTPACKT</small></div><div><strong>128 <small>MiB</small></strong><small data-i18n="guard_metric_three">MAX. PRO DATEI</small></div></div>
+          <div class="guard-foot"><span data-i18n="guard_footer">GRENZEN AUS DEM KERN · KEIN MARKETING-VERSPRECHEN</span><span class="guard-digest">HAIGS / CORE</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="install-section" id="install"><div class="section-wrap section-space">
+      <div class="section-index"><span>05</span><i></i><span data-i18n="section_install">LOS GEHT'S</span></div>
+      <div class="install-grid">
+        <div class="install-copy reveal"><p class="section-kicker" data-i18n="install_kicker">DEIN NÄCHSTER SCHRITT</p><h2 data-i18n="install_title">Mach deine Forge zum Teil deines Zuhauses.</h2><p data-i18n="install_intro">Installiere HAIGS über HACS, verbinde deine erste Instanz und lass den Store den Rest erledigen.</p>
+          <div class="install-cta-row"><a class="button button-primary button-large" href="https://my.home-assistant.io/redirect/hacs_repository/?owner=Chance-Konstruktion&amp;repository=ha-haigs&amp;category=integration" target="_blank" rel="noopener noreferrer"><span data-i18n="install_hacs">Über HACS öffnen</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></a><a class="button button-quiet button-large" href="https://github.com/Chance-Konstruktion/ha-haigs/releases" target="_blank" rel="noopener noreferrer"><span data-i18n="install_release">Releases herunterladen</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a></div>
+          <div class="requirements"><span data-i18n="requirements">Voraussetzung</span><b>Home Assistant 2025.2+</b><i></i><span data-i18n="requirements_token">Token nur für private Repositories nötig</span></div>
+        </div>
+        <div class="install-steps reveal">
+          <div class="install-step"><span>01</span><div><b data-i18n="install_step_one">In HACS hinzufügen</b><small data-i18n="install_step_one_sub">Repository als Integration hinzufügen und HAIGS herunterladen.</small></div><i>↗</i></div>
+          <div class="install-step"><span>02</span><div><b data-i18n="install_step_two">Home Assistant neu starten</b><small data-i18n="install_step_two_sub">Danach HAIGS unter Geräte & Dienste hinzufügen.</small></div><i>↗</i></div>
+          <div class="install-step"><span>03</span><div><b data-i18n="install_step_three">Forge verbinden</b><small data-i18n="install_step_three_sub">Host eingeben, Auto-Erkennung nutzen, optional Read-only-Token setzen.</small></div><i>↗</i></div>
+          <div class="install-step"><span>04</span><div><b data-i18n="install_step_four">Store öffnen</b><small data-i18n="install_step_four_sub">HAIGS erscheint in der Seitenleiste. Weitere Instanzen sind jederzeit möglich.</small></div><i>✓</i></div>
+        </div>
+      </div>
+    </div></section>
+
+    <section class="section-wrap section-space owners-section" id="owners"><div class="owners-card reveal">
+      <div class="owners-copy"><p class="section-kicker" data-i18n="owners_kicker">FÜR PROJEKT- UND REPOSITORY-OWNER</p><h2 data-i18n="owners_title">Mach dein Projekt auffindbar.</h2><p data-i18n="owners_intro">Ein Topic, eine Metadatendatei und ein Release – damit kann HAIGS dein Repository entdecken und anbieten.</p><a class="text-link" href="https://github.com/Chance-Konstruktion/ha-haigs/blob/main/docs/features.md#for-repository-owners" target="_blank" rel="noopener noreferrer"><span data-i18n="owners_link">Voraussetzungen für Repositorys ↗</span></a></div>
+      <div class="owner-code"><div class="code-top"><span>hacs.json</span><button type="button" data-copy-json><span data-i18n="copy_json">JSON kopieren</span><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg></button></div><pre><code>{
+  <span class="code-key">"name"</span>: <span class="code-string">"My integration"</span>,
+  <span class="code-key">"render_readme"</span>: <span class="code-bool">true</span>,
+  <span class="code-key">"homeassistant"</span>: <span class="code-string">"2025.2.0"</span>
+}</code></pre><div class="code-foot"><span>TOPIC <b>hacs</b></span><span data-i18n="code_foot">DEFAULT BRANCH · RELEASE ODER TAG</span></div></div>
+    </div></section>
+
+    <section class="section-wrap faq-section"><div class="section-index"><span>06</span><i></i><span data-i18n="section_faq">GUTE FRAGEN</span></div><div class="faq-grid">
+      <div><p class="section-kicker" data-i18n="faq_kicker">BEVOR DU LOSLEGST</p><h2 data-i18n="faq_title">Noch kurz gefragt?</h2></div>
+      <div class="faq-list">
+        <details><summary data-i18n="faq_one_q">Ersetzt HAIGS HACS?</summary><p data-i18n="faq_one_a">Nein. HAIGS ist eine eigenständige Integration und läuft parallel zu HACS. Es verändert keinen HACS-Code.</p></details>
+        <details><summary data-i18n="faq_two_q">Brauche ich einen Token?</summary><p data-i18n="faq_two_a">Für öffentliche Repositories in der Regel nicht. Private Projekte benötigen ein Token mit Leserechten. HAIGS sendet es nur an den konfigurierten Forge-Host.</p></details>
+        <details><summary data-i18n="faq_three_q">Unterstützt HAIGS GitHub als beliebige Forge?</summary><p data-i18n="faq_three_a">Der eigene Store unterstützt GitLab, Gitea und Forgejo. Zusätzlich kann der offizielle HACS-Katalog als eigene Quelle eingebunden werden.</p></details>
+        <details><summary data-i18n="faq_four_q">Ist der heruntergeladene Code damit sicher?</summary><p data-i18n="faq_four_a">Nein. HAIGS prüft Archive und Installationspfade technisch, auditiert aber nicht den Inhalt. Die Vertrauensentscheidung für ein Repository bleibt bei dir.</p></details>
+      </div>
+    </div></section>
+  </main>
+
+  <footer class="footer"><div class="section-wrap footer-main">
+    <a class="footer-brand" href="#top"><img src="assets/mark.svg" alt="" width="34" height="34"><span><b>HAIGS</b><small data-i18n="footer_tagline">Deine Forge. Deine Regeln.</small></span></a>
+    <p data-i18n="footer_copy">Gebaut für Freiheit – und für die Projekte, die du selbst hostest.</p>
+    <div class="footer-links"><a href="https://github.com/Chance-Konstruktion/ha-haigs" target="_blank" rel="noopener noreferrer">GitHub</a><a href="https://github.com/Chance-Konstruktion/ha-haigs/releases" target="_blank" rel="noopener noreferrer" data-i18n="footer_releases">Releases</a><a href="https://github.com/Chance-Konstruktion/ha-haigs/blob/main/docs/features.md" target="_blank" rel="noopener noreferrer" data-i18n="footer_docs">Dokumentation</a><a href="https://github.com/Chance-Konstruktion/ha-haigs/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT License</a></div>
+  </div><div class="section-wrap footer-bottom"><span>© <span data-current-year></span> HAIGS CONTRIBUTORS</span><span data-i18n="footer_open">OPEN SOURCE · BUILT WITH CARE</span><a href="#top" data-i18n="back_top">Zurück nach oben ↑</a></div></footer>
+  <script src="assets/site.js" defer></script>
+</body>
+</html>

@@ -39,7 +39,7 @@ HACS; it is not a fork and changes no HACS code.
 - **Clear next steps** after installing an integration: restart hint, setup
   button, or a note when it needs YAML configuration.
 
-Details: [docs/features.md](docs/features.md).
+Details: [docs/features.md](docs/features.md) · Website: <https://chance-konstruktion.github.io/ha-haigs/>
 
 ## Installation
 
