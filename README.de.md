@@ -39,7 +39,7 @@ läuft; kein Fork, kein geänderter HACS-Code.
 - **Klare nächste Schritte** nach der Installation: Neustart-Hinweis,
   Einrichten-Knopf oder Hinweis auf YAML-Einrichtung.
 
-Ausführlich (englisch): [docs/features.md](docs/features.md).
+Ausführlich (englisch): [docs/features.md](docs/features.md) · Website: <https://chance-konstruktion.github.io/ha-haigs/>
 
 ## Installation
 
