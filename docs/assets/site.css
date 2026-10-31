@@ -494,3 +494,43 @@ svg { display: block; }
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
   .reveal { opacity: 1; transform: none; }
 }
+
+
+/* Interactive repository preview */
+.store-filters {
+  display:flex; align-items:center; gap:6px; margin: -6px 22px 14px;
+  min-height:26px; flex-wrap:wrap;
+}
+.filter-button {
+  border:1px solid rgba(255,255,255,.08); border-radius:5px; padding:4px 8px;
+  color:#89939f; background:rgba(255,255,255,.025); font-size:7px; font-weight:750;
+  cursor:pointer; transition:color .18s,border-color .18s,background .18s;
+}
+.filter-button:hover,.filter-button.is-active {
+  color:#ffc09a; border-color:rgba(252,109,38,.25); background:rgba(252,109,38,.09);
+}
+.dev-toggle {
+  display:inline-flex; align-items:center; gap:7px; margin-left:auto;
+  color:#8f99a5; font-size:7px; font-weight:750; cursor:pointer;
+}
+.dev-toggle input { position:absolute; opacity:0; width:1px; height:1px; }
+.dev-toggle i {
+  position:relative; width:25px; height:14px; border-radius:20px; background:#3a424d;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.08); transition:background .2s;
+}
+.dev-toggle i:after {
+  content:""; position:absolute; top:2px; left:2px; width:10px; height:10px;
+  border-radius:50%; background:#c7ced8; transition:transform .2s;
+}
+.dev-toggle input:checked + i { background:rgba(252,109,38,.75); }
+.dev-toggle input:checked + i:after { transform:translateX(11px); background:#fff; }
+.dev-toggle input:focus-visible + i { outline:2px solid var(--orange-bright); outline-offset:3px; }
+.state-dev { color:#b8d3ff; background:rgba(112,158,220,.13); }
+.code-top button.is-copied { border-color:rgba(119,215,162,.35); color:#9ce0b8; }
+@media (max-width:560px) {
+  .store-filters { gap:4px; margin-inline:12px; }
+  .filter-button { font-size:6px; padding:4px 6px; }
+  .dev-toggle { gap:4px; font-size:6px; }
+  .dev-toggle i { width:22px; }
+  .dev-toggle input:checked + i:after { transform:translateX(8px); }
+}
