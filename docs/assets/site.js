@@ -113,6 +113,11 @@
     const lang = language === "en" ? "en" : "de";
     const table = WORDS[lang];
     document.documentElement.lang = lang;
+    document.title = lang === "de" ? "HAIGS — Deine Forge. Deine Regeln." : "HAIGS — Your forge. Your rules.";
+    const description = document.querySelector('meta[name="description"]');
+    if (description) description.content = lang === "de"
+      ? "HAIGS bringt GitLab, Forgejo und Gitea als eigenen Store nach Home Assistant. Mehrere Instanzen, Repository-Entdeckung und sichere Updates – ohne HACS-Fork."
+      : "Bring GitLab, Forgejo and Gitea repositories into Home Assistant. Discover, install and update self-hosted projects without replacing or forking HACS.";
     document.querySelectorAll("[data-i18n]").forEach((element) => {
       const value = table[element.dataset.i18n];
       if (typeof value === "string") element.textContent = value;
