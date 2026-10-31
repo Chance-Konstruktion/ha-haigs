@@ -119,7 +119,7 @@ def main(ruf=_ruf) -> int:
             "",
             f"Zum Installieren `{archiv.name}` herunterladen und in das",
             "Home-Assistant-Konfigurationsverzeichnis entpacken --",
-            "siehe [README.en.md](../../blob/main/README.en.md).",
+            "siehe [README.md](../../blob/main/README.md).",
             "",
             f"Entwickelt wird im GitLab: {os.environ.get('CI_PROJECT_URL', '')}",
             "Dieses Repository ist die Installationsquelle fuer HACS.",

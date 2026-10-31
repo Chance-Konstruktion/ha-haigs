@@ -1,70 +1,4 @@
-# HAIGS
-
-**H**ome**A**ssistant-**I**mport-**G**it-**S**torage
-
-<p align="center">
-  <img src="logo.png" alt="HAIGS — the fox taking over the house" width="192">
-</p>
-
-> 🇬🇧 English · [🇩🇪 Deutsch](README.md)
-
-The store for Home Assistant custom components that don't live on GitHub:
-**GitLab**, **Gitea**, and **Forgejo** ([Codeberg](https://codeberg.org)) —
-add, discover, keep up to date. Self-hosted, no GitHub account, no mirror
-detour.
-
-**Not a fork.** HAIGS is its own Home Assistant integration that runs
-*alongside* HACS. We change no HACS code and copy none. There is a reason:
-a fork would have to chase every HACS release, and nobody but us would ever
-use it.
-
-## The problem
-
-HACS knows exactly one source: GitHub. A custom repository with a GitLab
-address is rejected; there is no switch for it. If your integrations live on
-your own — or any other — GitLab, Gitea, or Forgejo instance, you install
-by hand and never learn that a new version exists.
-
-HAIGS closes that gap. It speaks to all three families directly: it finds
-repositories tagged for discovery, reads their metadata, compares versions,
-downloads the version archive, and installs it safely.
-
-## Installation
-
-**Via HACS (recommended)**
-
-This button opens the repository in your own HACS and adds it as a custom repository automatically:
-
-[![Open your Home Assistant instance and open this repository in HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Chance-Konstruktion&repository=ha-haigs&category=integration)
-
-Or by hand:
-
-1. HACS → ⋮ → *Custom repositories* →
-   `https://github.com/Chance-Konstruktion/ha-haigs`, type *Integration*.
-2. Download **HAIGS** and restart Home Assistant.
-3. *Settings → Devices & services → Add integration* → **HAIGS**. Enter
-   your instance's host (gitlab.com, codeberg.org, gitea.com or self-hosted)
-   and optionally a read token. Leave the provider on **auto** – HAIGS
-   detects whether GitLab, Forgejo or Gitea answers.
-
-   [![Open your Home Assistant instance and start setting up the integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=haigs)
-4. **HAIGS** appears in the sidebar. Add more instances the same way – as
-   many as you like, in any mix.
-
-From then on HAIGS can keep itself up to date: add this repository to
-its own list and every new release shows up as an update.
-
-**Manually:** unpack `haigs-vX.Y.Z.zip` from the
-[releases page](https://github.com/Chance-Konstruktion/ha-haigs/releases)
-into your configuration directory (it contains exactly
-`custom_components/haigs/`), restart, continue with step 3. Every release
-note carries the SHA-256; the build is deterministic.
-
-**Requirements:** Home Assistant 2025.2 or newer (tested up to 2026.9). A read
-token is only needed for private repositories (GitLab scope `read_api`, a
-read-only token on Gitea/Forgejo).
-
-> Setup and panel speak English and German.
+# HAIGS in detail
 
 ## Using HAIGS
 
@@ -75,8 +9,7 @@ read-only token on Gitea/Forgejo).
   and version, and the *Download* button. Its own touch: GitLab orange as the
   accent and a **Source** column (forge and host) where HACS counts
   downloads. Every detail page has its own address – browser back and shared
-  links work. At the bottom the fox signs: *“Made for freedom — your forge,
-  your rules.”*
+  links work.
 - **Icons like Home Assistant:** since 2026 integrations ship their icon in
   their own `brand/` folder. HAIGS shows it through Home Assistant's
   brands proxy – in the store and on updates.
@@ -89,13 +22,13 @@ read-only token on Gitea/Forgejo).
   clickable instance chips — each labelled with its provider — with a
   dashed "+ Add instance" button that opens the setup dialog for the
   next domain. The empty store's first-run hint carries the same button.
-- **Never an empty store:** the list lives in the *Lager* (the stock), a
+- **Never an empty store:** the list lives in a
   per-instance cache in Home Assistant's storage (`haigs.lager.<host>`).
   Opening the panel paints from that cache instantly (no network
   round-trip), then runs the fresh check in the background and re-renders
   when it lands. After a restart the cache is read while Home Assistant is
   still booting; the first background run follows shortly, and the same
-  interval you set for the heartbeat keeps the cache fresh —
+  check interval keeps the cache fresh —
   `haigs_aktualisiert` events repaint the panel while it stays open.
   The refresh button still forces a run at any time.
 - **Add a custom repository:** panel → ⋮ → *Custom repositories* (like
@@ -111,8 +44,8 @@ read-only token on Gitea/Forgejo).
   about 4000 integrations, plugins, and themes appear in the *New* section,
   with download counts, so one store in the sidebar is enough. The same
   switch removes the source again; developer mode does not apply to it.
-- **Updates:** every entry gets an update entity and a heartbeat whose
-  interval you can tune per entry. A new release or tag raises the update,
+- **Updates:** every entry gets an update entity and a check interval
+  you can tune per entry. A new release or tag raises the update,
   the install service swaps the files safely — staged in a temporary
   directory first, then an atomic switch, rolled back on failure.
 - **Preferred source:** if a release carries exactly one ZIP attachment,
@@ -130,7 +63,7 @@ read-only token on Gitea/Forgejo).
 - **Where the integration ends up:** installing is not enough — Home
   Assistant scans `custom_components` only at startup, and the card under
   *Devices & Services* appears only once you add the integration there
-  yourself. The store now says so in three voices: every installed
+  yourself. The store says so in three places: every installed
   integration carries a **state chip** on its card (restart required /
   ready to set up — a button that opens *Devices & Services* / configured /
   configured via configuration.yaml / not loaded — check the log), the
@@ -139,7 +72,7 @@ read-only token on Gitea/Forgejo).
   without a setup dialog (`config_flow: false` in their manifest.json) can
   never appear under *Devices & Services* at all — the chip names the YAML
   route instead of leaving you guessing.
-- **Robust stock:** a renamed project is recognised by its ID and the name
+- **Robust inventory:** a renamed project is recognised by its ID and the name
   follows silently; a reachable-but-changed repository is reported, never
   guessed; diagnostics never print your token in the clear.
 
@@ -168,7 +101,7 @@ GitLab, Gitea, and Forgejo/Codeberg):
    root files (README, CI config) out of the target. A release with a
    built ZIP attachment (the domain folder as its root) stays the most
    precise delivery and still wins when present. Three further shapes work
-   as well, proven in the three-system test:
+   as well, covered by the test suite:
 
    - **flat ZIP attachments** — the contents of
      `custom_components/<domain>/` without any folder (the way many HACS
@@ -195,7 +128,7 @@ the test suite and must be rejected *before* anything is written. The
 integrity of an interrupted install never lies: staged first, switched
 atomically, rolled back on failure.
 
-## Troubleshooting & known limits
+## Troubleshooting
 
 - **The connection test fails:** Leave *Provider* set to `auto` first. If
   detection cannot identify the server, choose GitLab, Gitea, or Forgejo
@@ -210,7 +143,7 @@ atomically, rolled back on failure.
   `hacs` topic and a valid `hacs.json` on the default branch. A repository
   added explicitly through *Custom repositories* does not need the topic.
 - **An update does not appear immediately:** Each instance is checked on its
-  configured heartbeat interval; the default is 720 minutes (12 hours). Use
+  configured check interval; the default is 720 minutes (12 hours). Use
   the panel's refresh action for an immediate check. If a forge is unreachable,
   the cached list may remain visible until a later check succeeds.
 - **An installed integration is not available:** Restart Home Assistant after
@@ -221,79 +154,3 @@ atomically, rolled back on failure.
   Forgejo/Codeberg, plus the separate official HACS catalog source. Archive
   checks protect installation paths; they do not audit the downloaded code or
   make an unfamiliar repository trustworthy.
-
-## Repository layout
-
-```
-logo.png                      brand artwork — the fox and the house
-hacs.json                     repository conventions for HAIGS itself
-custom_components/haigs/   the integration — thin Home Assistant layer
-  manifest.json               domain, version, config flow, icon
-  config_flow.py              setup dialog with connection check
-  lager.py                    the store cache: persisted list + scan,
-                              background interval, `haigs_aktualisiert`
-  frontend/panel.js           the sidebar panel (no YAML) — GitLab-style
-  frontend/iconset.js         the fox head as sidebar icon (own icon
-                              collection `haigs`, on every page)
-  translations/               dialog texts
-  core/                       the core — pure Python, no Home Assistant,
-                              no network in tests; lives here since the
-                              delivery-form decision (issue #11)
-    forge.py                  the provider interface (GitLab, Forgejo, Gitea, …)
-    gitlab_forge.py           GitLab REST v4
-    forgejo_forge.py          Forgejo (Codeberg recordings)
-    gitea_forge.py            Gitea — the Forgejo sister (topic search)
-    schmiede.py               the forge factory + provider auto-detection
-    http_aiohttp.py           aiohttp-backed HttpClient (session passed in)
-    validierung.py            hacs.json, manifest.json
-    versionen.py              version compare and update decision
-    entdeckung.py             topic → candidate → validation
-    entpacken.py              guarded unpacking, atomic install
-auslieferung/release_bauen.py deterministic release archive builder
-tests/                        core suite — pytest, no network
-tests_ha/                     Home Assistant lane — offline, on a test double
-```
-
-## Development
-
-Two lanes, one verdict: the core runs lean, the framework layer needs
-Home Assistant (Python 3.13, `requirements-ha.txt`).
-
-```bash
-python -m pytest -q                       # core: no HA, no network
-python -m pytest tests_ha -q -p pytest_homeassistant_custom_component
-```
-
-The hardening suites (`*_hart.py` in both lanes) run the code against
-hostile input: UTF-8 BOM in `hacs.json` (Windows editors leave one),
-five-segment versions where `.10` must beat `.9`, search words that look
-like script injections, ten-thousand-character keywords, storage that is
-not what the schema promised, captive portals answering with HTML instead
-of JSON, and 500s where a GitLab was previously claimed out of thin air.
-The DOM side is proven in a browser harness: hostile repository names,
-descriptions, avatars (`javascript:` URLs fall back to the letter), and
-search words arrive as *text*, never as live elements — no injected tag
-ever executes.
-
-On Windows set `PYTHONUTF8=1` first — otherwise healthy tests report
-failures that are not there.
-
-Releases are built deterministically by `auslieferung/release_bauen.py`:
-fixed timestamps, sorted entries, reproducible bytes. A tag pipeline builds
-the archive and attaches it to a release; the build refuses when the tag and
-`manifest.json` disagree on the version.
-
-**Where development happens.** This repository is developed on a self-hosted
-GitLab — which is the whole point of the project — and mirrored to GitHub so
-that people can find, install, and report against it. Identifiers, commit
-messages and the engineering documents are German; that is a deliberate
-decision, not an oversight. The reasoning lives in
-[ARCHITEKTUR.md](ARCHITEKTUR.md) (the structural decisions),
-[CHANGELOG.md](CHANGELOG.md) (what changed in each version),
-and [MITARBEIT.md](MITARBEIT.md) (how to contribute). You do not need German to use
-HAIGS: this file, the setup dialog and the panel are English.
-
-## License
-
-[MIT](LICENSE) — Copyright (c) 2026 chance-konstruktion and the HAIGS
-contributors.
