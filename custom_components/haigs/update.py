@@ -114,7 +114,7 @@ class HaigsUpdateEntity(UpdateEntity):
         self._forge = laufzeit.forge
         self._staende: Staende = laufzeit.staende
         self._eintraege = laufzeit.eintraege
-        # Flug 2098: das Lager der Instanz -- die Installation zieht den
+        # Das Lager der Instanz -- die Installation zieht den
         # Stand der Zeile nach (symmetrisch zur Deinstallation), damit die
         # Karte den Zustands-Chip auch OHNE erneuern zeigen kann.
         self._lager = getattr(laufzeit, "lager", None)
@@ -144,7 +144,7 @@ class HaigsUpdateEntity(UpdateEntity):
 
     @property
     def entity_picture(self) -> str | None:
-        """Das Zeichen des Repositorys, nicht das von HAIGS (Flug 2101).
+        """Das Zeichen des Repositorys, nicht das von HAIGS.
 
         Home Assistant malt eine update-Entity sonst mit dem Icon ihrer
         Plattform -- und das ist haigs, fuer jedes Repository gleich.
@@ -254,7 +254,7 @@ class HaigsUpdateEntity(UpdateEntity):
         (ohne Weg keine ehrliche Deinstallation), und bei Integrationen
         landet ein Neustart-Hinweis auf dem Reparatur-Brett.
 
-        Flug 2098: der Hinweis nennt auch den zweiten Schritt -- «Geräte
+        Der Hinweis nennt auch den zweiten Schritt -- «Geräte
         & Dienste» oder configuration.yaml, je nachdem, ob die gerade
         installierte manifest.json einen Einrichtungsdialog verspricht.
         Der Flag kommt aus dem Ordner am Ziel, nicht aus dem Archiv:
@@ -313,7 +313,7 @@ class HaigsUpdateEntity(UpdateEntity):
             pfad=pfad,
             dateien=list(ergebnis.dateien),
         )
-        # Flug 2098: das Lager zieht nach -- Version UND Zielweg. Ohne
+        # Das Lager zieht nach -- Version UND Zielweg. Ohne
         # diesen Griff bliebe die Zeile "nichts installiert", bis der
         # naechste Lauf sie neu baute; die Karte (und ihr Zustands-Chip)
         # waere eine Erinnerung statt einer Wahrheit.

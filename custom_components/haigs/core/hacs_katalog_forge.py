@@ -1,4 +1,4 @@
-"""Der HACS-Katalog als Schmiede (Flug 2102) -- alles in einem Laden.
+"""Der HACS-Katalog als Schmiede -- alles in einem Laden.
 
 Wer HAIGS statt HACS benutzen will, braucht die Repositories, die
 HACS kennt. HACS selbst laedt seine Liste aus einem oeffentlichen

@@ -20,7 +20,7 @@ CONF_SCHEMA = "schema"
 CONF_VERIFY_SSL = "verify_ssl"
 
 #: Der Wert "auto" im Dialog: die Schmiede soll erkennen, welcher
-#: Anbieter unter der Adresse antwortet (Flug 2088). Die anderen
+#: Anbieter unter der Adresse antwortet. Die anderen
 #: Werte sind die Namen aus ``core.identity`` -- hier steht nur das
 #: eine Wort, das kein Anbieter ist.
 ANBIETER_AUTO = "auto"
@@ -34,7 +34,7 @@ CONF_KATALOG = "katalog_anzeigen"
 #: "DataUpdateCoordinator mit einstellbarem Abstand").
 CONF_ABSTAND_MINUTEN = "abstand_minuten"
 
-#: Option des Entwicklermodus (Flug 2101): statt Releases installiert
+#: Option des Entwicklermodus: statt Releases installiert
 #: HAIGS den juengsten Stand des Standardzweigs -- fuer alle
 #: Repositories dieser Instanz. Aus ist die Voreinstellung.
 CONF_ENTWICKLERMODUS = "entwicklermodus"
@@ -48,7 +48,7 @@ STANDARD_ABSTAND_MINUTEN = 720
 #: dann eine neue Zahl (siehe ablage.py).
 ABLAGE_VERSION = 1
 
-#: Version des Lagers (Flug 2084) -- der Zwischenspeicher des Ladens.
+#: Version des Lagers -- der Zwischenspeicher des Ladens.
 #: Dieselbe Ernsthaftigkeit wie bei der Ablage: die Form ist neu, die
 #: 1 ist ihr Anfang; jede kuenftige Umdeutung bekommt eine Migration.
 LAGER_VERSION = 1
@@ -117,7 +117,7 @@ def ablage_schluessel(host: str) -> str:
 
 
 def lager_schluessel(host: str) -> str:
-    """Speicherschluessel des Lagers fuer eine Instanz (Flug 2084).
+    """Speicherschluessel des Lagers fuer eine Instanz.
 
     Das Lager ist der Zwischenspeicher des Ladens: die Zeilen der
     Liste und die Funde des letzten Scans, damit der Laden nie leer

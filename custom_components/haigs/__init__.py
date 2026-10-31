@@ -128,7 +128,7 @@ class HaigsKoordinator(DataUpdateCoordinator[dict[str, int | str]]):
     def _async_refresh_finished(self) -> None:
         """Der Takt bleibt scharf, auch ohne Entity (Ticket #23).
 
-        Wie beim Lager (Flug 2084): der Koordinator von Home
+        Wie beim Lager: der Koordinator von Home
         Assistant haengt seinen Takt an Zuhoerer -- der erste
         bewaffnet ihn. Der Herzschlag hat keine (nichts liest
         ``koordinator.data``), also haelt er sich nach dem ersten Lauf
@@ -162,7 +162,7 @@ class Laufzeit:
 
     Seit Stufe M3 gehoert die Liste der Custom Repositories dazu: sie
     wird beim Richten aus der Ablage gelesen und bleibt fuer den
-    Optionsdialog greifbar. Das Lager (Flug 2084) haengt als Naht
+    Optionsdialog greifbar. Das Lager haengt als Naht
     dynamisch dazu -- dieselbe Form wie ``staende`` und
     ``aktualisierer``, bis M0.5 die Form der Laufzeit geklaert hat.
     """
@@ -235,8 +235,8 @@ async def async_setup_entry(hass: HomeAssistant, eintrag: ConfigEntry) -> bool:
         # dann still. Eintraege ohne Schema-Feld bleiben bei https.
         token_host=token_host_mit_schema(eintrag.data[CONF_HOST], schema),
     )
-    # Die Schmiede formt den Forge nach dem Namen im Eintrag (Flug
-    # 2088). Eintraege aus der Zeit davor tragen keinen -- dann gilt
+    # Die Schmiede formt den Forge nach dem Namen im Eintrag.
+    # Eintraege aus der Zeit davor tragen keinen -- dann gilt
     # GitLab, die einzige Schmiedung, die es damals gab; das Verhalten
     # dieser Eintraege bleibt Stueck fuer Stueck dasselbe.
     forge = schmiede(
@@ -267,7 +267,7 @@ async def async_setup_entry(hass: HomeAssistant, eintrag: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})[eintrag.entry_id] = laufzeit = Laufzeit(
         forge=forge, koordinator=koordinator, ablage=ablage, eintraege=eintraege
     )
-    # Flug 2084: das Lager wird beim Richten aus dem Speicher gelesen
+    # Das Lager wird beim Richten aus dem Speicher gelesen
     # -- der Laden ist nach dem Neustart sofort voll, auch bevor der
     # erste volle Lauf ueberhaupt stattfand. Der Start-Lauf kommt
     # verzuegert (unten), der Takt haelt das Lager danach frisch.
@@ -331,7 +331,7 @@ async def _abstand_geaendert(hass: HomeAssistant, eintrag: ConfigEntry) -> None:
     if laufzeit.lager is not None:
         laufzeit.lager.update_interval = timedelta(minutes=minuten)
     _LOGGER.info("Abstand fuer %s auf %s Minuten gesetzt", laufzeit.forge.host, minuten)
-    # Flug 2101: der Entwicklermodus wechselt, was "neueste" heisst --
+    # Der Entwicklermodus wechselt, was "neueste" heisst --
     # also gleich frisch pruefen, und das Lager zieht hinterher.
     aktualisierer = getattr(laufzeit, "aktualisierer", None)
     if aktualisierer is not None:

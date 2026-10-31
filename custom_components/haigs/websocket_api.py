@@ -5,7 +5,7 @@ der Welt: Diese Datei ist die ganze Schnittstelle zwischen beiden.
 Sieben Befehle, mehr braucht kein Laden:
 
 * ``haigs/eintraege`` -- die Liste der beobachteten Repositories,
-  aus dem Lager gelesen (Flug 2084): sofort, ohne einen einzigen
+  aus dem Lager gelesen: sofort, ohne einen einzigen
   Netzruf. Steht das Lager noch leer (frische Einrichtung, der Start-
   Lauf noch nicht geschehen), wird es einmal live gebaut und danach
   ebenfalls aus dem Speicher gereicht. Funde, Stand und Instanzen
@@ -113,7 +113,7 @@ async def _liste(hass: HomeAssistant) -> dict[str, Any]:
     """Die Antwort der Eintraege: alles aus den Lagern, ohne Netz.
 
     Zwei Befehle schicken sie -- ``eintraege`` direkt, ``erneuern``
-    nach dem frischen Lauf. Beide greifen aufs Lager zu (Flug 2084):
+    nach dem frischen Lauf. Beide greifen aufs Lager zu:
     was gestern geholt wurde, steht heute sofort da, auch nach dem
     Neustart -- der Laden geht nicht mehr leer auf. Steht das Lager
     noch leer, obwohl Eintraege da sind, wird es einmal live gebaut
@@ -137,7 +137,7 @@ async def _liste(hass: HomeAssistant) -> dict[str, Any]:
             continue
         if not lager.zeilen and laufzeit.eintraege.alle():
             await lager.live_uebernehmen()
-        # Flug 2098: Kopien, nicht die Zeilen selbst -- der Zustands-Chip
+        # Kopien, nicht die Zeilen selbst -- der Zustands-Chip
         # (Neustart? geladen? eingerichtet?) ist eine Aussage ueber JETZT
         # und gehoert nicht ins Lager. Die Originale bleiben, wie der
         # Takt sie schrieb; die Antwort traegt die Wahrheit des Augen-
@@ -172,7 +172,7 @@ async def ws_eintraege(
 ) -> None:
     """Die Liste alles Beobachteten -- sofort, aus dem Lager.
 
-    Flug 2084: kein einziger Netzruf hier. Was das Lager kennt, steht
+    Kein einziger Netzruf hier. Was das Lager kennt, steht
     sofort da -- auch nach dem Neustart, auch ohne jeden Takt. Frische
     Werte (Sterne, Beschreibung, Funde) bringt der naechste volle
     Lauf, der beim Betritt oder im Takt geschieht und das Panel ueber
@@ -396,7 +396,7 @@ async def ws_detail(
 async def _erster_fund(
     hass: HomeAssistant, laufzeit: Laufzeit, eintrag: Eintrag, pfad: str
 ) -> None:
-    """Ein einzelner Pruefauftrag frisch nach dem Aufnehmen (Flug 2096).
+    """Ein einzelner Pruefauftrag frisch nach dem Aufnehmen.
 
     Der Weg fuehrt ueber die Fabrik des Aktualisierers -- sie legt die
     Spur an, falls noch keine Entity sie je geholt hat, und haengt sie
@@ -502,13 +502,13 @@ async def ws_hinzufuegen(
     # Der Beobachter aus Stufe M5 legt die update-Entity gleich an; noch
     # einen Herzschlag warten, dann kennt die Registry die Nummer.
     await hass.async_block_till_done()
-    # Flug 2084: der neue Eintrag steht sofort im Lager -- die Stammdaten
+    # Der neue Eintrag steht sofort im Lager -- die Stammdaten
     # sind schon geholt, kein weiterer Ruf noetig.
     lager = getattr(laufzeit, "lager", None)
     if lager is not None:
         await lager.zeile_hinzu(eintrag, info)
 
-    # Flug 2096, Wunde 3a aus dem 3-System-Test: der erste Fund reist
+    # Der erste Fund reist
     # mit. Ohne ihn bleibt die neueste Version der update-Entity leer
     # bis zum naechsten Takt -- und ein sofortiger Install-Ruf endet
     # in Home Assistants "No update available", weil der Dienst dort

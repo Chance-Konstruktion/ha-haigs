@@ -1,6 +1,6 @@
 """Einrichtungsdialog: Anbieter, Host, optionaler Token, Pruefverbindung.
 
-Seit Flug 2088 gehoert der Anbieter zur ersten Frage: GitLab, Forgejo
+Der Anbieter gehoert zur ersten Frage: GitLab, Forgejo
 (Codeberg) oder Gitea -- oder "auto", und die Schmiede erkundet,
 was unter der Adresse antwortet (zwei, hoechstens drei Abrufe, siehe
 ``core/schmiede.py``). Der erkannte (oder gewaehlte) Name reist in
@@ -324,7 +324,7 @@ class HaigsOptionen(config_entries.OptionsFlow):
     ) -> FlowResult:
         if benutzereingabe is not None:
             # Die anderen Optionen bleiben stehen -- ein Formular schreibt
-            # nur sein eigenes Feld (Flug 2101: sonst loeschte der Abstand
+            # nur sein eigenes Feld (sonst loeschte der Abstand
             # den Entwicklermodus).
             return self.async_create_entry(
                 title="",
@@ -348,7 +348,7 @@ class HaigsOptionen(config_entries.OptionsFlow):
             ),
         )
 
-    # -- Flug 2101: Entwicklermodus -----------------------------------
+    # -- Entwicklermodus ----------------------------------------------
     async def async_step_entwickler(
         self, benutzereingabe: dict[str, Any] | None = None
     ) -> FlowResult:

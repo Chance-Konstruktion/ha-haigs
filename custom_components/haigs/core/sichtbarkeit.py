@@ -1,6 +1,6 @@
 """Der Zustand einer installierten Integration -- reine Entscheidung.
 
-Flug 2098. Der Befund des Imkers: ueber HAIGS hinzugefuegte Repos
+Der Befund: ueber HAIGS hinzugefuegte Repos
 sind unter «Geräte & Dienste» nicht zu finden. Die Physik dahinter
 gehoert Home Assistant selbst, und sie hat drei Schichten:
 

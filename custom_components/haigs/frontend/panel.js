@@ -8,11 +8,12 @@
  * detail, hinzufuegen, entfernen, deinstallieren) und den Dienst
  * ``update.install`` der update-Entities.
  *
- * Seit Flug 2100 baut das Panel auf denselben Bausteinen wie HACS
- * (Datentabelle, Markdown, Chips, Overflow-Menue) -- siehe den
- * Abschnitt «Flug 2100» weiter unten. Der Kopf der Datei haelt die
- * Texte beider Sprachen und den eigenen Markdown-Renderer, der nur
- * noch einspringt, wenn ``ha-markdown`` fehlt.
+ * Seit der Anpassung an HACS baut das Panel auf denselben Bausteinen
+ * wie HACS (Datentabelle, Markdown, Chips, Overflow-Menue) -- siehe
+ * den Abschnitt «Der Laden zieht die Kleider von HACS an» weiter
+ * unten. Der Kopf der Datei haelt die Texte beider Sprachen und den
+ * eigenen Markdown-Renderer, der nur noch einspringt, wenn
+ * ``ha-markdown`` fehlt.
  *
  * Sicherheit: Der Markdown-Renderer flieht zuerst JEDES Zeichen und
  * baut danach erst Markup. Links und Bilder werden nur fuer
@@ -344,7 +345,7 @@ function html_sauber(node) {
 }
 
 /**
- * Ein HTML-Block aus dem README, gesaeubert (Flug 2096, Wunde 1).
+ * Ein HTML-Block aus dem README, gesaeubert.
  *
  * Die Tabellen und der Schmuck vieler HACS-READMEs kommen als HTML --
  * bislang standen sie als Roh-Text im Laden. Der Sauberer nimmt den
@@ -365,7 +366,7 @@ function html_block(zeilen) {
 /**
  * Der Kleinstrenderer: Ueberschriften, Listen, Zitate, Code-Bloecke,
  * Trennlinien, Absaetze plus Inline-Markdown. HTML-Bloecke (Tabellen
- * und Schmuck vieler HACS-READMEs) gehen seit Flug 2096 durch den
+ * und Schmuck vieler HACS-READMEs) gehen durch den
  * Sauberer -- Whitelist, keine Skripte, nur http(s)-Adressen --;
  * alles andere kommt geflohen rein, wie immer.
  */
@@ -373,7 +374,7 @@ function markdown(text) {
   if (!text) return "";
   const rohzeilen = String(text).split(/\r?\n/);
 
-  // Vorab-Zerlegung (Flug 2096): Codezaeune schuetzen ihren Inhalt
+  // Vorab-Zerlegung: Codezaeune schuetzen ihren Inhalt
   // vor der HTML-Erkennung -- ein ```-Beispiel mit <table> darin bleibt
   // Code. Ein HTML-Block beginnt mit einem oeffnenden Tag und endet mit
   // dessen Schliesser; Void-Tags stehen allein. Zwischen den Zeilen
@@ -538,7 +539,7 @@ const EREIGNIS_AKTUALISIERT = "haigs_aktualisiert";
 const BETRETEN_RUHE_MS = 15000;
 
 /**
- * GitLabs Pastell-Palette fuer Buchstaben-Zeichen (Flug 2085): fehlt
+ * GitLabs Pastell-Palette fuer Buchstaben-Zeichen: fehlt
  * das Bild eines Projekts, bekommt sein Buchstabe eine dieser Farben
  * -- dieselbe Farbe fuer denselben Namen, wie GitLab es mit seinen
  * Initialen-Avataren haelt. Der Buchstabe bleibt dunkel (#333238,
@@ -582,9 +583,9 @@ function fuchs_svg(klassenname) {
 }
 
 /* ------------------------------------------------------------------ *
- * Flug 2100 -- der Laden zieht die Kleider von HACS an.
+ * Der Laden zieht die Kleider von HACS an.
  *
- * Der Wunsch des Imkers: wer HAIGS oeffnet, soll sich fragen, ob er
+ * Die Absicht: wer HAIGS oeffnet, soll sich fragen, ob er
  * im Original-HACS steht -- und erst am Akzent und an der Spalte
  * «Quelle» merken, dass hier mehrere Schmieden zugleich liefern.
  *
@@ -1608,8 +1609,8 @@ class HaigsPanel extends HTMLElement {
   }
 
   /**
-   * Die Fusszeile (Flug 2092, zurueck seit Flug 2100): Fuchs und
-   * Geluebde unter der Detailkarte. Der Fuchs tanzt, wenn man ihn
+   * Die Fusszeile: Fuchs und
+   * Unterschrift unter der Detailkarte. Der Fuchs tanzt, wenn man ihn
    * streichelt (hover) -- sonst steht er still und wartet.
    */
   _fusszeile() {

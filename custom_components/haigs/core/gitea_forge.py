@@ -16,8 +16,8 @@ genau **zwei** Stuecken:
 Alles andere -- Stammdaten, Releases, Tags, Dateien, Archive,
 Anhaenge, Auflistung von Organisationen und Benutzern -- erbt sie
 unveraendert: dass die Elternklasse ohne jede Sonderbehandlung im
-Ablauf auskommt, ist der Beweis von Stufe M9; Gitea ist derselbe
-Beweis, ein zweites Mal geflogen (Flug 2088).
+Ablauf auskommt, ist der Beweis von Stufe M9; dass Gitea denselben
+Ablauf ohne Aenderung erbt, fuehrt ihn ein zweites Mal.
 """
 
 from __future__ import annotations

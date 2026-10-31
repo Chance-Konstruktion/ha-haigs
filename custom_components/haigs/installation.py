@@ -606,13 +606,13 @@ def _kopierplan(
             if lagerform is not None:
                 schnitt = zielpfade.Ausschnitt(art="unterordner", unterordner=lagerform)
             elif _manifest_in_wurzel(namen):
-                # Flacher Anhang (3-System-Test, Flug 2096): keine
+                # Flacher Anhang (Befund aus dem 3-System-Test): keine
                 # Lagerform, keine Ordnerhuelle, aber die Integration
                 # liegt komplett offen da. Die Wurzel IST die Lagerform.
                 schnitt = zielpfade.Ausschnitt(art="wurzel")
         zuordnung = zielpfade.waehle_eintraege(schnitt, namen)
     except zielpfade.ZielpfadFehler as fehlschlag:
-        # Flug 2096, Wunde B aus dem 3-System-Test: manche hacs.json
+        # Befund aus dem 3-System-Test: manche hacs.json
         # nennt einen ``filename`` (ha-powerline: powerline.zip) -- das
         # ist HACS-Sprech fuer den GEBAUTEN Anhang des Releases. Fehlt
         # der Anhang, war das Tag-Archiv die Quelle -- und in ihm lebt
