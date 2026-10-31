@@ -40,6 +40,17 @@ jobs:
           cp logo.png _site/assets/haigs-logo.png
           touch _site/.nojekyll
 
+      - name: Check website files and JavaScript syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s _site/index.html
+          test -s _site/assets/site.css
+          test -s _site/assets/site.js
+          test -s _site/assets/haigs-logo.png
+          test -s _site/assets/mark.svg
+          node --check _site/assets/site.js
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
