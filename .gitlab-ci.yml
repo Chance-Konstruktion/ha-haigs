@@ -262,3 +262,18 @@ github-verkuendigung:
   before_script: []
   script:
     - python -m auslieferung.github_verkuenden
+
+# pages veroeffentlicht die Website aus docs/ auch im eigenen GitLab
+# (auf GitHub macht das .github/workflows/pages.yml). Nur auf main,
+# ohne pip: die Seite ist statisch und wird nur kopiert.
+pages:
+  stage: auslieferung
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  before_script: []
+  script:
+    - rm -rf public
+    - cp -r docs public
+  artifacts:
+    paths:
+      - public
