@@ -1,6 +1,6 @@
-"""Flug 2098 -- die reine Entscheidung des Integrations-Zustands.
+"""Die reine Entscheidung des Integrations-Zustands.
 
-Der Befund des Imkers: ueber HAIGS installierte Repos sind unter
+Der Befund: ueber HAIGS installierte Repos sind unter
 «Geräte & Dienste» nicht zu finden. Die Physik hat drei Schichten
 (Neustart fehlt, kein Konfigurationseintrag -- oder prinzipiell kein
 Dialog, oder das Manifest ist dem System gar nicht bekannt), und der
@@ -84,7 +84,7 @@ def test_dialog_entscheidet_hinzufuegen_oder_yaml() -> None:
 @pytest.mark.parametrize(
     ("weg", "domain"),
     [
-        ("custom_components/bienentanz", "bienentanz"),
+        ("custom_components/beispielint", "beispielint"),
         ("custom_components/a/b/c", "c"),
         ("www/community/datei", "datei"),
         ("custom_components/x/", "x"),

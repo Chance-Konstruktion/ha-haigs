@@ -1,12 +1,12 @@
 """Versionen unter Folter -- der Vergleich darf nirgendwo stolpern.
 
-Die Fluege davor prueften den Normalfall. Diese Suite fuegt die
+Die Suiten davor prueften den Normalfall. Diese Suite fuegt die
 Randgaenge hinzu, die echten Servern tatsaechlich passieren: Tags mit
 fuenf und mehr Gliedern (Build-Zaehler!), Datums-Versionen, riesige
 Nummern, Leerzeichen, BOM-artiger Muell, Vorab-Leitern und die
 Verwandlung grosser ``V``.
 
-Zwei dieser Faelle waren echte Fehler und sind mit Flug 2093 geheilt:
+Zwei dieser Faelle waren echte Fehler und sind inzwischen geheilt:
 
 * ``1.2.3.4.10`` gegen ``1.2.3.4.9`` -- der alte Schluessel kappte
   nach vier Gliedern und liess den String-Rueckhalt entscheiden, und

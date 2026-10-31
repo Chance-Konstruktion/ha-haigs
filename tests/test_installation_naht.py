@@ -311,13 +311,13 @@ class TestLeseArchivDateiTiefe:
             {
                 "beispiel-v1.0.0/README.md": b"repo-wurzel",
                 "beispiel-v1.0.0/hacs.json": b'{"name": "Beispiel"}',
-                "beispiel-v1.0.0/custom_components/bienentanz/const.py": b"DOMAIN = 1",
-                "beispiel-v1.0.0/custom_components/bienentanz/manifest.json": _manifest(
-                    "bienentanz"
+                "beispiel-v1.0.0/custom_components/beispielint/const.py": b"DOMAIN = 1",
+                "beispiel-v1.0.0/custom_components/beispielint/manifest.json": _manifest(
+                    "beispielint"
                 ),
             }
         )
-        assert lese_archiv_datei(archiv, "manifest.json") == _manifest("bienentanz")
+        assert lese_archiv_datei(archiv, "manifest.json") == _manifest("beispielint")
 
     def test_flacher_geht_vor_tiefem(self):
         """Die hacs.json der Repo-Wurzel zaehlt mehr als eine tiefe Kopie."""
@@ -340,9 +340,9 @@ class TestLeseArchivDateiTiefe:
 
     def test_wurzel_und_ordner_bleiben_wie_sie_sind(self):
         """Die alte Regel gilt weiter: Wurzel oder ein Ordner, eindeutig."""
-        for pfad in ("manifest.json", "bienentanz/manifest.json"):
-            archiv = _zip({pfad: _manifest("bienentanz")})
-            assert lese_archiv_datei(archiv, "manifest.json") == _manifest("bienentanz")
+        for pfad in ("manifest.json", "beispielint/manifest.json"):
+            archiv = _zip({pfad: _manifest("beispielint")})
+            assert lese_archiv_datei(archiv, "manifest.json") == _manifest("beispielint")
 
 
 class TestFindeLagerform:
@@ -352,19 +352,19 @@ class TestFindeLagerform:
         archiv = _zip(
             {
                 "beispiel-v1.0.0/README.md": b"repo-wurzel",
-                "beispiel-v1.0.0/custom_components/bienentanz/manifest.json": (
-                    _manifest("bienentanz")
+                "beispiel-v1.0.0/custom_components/beispielint/manifest.json": (
+                    _manifest("beispielint")
                 ),
             }
         )
         assert (
-            finde_lagerform(archiv, "bienentanz")
-            == "beispiel-v1.0.0/custom_components/bienentanz"
+            finde_lagerform(archiv, "beispielint")
+            == "beispiel-v1.0.0/custom_components/beispielint"
         )
 
     def test_gebauter_anhang_liefert_den_ordner(self):
-        archiv = _zip({"bienentanz/manifest.json": _manifest("bienentanz")})
-        assert finde_lagerform(archiv, "bienentanz") == "bienentanz"
+        archiv = _zip({"beispielint/manifest.json": _manifest("beispielint")})
+        assert finde_lagerform(archiv, "beispielint") == "beispielint"
 
     def test_custom_components_ohne_tag_huelle(self):
         """Die eigene Anhang-Form von haigs: Praefix ohne Tag-Ordner."""
@@ -372,30 +372,30 @@ class TestFindeLagerform:
         assert finde_lagerform(archiv, "haigs") == "custom_components/haigs"
 
     def test_wurzelmanifest_ist_keine_lagerform(self):
-        archiv = _zip({"beispiel-v1.0.0/manifest.json": _manifest("bienentanz")})
-        assert finde_lagerform(archiv, "bienentanz") is None
+        archiv = _zip({"beispiel-v1.0.0/manifest.json": _manifest("beispielint")})
+        assert finde_lagerform(archiv, "beispielint") is None
 
     def test_falscher_ordnername_ist_klartext(self):
         """custom_components/ kuendigt an, der Ordner loest es nicht ein."""
         archiv = _zip(
             {
                 "beispiel-v1.0.0/custom_components/anderer_name/manifest.json": (
-                    _manifest("bienentanz")
+                    _manifest("beispielint")
                 ),
             }
         )
         with pytest.raises(InstallationsFehler, match="anderer_name"):
-            finde_lagerform(archiv, "bienentanz")
+            finde_lagerform(archiv, "beispielint")
 
     def test_zwei_lagerformen_sind_raterei(self):
         archiv = _zip(
             {
-                "a/custom_components/bienentanz/manifest.json": _manifest("bienentanz"),
-                "b/custom_components/bienentanz/manifest.json": _manifest("bienentanz"),
+                "a/custom_components/beispielint/manifest.json": _manifest("beispielint"),
+                "b/custom_components/beispielint/manifest.json": _manifest("beispielint"),
             }
         )
         with pytest.raises(InstallationsFehler, match="mehrfach"):
-            finde_lagerform(archiv, "bienentanz")
+            finde_lagerform(archiv, "beispielint")
 
 
 class TestInstalliereLagerform:
@@ -408,19 +408,19 @@ class TestInstalliereLagerform:
                 "beispiel-v1.0.0/README.md": b"repo-wurzel",
                 "beispiel-v1.0.0/hacs.json": b'{"name": "Beispiel"}',
                 "beispiel-v1.0.0/.gitlab-ci.yml": b"stufen: [form]",
-                "beispiel-v1.0.0/custom_components/bienentanz/__init__.py": b"# tanz",
-                "beispiel-v1.0.0/custom_components/bienentanz/const.py": b"DOMAIN = 1",
-                "beispiel-v1.0.0/custom_components/bienentanz/manifest.json": (
-                    _manifest("bienentanz")
+                "beispiel-v1.0.0/custom_components/beispielint/__init__.py": b"# tanz",
+                "beispiel-v1.0.0/custom_components/beispielint/const.py": b"DOMAIN = 1",
+                "beispiel-v1.0.0/custom_components/beispielint/manifest.json": (
+                    _manifest("beispielint")
                 ),
             }
         )
 
-        weg = _installiere_sync(archiv, "integration", "bienentanz", tmp_path)
+        weg = _installiere_sync(archiv, "integration", "beispielint", tmp_path)
 
-        assert weg.pfad == PurePosixPath("custom_components/bienentanz")
-        ziel = tmp_path / "custom_components" / "bienentanz"
-        assert (ziel / "manifest.json").read_bytes() == _manifest("bienentanz")
+        assert weg.pfad == PurePosixPath("custom_components/beispielint")
+        ziel = tmp_path / "custom_components" / "beispielint"
+        assert (ziel / "manifest.json").read_bytes() == _manifest("beispielint")
         assert (ziel / "__init__.py").exists()
         assert (ziel / "const.py").exists()
         assert not (ziel / "README.md").exists()
@@ -431,17 +431,17 @@ class TestInstalliereLagerform:
     def test_gebauter_anhang_bleibt_bei_der_alten_lagerform(self, tmp_path: Path):
         archiv = _zip(
             {
-                "bienentanz/__init__.py": b"# tanz",
-                "bienentanz/manifest.json": _manifest("bienentanz", "1.1.0"),
+                "beispielint/__init__.py": b"# tanz",
+                "beispielint/manifest.json": _manifest("beispielint", "1.1.0"),
             }
         )
 
-        weg = _installiere_sync(archiv, "integration", "bienentanz", tmp_path)
+        weg = _installiere_sync(archiv, "integration", "beispielint", tmp_path)
 
-        assert weg.pfad == PurePosixPath("custom_components/bienentanz")
-        ziel = tmp_path / "custom_components" / "bienentanz"
+        assert weg.pfad == PurePosixPath("custom_components/beispielint")
+        ziel = tmp_path / "custom_components" / "beispielint"
         assert (ziel / "__init__.py").exists()
-        assert (ziel / "manifest.json").read_bytes() == _manifest("bienentanz", "1.1.0")
+        assert (ziel / "manifest.json").read_bytes() == _manifest("beispielint", "1.1.0")
 
     def test_die_eigene_form_installiert_sich_selbst(self, tmp_path: Path):
         """haigss Anhang behaelt custom_components/ -- und geht jetzt auf."""
@@ -465,18 +465,18 @@ class TestInstalliereLagerform:
         archiv = _zip(
             {
                 "beispiel-v1.0.0/__init__.py": b"# tanz",
-                "beispiel-v1.0.0/manifest.json": _manifest("bienentanz"),
+                "beispiel-v1.0.0/manifest.json": _manifest("beispielint"),
             }
         )
 
-        _installiere_sync(archiv, "integration", "bienentanz", tmp_path)
+        _installiere_sync(archiv, "integration", "beispielint", tmp_path)
 
-        ziel = tmp_path / "custom_components" / "bienentanz"
+        ziel = tmp_path / "custom_components" / "beispielint"
         assert (ziel / "__init__.py").exists()
         assert (ziel / "manifest.json").exists()
 
     def test_flacher_anhang_manifest_in_der_wurzel(self, tmp_path: Path):
-        """Flug 2096, Wunde 3b aus dem 3-System-Test: der gebaute ZIP-
+        """Befund aus dem 3-System-Test: der gebaute ZIP-
         Anhang traegt die Dateien OHNE jeden Ordner -- die manifest.json
         liegt an der Wurzel (so baut es svasek/homeassistant-vistapool-
         modbus, und HACS nimmt es an). Die Wurzel IST die Integration."""
@@ -528,17 +528,17 @@ class TestInstalliereLagerform:
         archiv = _zip(
             {
                 "beispiel-v1.0.0/custom_components/anderer_name/manifest.json": (
-                    _manifest("bienentanz")
+                    _manifest("beispielint")
                 ),
             }
         )
         with pytest.raises(InstallationsFehler, match="anderer_name"):
-            _installiere_sync(archiv, "integration", "bienentanz", tmp_path)
+            _installiere_sync(archiv, "integration", "beispielint", tmp_path)
         assert not any(tmp_path.iterdir())  # kein halber Zustand, gar keiner
 
 
 class TestFilenameOhneAnhang:
-    """Flug 2096, Wunde B: filename in der hacs.json meint den GEBAUTEN
+    """Befund aus dem 3-System-Test: filename in der hacs.json meint den GEBAUTEN
     Release-Anhang (ha-powerline: powerline.zip). Fehlt der Anhang, ist
     das Tag-Archiv die Quelle -- und dort lebt die Integration in der
     Lagerform custom_components/<domain>/."""
@@ -607,13 +607,13 @@ class TestHacsJsonKeinObjekt:
         Der Befund: Klartext fuer Menschen."""
         archiv = _zip(
             {
-                "beispiel-v1.0.0/manifest.json": _manifest("bienentanz"),
+                "beispiel-v1.0.0/manifest.json": _manifest("beispielint"),
                 "beispiel-v1.0.0/__init__.py": b"# tanz",
                 "beispiel-v1.0.0/hacs.json": b'["liste", "ist", "kein", "objekt"]',
             }
         )
         with pytest.raises(InstallationsFehler, match="kein Objekt"):
-            _installiere_sync(archiv, "integration", "bienentanz", tmp_path)
+            _installiere_sync(archiv, "integration", "beispielint", tmp_path)
         assert not (tmp_path / "custom_components").exists()
 
     def test_untauglicher_typ_bleibt_fehler_ohne_nebenwirkung(self, tmp_path: Path):
@@ -636,13 +636,13 @@ class TestFilenameMitAusbruch:
     def test_absoluter_zielname_wird_abgelehnt(self, tmp_path: Path):
         archiv = _zip(
             {
-                "beispiel-v1.0.0/manifest.json": _manifest("bienentanz"),
-                "beispiel-v1.0.0/custom_components/bienentanz/__init__.py": b"# tanz",
+                "beispiel-v1.0.0/manifest.json": _manifest("beispielint"),
+                "beispiel-v1.0.0/custom_components/beispielint/__init__.py": b"# tanz",
                 "beispiel-v1.0.0/hacs.json": b'{"filename": "/tmp/x/e.txt"}',
             }
         )
         with pytest.raises(InstallationsFehler):
-            _installiere_sync(archiv, "integration", "bienentanz", tmp_path)
+            _installiere_sync(archiv, "integration", "beispielint", tmp_path)
         assert not (tmp_path / "custom_components").exists()
 
     def test_kopierplan_ausbruch_erreicht_kein_dateisystem(self, tmp_path: Path):

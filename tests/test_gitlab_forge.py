@@ -105,15 +105,15 @@ async def test_instanzweite_suche_geht_ohne_gruppe():
 
 @pytest.mark.asyncio
 async def test_stichwort_reist_als_search_parameter():
-    """Flug 2091: die Kopfsuche des Ladens -- das Wort sucht in Name
+    """Die Kopfsuche des Ladens -- das Wort sucht in Name
     und Beschreibung, das Topic bleibt daneben scharf."""
     http = FakeHttp({"/api/v4/projects": [projekt()]})
     treffer = await GitLabForge(http, HOST).suche_nach_topic(
-        "hacs", stichwort="bienentanz"
+        "hacs", stichwort="beispielwort"
     )
     assert len(treffer) == 1
     params = http.aufrufe[0][1]
-    assert params["search"] == "bienentanz"
+    assert params["search"] == "beispielwort"
     assert params["topic"] == "hacs"
 
 
@@ -150,7 +150,7 @@ async def test_stammdaten_nennen_die_web_ansichten():
 
 @pytest.mark.asyncio
 async def test_stammdaten_nennen_das_bildzeichen():
-    """Flug 2084: das Zeichen des Projekts -- oder leer, nie geraten.
+    """Das Zeichen des Projekts -- oder leer, nie geraten.
 
     Der Laden zeigt die Zeichen seiner Karten; fehlt das Bild (keins
     hochgeladen, Feld abwesend), bleibt das Feld leer und die Ober-

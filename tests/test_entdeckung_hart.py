@@ -1,10 +1,10 @@
 """Entdeckung und Validierung unter feindlichem Beschuss.
 
-Die Fluege davor prueften den.Normalfall. Diese Suite stellt die
+Die Suiten davor prueften den.Normalfall. Diese Suite stellt die
  Fragen, die echte Server und echte Repository-Besitzer stellen:
 
 * ``hacs.json`` mit BOM (Windows-Editor!), leer, als Liste, mit
-  falschen Typen -- bis Flug 2093 war ein BOM ein Absturz, weil
+  falschen Typen -- frueher war ein BOM ein Absturz, weil
   ``json.loads`` das Zeichen vor der Klammer nicht mag.
 * Suchwoerter mit Umlauten, Slash, Anfuehrungszeichen und
   Script-HTML: sie reisen als Parameter bis zum Anbieter und
@@ -35,7 +35,7 @@ GUELTIG = json.dumps({"name": "Bar", "render_readme": True})
 
 
 def test_hacs_json_mit_bom_ist_gueltig():
-    """Windows-Editoren speichern UTF-8 gern mit BOM -- das war Flug 2093.
+    """Windows-Editoren speichern UTF-8 gern mit BOM.
 
     Vor der Heilung war das BOM ein Buchstabe vor der Klammer und
     machte die ganze Datei unlesbar; der Besitzer haette nie
@@ -104,7 +104,7 @@ async def test_stichwort_mit_sonderzeichen_reist_unversehrt():
 async def test_stichwort_mit_emoji_und_unicode():
     """Ein Stichwort darf aussehen wie ein Unicode-Anschlag."""
     http = FakeHttp({"/groups/": [projekt()]}, {"hacs.json": GUELTIG})
-    wort = "🐝bienentanz—日本語—🦊"
+    wort = "🐝beispielwort—日本語—🦊"
     await entdecke(GitLabForge(http, HOST), gruppe="foo", stichwort=wort)
     assert any(a[1].get("search") == wort for a in http.aufrufe)
 

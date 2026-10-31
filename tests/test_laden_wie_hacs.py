@@ -1,4 +1,4 @@
-"""Flug 2100 -- der Laden traegt die Kleider von HACS.
+"""Der Laden traegt die Kleider von HACS.
 
 Wer HAIGS oeffnet, soll sich fragen, ob er im Original-HACS steht.
 Das geht nur, wenn das Panel dasselbe Material nimmt wie HACS -- nicht

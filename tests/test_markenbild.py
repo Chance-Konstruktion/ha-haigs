@@ -1,11 +1,11 @@
-"""Das Markenbild (Flug 2097): logo.png ist das eine Icon.
+"""Das Markenbild: logo.png ist das eine Icon.
 
-Der Imker hat gesprochen: EIN Bild ueberall, wo ein Logo gebraucht
+EIN Bild ueberall, wo ein Logo gebraucht
 wird. Diese Pruefungen halten die Zusage gegen den Stand:
 
 * logo.png ist die 512er-Form der Marke (Avatar, exe, Verpackung);
   die volle Quelle liegt nicht mehr im Repository
-* seit Flug 2100 traegt das Panel kein eigenes Logo mehr: die Leiste
+* das Panel traegt kein eigenes Logo mehr: die Leiste
   ist die von Home Assistant, wie bei HACS -- die Marke lebt in der
   Seitenleiste (Iconset) und auf der Ladentheke
 

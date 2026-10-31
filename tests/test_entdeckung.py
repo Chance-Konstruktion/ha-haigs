@@ -218,7 +218,7 @@ async def test_untergruppen_weitergabe():
 
 @pytest.mark.asyncio
 async def test_stichwort_weitergabe():
-    """Flug 2091: das Wort der Kopfsuche reist bis zum Anbieter --
+    """Das Wort der Kopfsuche reist bis zum Anbieter --
     die Naht gibt es unverstuemmelt weiter."""
     http = FakeHttp({"/groups/": [projekt()]}, {"hacs.json": GUELTIG})
     forge = GitLabForge(http, HOST)
