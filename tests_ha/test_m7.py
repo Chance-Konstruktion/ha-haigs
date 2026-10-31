@@ -173,7 +173,7 @@ async def test_panel_ist_ohne_yaml_angemeldet(
     # Die Sprachen, die das Panel kennt, stehen in der Datei selbst.
     assert '"de"' in koerper or "de:" in koerper
 
-    # Flug 2100: der Laden traegt die Kleider von HACS -- die
+    # Der Laden traegt die Kleider von HACS -- die
     # Datentabelle des Hauses, das Erneuern beim Betreten, das Ereignis
     # des Lagers, die Zeichen der Projekte und die Gruppen nach Status.
     assert "hass-tabs-subpage-data-table" in koerper
@@ -189,7 +189,7 @@ async def test_panel_ist_ohne_yaml_angemeldet(
     assert "/config/integrations/integration/haigs" in koerper
     assert "#FFD599" in koerper  # die Pastell-Palette der Buchstaben
 
-    # Flug 2092: die Fusszeile -- Fuchs und Geluebde, in beiden
+    # Die Fusszeile -- Fuchs und Unterschrift, in beiden
     # Sprachen; unterschrieben mit dem Fuchskopf im Akzent-Orange.
     assert "fuchs_svg" in koerper
     assert "#FC6D26" in koerper
@@ -238,7 +238,7 @@ async def test_erneuern_auf_leerer_instanz(
     Instanzen ohne Eintraege hatten nie eine update-Entity -- also auch
     keinen Aktualisierer. ``erneuern`` legt ihn idempotent an; der Lauf
     ueber eine leere Liste fragt keine Stammdaten. Dafuer durchsucht der
-    Lager-Lauf (Flug 2084) die Instanz -- eine leere Suche ist eine
+    Lager-Lauf die Instanz -- eine leere Suche ist eine
     Antwort, kein Fehler.
     """
     hass_storage["haigs." + HOST.replace(".", "_")] = {
@@ -274,7 +274,7 @@ async def test_erneuern_liefert_den_frischen_fund(
     Stunden. ``erneuern`` dreht jeden herum: der Fund aus dem frischen
     Lauf ist sofort da, und die scheiternde Instanz steht in der Antwort.
 
-    Flug 2084: die erste Frage (``eintraege``) baut das Lager einmal
+    Die erste Frage (``eintraege``) baut das Lager einmal
     live, danach speist sich die Liste daraus -- der erneuern-Lauf
     fragt Zeilen ueber die ID und durchsucht die Instanz.
     """
@@ -391,9 +391,9 @@ async def test_eintraege_nennt_instanzen_und_kategorien(
 async def test_der_laden_teilt_unendlich_viele_instanzen(
     hass: HomeAssistant, sitzung_einpflanzen, hass_storage, hass_ws_client
 ) -> None:
-    """Flug 2085: zwei Domains, ein Laden -- und keine Grenze in Sicht.
+    """Zwei Domains, ein Laden -- und keine Grenze in Sicht.
 
-    Der Imker will endlos viele Server: jede Domain ist ein eigener
+    Beliebig viele Server: jede Domain ist ein eigener
     Eintrag, und die Liste sammelt sie alle. Der Beweis hier haelt
     zwei Instanzen nebeneinander (die eigene und eine fremde) --
     Lager je Instanz im Speicher, und die Antwort der Liste nennt
@@ -430,7 +430,7 @@ async def test_der_laden_teilt_unendlich_viele_instanzen(
                 "eintraege": [
                     lager_zeile(
                         host,
-                        "Bienentanz" if host == HOST else "Daumendruck",
+                        "Beispiel" if host == HOST else "Daumendruck",
                         "gitlab@" + host + ":789099",
                     )
                 ],
@@ -487,7 +487,7 @@ async def test_voller_durchgang_ohne_yaml(
         "version": 1,
         "data": {"eintraege": [], "stand": {}},
     }
-    # Flug 2084, neue Zaehlung: die Liste (eintraege) kommt nach dem
+    # Neue Zaehlung: die Liste (eintraege) kommt nach dem
     # ersten Griff aus dem Lager -- ohne eigenen Abruf. Dafuer fragt
     # der Lager-Start beim Vorlauf um den Takt zuerst die Zeile ueber
     # die ID und durchsucht dann die Instanz (Suche, hacs.json,
@@ -500,7 +500,7 @@ async def test_voller_durchgang_ohne_yaml(
             releases(releases_objekt("v1.2.0")),  # frischer Fund zum frischen Eintrag
             releases(
                 releases_objekt("v1.2.0")
-            ),  # Flug 2096: der erste Fund reist mit (Wunde 3a)
+            ),  # der erste Fund reist mit (Befund 3a aus dem 3-System-Test)
             releases(releases_objekt("v1.2.0")),  # M4b: Installationsquelle zuerst
             zip_aufzeichnung("v1.2.0"),  # Installieren
             projekt_antwort(),  # Lager-Start: die Zeile ueber die ID
@@ -598,9 +598,9 @@ async def test_voller_durchgang_ohne_yaml(
     assert [f["full_name"] for f in lager["funde"]] == ["foo/bar"]
     assert lager["funde"][0]["vorhanden"] is False
     # Alle Aufzeichnungen verbraucht: kein Ruf ging ueber die Reihe hinaus
-    # (Flug 2084: die Liste fragt nichts mehr, der Lager-Start dafuer
-    # Zeile, Suche, hacs.json und letzte Version; Flug 2096 kam der
-    # erste Fund dazu, der mit dem Aufnehmen reist).
+    # (die Liste fragt nichts mehr, der Lager-Start dafuer
+    # Zeile, Suche, hacs.json und letzte Version; der
+    # erste Fund kommt dazu, der mit dem Aufnehmen reist).
     assert len(attrappe.abrufe) == 15
 
 
@@ -697,7 +697,7 @@ async def test_entdecken_ohne_instanz_meldet_klar(
 async def test_entdecken_reist_mit_stichwort(
     hass: HomeAssistant, sitzung_einpflanzen, hass_storage, hass_ws_client
 ) -> None:
-    """Flug 2091: die Kopfsuche -- das Wort reist als search-Parameter
+    """Die Kopfsuche -- das Wort reist als search-Parameter
     bis zum Anbieter, die Funde kommen wie gehabt zurueck."""
     hass_storage["haigs." + HOST.replace(".", "_")] = {
         "version": 1,
@@ -726,7 +726,7 @@ async def test_entdecken_reist_mit_stichwort(
 async def test_entdecken_ohne_fund_ist_kein_fehler(
     hass: HomeAssistant, sitzung_einpflanzen, hass_storage, hass_ws_client
 ) -> None:
-    """Flug 2091: eine Gruppe, die niemand kennt, zahlt leere Funde --
+    """Eine Gruppe, die niemand kennt, zahlt leere Funde --
     die Kopfsuche darf falsch getippte Worte nicht als Stoerung der
     Instanz melden."""
     hass_storage["haigs." + HOST.replace(".", "_")] = {
@@ -830,7 +830,7 @@ async def test_hinzufuegen_lehnt_fehler_ab(
             releases(
                 releases_objekt("v1.0.0")
             ),  # ... und der Beobachter schaut gleich nach
-            releases(releases_objekt("v1.0.0")),  # Flug 2096: der erste Fund reist mit
+            releases(releases_objekt("v1.0.0")),  # der erste Fund reist mit
             projekt_antwort(),  # vierter Versuch: schon in der Liste
         ]
     )
@@ -894,7 +894,7 @@ async def test_erster_fund_reist_mit(
     hass_ws_client,
     hass_storage,
 ) -> None:
-    """Flug 2096, Wunde 3a aus dem 3-System-Test.
+    """Befund 3a aus dem 3-System-Test.
 
     Nach dem Hinzufuegen ist die neueste Version SOFORT da -- der erste
     Fund reist mit dem Aufnehmen. Ohne ihn blieb ``latest_version`` leer
@@ -908,7 +908,7 @@ async def test_erster_fund_reist_mit(
             projekt_antwort(),  # Hinzufuegen: Identitaet klaeren
             projekt_antwort(),  # Entity-Refresh: Stammdaten ueber die ID
             releases(releases_objekt("v1.0.0")),  # Entity-Refresh: der Fund
-            releases(releases_objekt("v1.0.0")),  # Flug 2096: der erste Fund reist mit
+            releases(releases_objekt("v1.0.0")),  # der erste Fund reist mit
             releases(releases_objekt("v1.0.0")),  # M4b: Installationsquelle
             zip_aufzeichnung("v1.0.0"),  # Installieren -- ohne jeden Takt
         ]

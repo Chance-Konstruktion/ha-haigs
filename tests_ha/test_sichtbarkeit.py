@@ -1,6 +1,6 @@
-"""Flug 2098 -- die Sichtbarkeit installierter Integrationen (HA-Bahn).
+"""Die Sichtbarkeit installierter Integrationen (HA-Bahn).
 
-Der Befund des Imkers: ueber HAIGS installierte Repos sind unter
+Der Befund: ueber HAIGS installierte Repos sind unter
 «Geräte & Dienste» nicht zu finden. Die Antwort hat zwei Haelften:
 
 * die WAHRHEIT je Karte -- der Zustands-Chip aus

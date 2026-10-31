@@ -1,6 +1,6 @@
-"""Flug 2084: das Lager -- voll, gespeichert, von selbst frisch.
+"""Das Lager -- voll, gespeichert, von selbst frisch.
 
-Die Wünsche des Imkers, als Abnahme:
+Die Abnahmekriterien:
 
 * der Laden geht nicht leer auf -- nicht beim Betreten, nicht nach dem
   Neustart: das Richten liest das Lager aus dem Speicher, die Frage
@@ -96,7 +96,7 @@ def lager_daten() -> dict:
 async def test_nach_dem_neustart_steht_die_liste_sofort_da(
     hass: HomeAssistant, sitzung_einpflanzen, hass_storage, hass_ws_client
 ) -> None:
-    """Der Showstopper des Imkers: leerer Laden nach dem Neustart.
+    """Der Showstopper: leerer Laden nach dem Neustart.
 
     Das Richten liest das Lager aus dem Speicher; die Frage antwortet
     daraus -- kein Netzruf, kein Warten auf irgendeinen Lauf. Der

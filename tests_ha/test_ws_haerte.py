@@ -1,12 +1,12 @@
-"""Haerte der Home-Assistant-Bahn (Flug 2093): feindliche Eingaben,
+"""Haerte der Home-Assistant-Bahn: feindliche Eingaben,
 kaputter Speicher, wortbruchige Server -- nichts darf das Haus
 Sacken lassen.
 
 Drei Gruppen:
 
 * Der Einrichtungsdialog trifft auf Captive Portale (200 mit HTML)
-  und halbtote Server (500) -- seit Flug 2093 behauptet die
-  Auto-Erkennung da kein GitLab mehr, sondern nennt die Wahrheit.
+  und halbtote Server (500) -- die Auto-Erkennung behauptet da kein
+  GitLab, sondern nennt die Wahrheit.
 * Die WebSocket-Schnittstelle bekommt Stichwoerter, die wie
   Script-Angriffe aussehen, und welche von 10.000 Zeichen: sie
   reisen unversehrt bis zum Anbieter und zurueck.
@@ -250,7 +250,7 @@ async def test_stichwort_mit_emoji_und_hieroglyphen(
     client = await _gericht(hass, hass_storage, hass_ws_client, sitzung_einpflanzen)
     sitzung_einpflanzen([suche_leer()])
 
-    wort = "🐝bienentanz—日本語—𓂀—🦊"
+    wort = "🐝beispielwort—日本語—𓂀—🦊"
     await client.send_json(
         {"id": 1, "type": "haigs/entdecken", "host": HOST, "stichwort": wort}
     )

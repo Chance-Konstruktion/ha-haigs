@@ -207,7 +207,7 @@ async def test_token_problem_wird_meldung_und_heilt(
 
     # Heilung: naechster Lauf gesund -> Meldung weg, Entity lebt. Der
     # Vorlauf um den Takt umgeht den Debounce der soeben gescheiterten
-    # Runde (im M5-Test erprobt). Der Lager-Start (Flug 2084) feuert
+    # Runde (im M5-Test erprobt). Der Lager-Start feuert
     # zuerst -- Zeile ueber die ID, dann die leere Suche --, danach
     # fragt die gesunde Runde des Aktualisierers zuerst die Stammdaten
     # und dann die Releases. (Der Herzschlag ist fuer diesen Test
@@ -261,7 +261,7 @@ async def test_instanz_weg_behaelt_alte_daten(
 
     # Es geht wieder: alles kehrt zurueck, nichts ging verloren. Auch hier
     # der Takt-Vorlauf (Debounce), nicht die direkte Bitte. Der Lager-
-    # Start (Flug 2084) feuert zuerst -- Zeile ueber die ID, leere
+    # Start feuert zuerst -- Zeile ueber die ID, leere
     # Suche --, danach die gesunde Runde des Aktualisierers. (Der
     # Herzschlag ist fuer diesen Test stillgelegt, s. test_m5.)
     attrappe.aufzeichnungen.extend(
@@ -514,7 +514,7 @@ async def test_entfernter_eintrag_nimmt_seine_meldung_mit(
         is not None
     )
 
-    # Der Imker entscheidet: weg damit. Die verwaiste Meldung muss beim
+    # Der Eintrag wird entfernt. Die verwaiste Meldung muss beim
     # naechsten Lauf mitgenommen werden -- sonst bleibt sie fuer immer.
     laufzeit = laufzeit_von(hass)
     await laufzeit.eintraege.entfernen("gitlab@gitlab.example.net:111")

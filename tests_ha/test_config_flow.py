@@ -481,7 +481,7 @@ async def test_leerer_host_ohne_verbindung(
     assert attrappe.abrufe == []
 
 
-# -- Flug 2088: die Schmiede im Dialog ---------------------------------
+# -- Die Schmiede im Dialog --------------------------------------------
 
 
 def version_frage(antwort_text: str) -> Aufzeichnung:
@@ -699,7 +699,7 @@ async def test_abstand_ueber_das_menue(hass: HomeAssistant, sitzung_einpflanzen)
 async def test_entwicklermodus_ueber_das_menue(
     hass: HomeAssistant, sitzung_einpflanzen
 ) -> None:
-    """Flug 2101: der Schalter steht im Menue und laesst den Abstand stehen."""
+    """Der Schalter steht im Menue und laesst den Abstand stehen."""
     mock, _ = await dialog_und_eintrag(
         hass, sitzung_einpflanzen, [antwort(), antwort(), antwort(), antwort()]
     )
