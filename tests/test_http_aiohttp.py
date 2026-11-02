@@ -298,7 +298,7 @@ async def test_mehrseitiges_wird_nicht_gespeichert():
 async def test_speicher_wird_nur_als_kopie_herausgegeben():
     k, _, _ = klient(
         [
-            antwort([1, 2], kopfzeilen={"ETag": 'W/"wabe"'}),
+            antwort([1, 2], kopfzeilen={"ETag": 'W/"speicher"'}),
             Aufzeichnung(status=304, text=""),
         ]
     )

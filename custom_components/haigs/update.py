@@ -51,7 +51,7 @@ async def async_setup_entry(
     eintrag: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Richtet die M5-Wabe: Spur holen, Entities anlegen, weiter wachsen."""
+    """Richtet die M5-Plattform: Spur holen, Entities anlegen, weiter wachsen."""
     laufzeit: Laufzeit | None = hass.data.get(DOMAIN, {}).get(eintrag.entry_id)
     if laufzeit is None:
         return
@@ -62,7 +62,7 @@ async def async_setup_entry(
     await laufzeit.staende.laden()
     # Ticket #23: der erste Lauf wirft seinen Fehler NICHT mehr hoch.
     # Bei genau einem beobachteten Eintrag hiess "alle Funde
-    # fehlerhaft" gleich "der eine" -- und die ganze update-Wabe
+    # fehlerhaft" gleich "der eine" -- und die ganze update-Plattform
     # wurde gar nicht erst angelegt. Jetzt entsteht die Entity und
     # meldet ehrlich "nicht verfuegbar"; der Takt versucht es erneut.
     await aktualisierer.async_refresh()

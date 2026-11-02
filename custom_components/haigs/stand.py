@@ -122,7 +122,7 @@ class Staende:
         """Liest die Karte aus der Ablage; mehrfach aufrufbar, ergaenzt nur.
 
         ``aus_ablage`` gibt es bewusst nicht: die Staelle entstehen
-        lazily beim ersten Anlegen der M5-Waben, nicht beim Richten des
+        lazily beim ersten Anlegen der M5-Stände, nicht beim Richten des
         Eintrags -- wer sie zuerst braucht, laedt sie einmal.
         """
         daten = await self._ablage.laden()

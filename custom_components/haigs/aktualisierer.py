@@ -12,7 +12,7 @@ Herzschlag -- und dieser hier fuehrt die Eintraege-Liste je Takt durch
 den Kern-Lauf. Die Verschmelzung beider ist eine spaeteren Stufe
 ueberlassen.
 
-Der Zugriff erfolgt ueber :func:`hole_aktualisierer`: die Waben (update,
+Der Zugriff erfolgt ueber :func:`hole_aktualisierer`: die Plattformen (update,
 switch) holen sich hier ihre gemeinsame Spur, beim ersten Mal entsteht
 sie und haengt sich an die Laufzeit des Eintrags. ``Laufzeit`` ist eine
 Datenklasse ohne eigene Felder dafuer -- das dynamische Anhaengen ist
@@ -361,7 +361,7 @@ def hole_aktualisierer(
 ) -> HaigsAktualisierer | None:
     """Die M5-Spur eines Eintrags -- entsteht beim ersten Griff.
 
-    Idempotent und synchron mit Absicht: die Waben-Plattformen richten
+    Idempotent und synchron mit Absicht: die Plattformen richten
     nacheinander, niemand wartet dazwischen. Der Takt-Beobachter wird
     genau einmal angemeldet, naemlich mit dem Aktualisierer selbst.
     """

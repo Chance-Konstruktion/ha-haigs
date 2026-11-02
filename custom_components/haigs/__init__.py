@@ -274,7 +274,7 @@ async def async_setup_entry(hass: HomeAssistant, eintrag: ConfigEntry) -> bool:
     lager = Lager(hass, eintrag, laufzeit)
     await lager.laden()
     laufzeit.lager = lager
-    # Stufe M5: die Waben des Vorhabens -- eine update-Entity je Eintrag
+    # Stufe M5: die Plattform-Entities des Vorhabens -- eine update-Entity je Eintrag
     # samt Vorab-Schalter. Erst nach dem Herzschlag: steht die Verbindung
     # nicht, gibt es nichts zu beobachten, und der Eintrag meldet sich
     # ohnehin als nicht bereit.
@@ -302,7 +302,7 @@ async def async_unload_entry(hass: HomeAssistant, eintrag: ConfigEntry) -> bool:
 
     Ticket #23: erst entladen, dann aufraeumen. Vorher verschwand die
     Laufzeit aus ``hass.data`` und die Koordinatoren wurden
-    abgeschaltet, selbst wenn das Entladen der Waben fehlschlug -- der
+    abgeschaltet, selbst wenn das Entladen der Plattformen fehlschlug -- der
     Eintrag blieb geladen, war danach aber taub, bis zum Neustart.
     """
     waben_entladen = await hass.config_entries.async_unload_platforms(
