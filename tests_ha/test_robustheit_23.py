@@ -87,7 +87,7 @@ async def test_ein_einziger_fehlerhafter_eintrag_ergibt_trotzdem_eine_entity(
     """Alle Funde fehlerhaft -- bei einem Eintrag heisst das: der eine.
 
     Der erste Lauf warf ``UpdateFailed``, und damit scheiterte der
-    Aufbau der update-Wabe. Jetzt steht die Entity und meldet ehrlich
+    Aufbau der update-Plattform. Jetzt steht die Entity und meldet ehrlich
     "nicht verfuegbar", bis der Takt es erneut versucht.
     """
     speichern(hass_storage, [eintrag_daten()])

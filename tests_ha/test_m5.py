@@ -2,7 +2,7 @@
 
 Alles offline: die Sitzungs-Attrappe spielt die GitLab-Antworten in
 Reihenfolge ab. Die Reihenfolge ist der Herzschlag zuerst (Richten des
-Eintrags), dann der erste Lauf der Stufe M5 (Richten der Waben), danach
+Eintrags), dann der erste Lauf der Stufe M5 (Richten der Plattformen), danach
 alles, was der einzelne Test anstoesst.
 """
 

@@ -164,7 +164,7 @@ class Eintraege:
     def melde_aenderungen(self, beobachter: Callable[[str, Eintrag], None]) -> None:
         """Laesst sich rufen, wenn die Liste waechst oder schrumpft.
 
-        Stufe M5: die Entities einer Wabe sollen erscheinen und
+        Stufe M5: die Entities eines Eintrags sollen erscheinen und
         verschwinden, sobald jemand einen Eintrag anlegt oder loescht --
         ohne dass die Integration neu geladen werden muss. Der Beobachter
         wird im Ereigniskreis gerufen (alles hier ist eine Koroutine),
@@ -214,7 +214,7 @@ class Eintraege:
     def finde(self, storage_key: str) -> Eintrag | None:
         """Der Eintrag zu diesem Schluessel -- oder None.
 
-        Oeffentlich seit Stufe M8: die Waben zeigen Namen und Kategorie
+        Oeffentlich seit Stufe M8: die update-Entities zeigen Namen und Kategorie
         aus der Liste, damit ein nachgezogener Name sofort erscheint,
         nicht erst nach einem Neustart.
         """
