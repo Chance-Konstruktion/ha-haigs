@@ -9,6 +9,7 @@ from haigs.core.zielpfade import (
     Ausschnitt,
     ZielpfadFehler,
     ausschnitt,
+    ist_zielpfad,
     waehle_eintraege,
     zielverzeichnis,
 )
@@ -37,9 +38,28 @@ def test_theme_und_python_script_liegen_flach():
 
 def test_appdaemon_und_template_bekommen_eigenen_ordner():
     assert zielverzeichnis("appdaemon", "meine_app") == PurePosixPath("apps/meine_app")
+    # Ticket #29: Home Assistant liest eigene Templates nur unter
+    # custom_templates/ -- der Marketplace laedt nach derselben
+    # Konvention ab.
     assert zielverzeichnis("template", "meine_vorlage") == PurePosixPath(
-        "templates/meine_vorlage"
+        "custom_templates/meine_vorlage"
     )
+
+
+# ------------------------------------------- Legacy-Weg templates/ (#29)
+
+
+def test_legacy_templates_weg_bleibt_deinstallierbar():
+    """Vor 2026.11 geschriebene Bestaende: der Weg gilt als Protokoll."""
+    assert ist_zielpfad("templates/meine_vorlage")
+    assert not ist_zielpfad("templates")
+    assert not ist_zielpfad("templates/meine_vorlage/zu_tief")
+
+
+def test_neuer_template_weg_ist_gueltig():
+    assert ist_zielpfad("custom_templates/meine_vorlage")
+    assert not ist_zielpfad("custom_templates")
+    assert not ist_zielpfad("custom_templates/meine_vorlage/zu_tief")
 
 
 def test_unbekannte_kategorie_wird_abgewiesen():

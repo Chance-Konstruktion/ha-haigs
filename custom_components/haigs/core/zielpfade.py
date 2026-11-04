@@ -2,7 +2,10 @@
 
 Diese eine Datei kennt die Verzeichnis-Konvention von Home Assistant:
 Integrationen leben unter ``custom_components/<domain>/``, Plugins
-unter ``www/community/<name>/``, Themes direkt unter ``themes/``.
+unter ``www/community/<name>/``, Themes direkt unter ``themes/`` und
+Templates unter ``custom_templates/<name>/`` (Ticket #29: seit HA
+2026.11 liest Home Assistant eigene Templates nur dort; der
+Marketplace laedt nach derselben Konvention ab).
 Zusaetzlich sagt sie, **welcher Ausschnitt** eines Archivs ueberhaupt
 in das Ziel wandert -- die drei ``hacs.json``-Felder
 ``content_in_root``, ``filename`` und ``zip_release`` schalten das um.
@@ -34,14 +37,24 @@ _LAUFWERK = re.compile(r"[A-Za-z]:")
 #: nicht ins Bild. ``appdaemon`` und ``template`` bekommen dagegen einen
 #: eigenen Ordner -- dort liegen Pakete, die sich sonst uebereinander
 #: treten wuerden.
+#:
+#: Ticket #29: ``template`` zielt auf ``custom_templates`` -- dort liest
+#: Home Assistant eigene Templates (und der Marketplace ab 2026.11
+#: laedt sie genau so ab). Der fruehere Pfad ``templates/`` bleibt als
+#: Legacy-Wurzel unten fuer die Deinstallation alter Bestaende gueltig.
 _KATEGORIE_WURZELN = {
     "integration": "custom_components",
     "plugin": "www/community",
     "theme": "themes",
     "python_script": "python_scripts",
     "appdaemon": "apps",
-    "template": "templates",
+    "template": "custom_templates",
 }
+
+#: Wurzeln, die vor der 2026.11-Anpassung geschrieben wurden und weiter
+#: deinstalliert werden muessen (Ticket #29). Neue Installationen zielen
+#: nie dorthin; der Weg gilt als Protokoll, nicht als Ziel.
+_LEGACY_WURZELN = frozenset({"templates"})
 
 #: Kategorien, die einen eigenen Ordner je Repository bekommen.
 #: Der Rest (``theme``, ``python_script``) legt seine Dateien direkt
@@ -136,6 +149,8 @@ def ist_zielpfad(pfad: PurePosixPath | str) -> bool:
     Wurzel selbst ist ungueltig. Die Wurzel flacher Kategorien
     (``themes``, ``python_scripts``) bleibt fuer dateilistenbasierte
     Operationen gueltig, wird aber nie als Ordnerzug entfernt.
+    Legacy-Wurzeln (``templates``, Ticket #29) sind als Weg aus dem
+    Protokoll gueltig -- genau ein Eintragsordner, nie als neues Ziel.
     """
     if isinstance(pfad, str):
         try:
@@ -158,6 +173,11 @@ def ist_zielpfad(pfad: PurePosixPath | str) -> bool:
         if kategorie in FLACHE_KATEGORIEN:
             return teile == wurzel
         return len(teile) == len(wurzel) + 1
+    # Ticket #29: Altbestaende unter ``templates/`` bleiben als
+    # verzeichneter Weg deinstallierbar -- genau ein Eintragsordner,
+    # wie bei jeder anderen Ordner-Kategorie.
+    if teile[0] in _LEGACY_WURZELN:
+        return len(teile) == 2
     return False
 
 
