@@ -10,6 +10,13 @@
           "token": "Zugangs-Token mit Leserecht (optional)",
           "verify_ssl": "TLS-Zertifikat prüfen"
         }
+      },
+      "reauth_confirm": {
+        "title": "Zugangs-Token für {host} erneuern",
+        "description": "Das Token dieser Instanz fehlt oder funktioniert nicht mehr ({grund}). Ein Token mit Leserecht eingeben; Host, Anbieter und TLS-Einstellungen bleiben, wie sie sind.",
+        "data": {
+          "token": "Zugangs-Token mit Leserecht"
+        }
       }
     },
     "error": {
@@ -21,7 +28,9 @@
       "anbieter_unbekannt": "Diesen Anbieter gibt es nicht"
     },
     "abort": {
-      "already_configured": "Diese Instanz ist bereits eingerichtet"
+      "already_configured": "Diese Instanz ist bereits eingerichtet",
+      "reauth_erfolgreich": "Token erneuert; der Eintrag wurde neu geladen.",
+      "eintrag_verschwunden": "Der zu erneuernde Eintrag existiert nicht mehr"
     },
     "create_entry": {
       "verbunden": "Mit {host} verbunden ({anbieter}) — {anzahl} Projekte tragen das Topic hacs"

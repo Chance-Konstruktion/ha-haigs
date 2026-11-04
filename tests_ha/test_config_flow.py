@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 import voluptuous as vol
-from homeassistant.config_entries import SOURCE_USER, ConfigEntryState
+from homeassistant.config_entries import SOURCE_REAUTH, SOURCE_USER, ConfigEntryState
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers import issue_registry
@@ -1173,3 +1173,221 @@ async def test_entfernen_mit_dateien_ohne_weg_bleibt_stehen(
     )
     laufzeit = hass.data[DOMAIN][mock.entry_id]
     assert len(laufzeit.eintraege) == 1  # der Eintrag bleibt stehen
+
+
+# -- Reauth (#17, 17.10.): ein abgelaufenes Token heilt im Dialog ------
+
+
+def herzschlag_antwort() -> Aufzeichnung:
+    """Die leere Instanz-Antwort des Herzschlags."""
+    return Aufzeichnung(text="[]", kopfzeilen={})
+
+
+def reauth_starten(hass: HomeAssistant, mock: MockConfigEntry) -> dict:
+    """Oeffnet den Reauth-Weg, wie Home Assistant ihn aufruft."""
+    return hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={
+            "source": SOURCE_REAUTH,
+            "entry_id": mock.entry_id,
+            "title_placeholders": {"name": mock.title},
+        },
+        data=mock.data,
+    )
+
+
+async def test_reauth_zeigt_nur_das_token_feld(
+    hass: HomeAssistant, sitzung_einpflanzen
+) -> None:
+    """Der Reauth-Weg fragt nur nach dem Token -- Host und Anbieter bleiben."""
+    sitzung_einpflanzen([antwort(), antwort()])
+    ergebnis = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": SOURCE_USER}
+    )
+    ergebnis = await hass.config_entries.flow.async_configure(
+        ergebnis["flow_id"],
+        {CONF_HOST: "gitlab.example.net", CONF_PROVIDER: "gitlab", CONF_TOKEN: ""},
+    )
+    await hass.async_block_till_done()
+    assert ergebnis["type"] is FlowResultType.CREATE_ENTRY
+    mock = hass.config_entries.async_entries(DOMAIN)[0]
+
+    ergebnis = await reauth_starten(hass, mock)
+    assert ergebnis["type"] is FlowResultType.FORM
+    assert ergebnis["step_id"] == "reauth_confirm"
+
+    schema: vol.Schema = ergebnis["data_schema"]
+    felder = {naehe.key if hasattr(naehe, "key") else naehe for naehe in schema.schema}
+    assert felder == {CONF_TOKEN}, "der Reauth-Weg fragt nur das Token ab"
+
+
+async def test_reauth_heilt_den_eintrag(hass: HomeAssistant, sitzung_einpflanzen) -> None:
+    """Neues Token rein, Eintrag aktualisiert und neu gerichtet -- ohne Neu-Anlegen."""
+    attrappe = sitzung_einpflanzen(
+        [
+            antwort(),  # Probe des Einrichtungsdialogs
+            herzschlag_antwort(),  # erster Herzschlag: leerer Scan
+            antwort(),  # Probe des Reauth-Wegs
+            herzschlag_antwort(),  # Herzschlag des Neuladens
+            herzschlag_antwort(),  # Lager-Scan des Neuladens: leer
+        ]
+    )
+    ergebnis = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": SOURCE_USER}
+    )
+    ergebnis = await hass.config_entries.flow.async_configure(
+        ergebnis["flow_id"],
+        {
+            CONF_HOST: "gitlab.example.net",
+            CONF_PROVIDER: "gitlab",
+            CONF_TOKEN: "altes-token",
+        },
+    )
+    await hass.async_block_till_done()
+    assert ergebnis["type"] is FlowResultType.CREATE_ENTRY
+    mock = hass.config_entries.async_entries(DOMAIN)[0]
+    assert mock.state is ConfigEntryState.LOADED
+
+    ergebnis = await reauth_starten(hass, mock)
+    ergebnis = await hass.config_entries.flow.async_configure(
+        ergebnis["flow_id"], {CONF_TOKEN: "frisches-token"}
+    )
+    await hass.async_block_till_done()
+
+    assert ergebnis["type"] is FlowResultType.ABORT
+    assert ergebnis["reason"] == "reauth_erfolgreich"
+    assert mock.data[CONF_TOKEN] == "frisches-token"
+    assert mock.state is ConfigEntryState.LOADED, "der Eintrag wurde neu gerichtet"
+    # Die Reauth-Probe (dritter Abruf) traegt das neue Token; der letzte
+    # Abruf gehoert dem NEU gerichteten Eintrag und traegt es ebenso.
+    # (Der verspaetete Lagerlauf der ALTEN Laufzeit reist einmal noch mit
+    # dem alten Klienten -- das ist der gewohnte Zug, der noch faehrt.)
+    assert attrappe.abrufe[2][2]["Authorization"] == "Bearer frisches-token"
+    assert attrappe.abrufe[-1][2]["Authorization"] == "Bearer frisches-token"
+
+
+async def test_reauth_mit_falschem_token_bleibt_im_dialog(
+    hass: HomeAssistant, sitzung_einpflanzen
+) -> None:
+    """Ein abgelehntes Token bleibt ein Formfehler -- nichts wird veraendert."""
+    sitzung_einpflanzen(
+        [
+            antwort(),
+            antwort(),
+            Aufzeichnung(
+                status=401,
+                text=json.dumps({"message": "401 Unauthorized"}),
+                kopfzeilen={},
+            ),
+        ]
+    )
+    ergebnis = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": SOURCE_USER}
+    )
+    ergebnis = await hass.config_entries.flow.async_configure(
+        ergebnis["flow_id"],
+        {
+            CONF_HOST: "gitlab.example.net",
+            CONF_PROVIDER: "gitlab",
+            CONF_TOKEN: "altes-token",
+        },
+    )
+    await hass.async_block_till_done()
+    assert ergebnis["type"] is FlowResultType.CREATE_ENTRY
+    mock = hass.config_entries.async_entries(DOMAIN)[0]
+
+    ergebnis = await reauth_starten(hass, mock)
+    ergebnis = await hass.config_entries.flow.async_configure(
+        ergebnis["flow_id"], {CONF_TOKEN: "falsches-token"}
+    )
+    await hass.async_block_till_done()
+
+    assert ergebnis["type"] is FlowResultType.FORM
+    assert ergebnis["step_id"] == "reauth_confirm"
+    assert ergebnis["errors"] == {"base": "token_reicht_nicht"}
+    assert mock.data[CONF_TOKEN] == "altes-token", "ohne Beweis wird nichts getauscht"
+
+
+async def test_401_im_lauf_startet_reauth(
+    hass: HomeAssistant, sitzung_einpflanzen, hass_storage
+) -> None:
+    """Der Aktualisierer wirft bei Token-Fehlern ConfigEntryAuthFailed --
+    Home Assistant bietet dann von selbst den Reauth-Weg an (#17, 17.10.).
+
+    Vorher endete ein abgelaufenes Token in einer Reparatur-Meldung ohne
+    Weg -- der Eintrag musste entfernt und neu angelegt werden.
+    """
+    from .test_m5 import eintrag_daten, mock_eintrag, speichern, stammdaten
+    from .test_m7 import richten
+
+    speichern(hass_storage, [eintrag_daten()])
+    sitzung_einpflanzen(
+        [
+            herzschlag_antwort(),  # der Herzschlag
+            stammdaten(),  # M5: Stammdaten ueber die ID
+            Aufzeichnung(
+                status=401,
+                text=json.dumps({"message": "401 Unauthorized"}),
+                kopfzeilen={},
+            ),  # der Lauf scheitert am Token
+        ]
+    )
+    mock = mock_eintrag()
+    await richten(hass, mock)
+    await hass.async_block_till_done()
+
+    assert mock.state is ConfigEntryState.LOADED, (
+        "der erste Lauf bleibt ein stiller Fehler des Takts (#23)"
+    )
+    laeufe = [
+        f
+        for f in hass.config_entries.flow.async_progress()
+        if f["handler"] == DOMAIN and f["context"].get("source") == SOURCE_REAUTH
+    ]
+    assert len(laeufe) == 1, "Home Assistant muss den Reauth-Weg anbieten: " + repr(
+        hass.config_entries.flow.async_progress()
+    )
+    assert laeufe[0]["context"].get("entry_id") == mock.entry_id
+
+
+async def test_http_token_warnung_reist_vor_der_ersten_reise(
+    hass: HomeAssistant, sitzung_einpflanzen, monkeypatch, caplog
+) -> None:
+    """super-z (#17, 17.10.): die http-Token-Warnung gehoert VOR die erste
+    unverschluesselte Reise -- bislang stand sie erst im Geruest, wer nur
+    ins Protokoll schaute, sah sie nach der Fahrt, nicht davor."""
+    import logging
+
+    import custom_components.haigs.config_flow as config_flow_modul
+
+    attrappe = sitzung_einpflanzen([antwort(), antwort()])
+    original = config_flow_modul.verbindung_pruefen
+    warnungen_bei_aufruf: list[int] = []
+
+    async def aufzeichnend(hass_, host, token, *args, **kwargs):
+        warnungen_bei_aufruf.append(
+            sum("unverschluesselt" in r.message for r in caplog.records)
+        )
+        return await original(hass_, host, token, *args, **kwargs)
+
+    monkeypatch.setattr(config_flow_modul, "verbindung_pruefen", aufzeichnend)
+
+    ergebnis = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": SOURCE_USER}
+    )
+    with caplog.at_level(logging.WARNING, logger="custom_components.haigs.config_flow"):
+        ergebnis = await hass.config_entries.flow.async_configure(
+            ergebnis["flow_id"],
+            {
+                CONF_HOST: "http://gitlab.lan:8080",
+                CONF_PROVIDER: "gitlab",
+                CONF_TOKEN: "geheimes-ding",
+            },
+        )
+        await hass.async_block_till_done()
+
+    assert ergebnis["type"] is FlowResultType.CREATE_ENTRY
+    assert attrappe.abrufe, "die Probe ist ueberhaupt gefahren"
+    assert warnungen_bei_aufruf == [1], (
+        "genau eine Warnung muss VOR der Pruefverbindung im Protokoll stehen"
+    )
