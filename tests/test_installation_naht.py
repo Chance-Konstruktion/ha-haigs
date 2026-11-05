@@ -1005,9 +1005,7 @@ class TestFremderOrdner:
     dieselben Ordner (custom_components/<domain>, www/community/<name>),
     also wird abgelehnt statt ueberschrieben."""
 
-    def test_erstinstallation_auf_fremdem_ordner_wird_abgewiesen(
-        self, tmp_path: Path
-    ):
+    def test_erstinstallation_auf_fremdem_ordner_wird_abgewiesen(self, tmp_path: Path):
         archiv = _zip(
             {
                 "beispiel-v1.0.0/custom_components/beispielint/__init__.py": b"# tanz",
