@@ -3,7 +3,10 @@
 Alles offline: die Sitzungs-Attrappe spielt die GitLab-Antworten in
 Reihenfolge ab. Die Reihenfolge ist der Herzschlag zuerst (Richten des
 Eintrags), dann der erste Lauf der Stufe M5 (Richten der Plattformen), danach
-alles, was der einzelne Test anstoesst.
+alles, was der einzelne Test anstoesst. Bei Vorlaeufen um den Takt bleibt der
+Herzschlag-Folgetakt zurueck -- sein Takt liegt um HERZSCHLAG_VERSATZ_SEK
+versetzt hinter dem des Aktualisierers (Ticket #23) und ist dann noch nicht
+faellig.
 """
 
 from __future__ import annotations
@@ -99,22 +102,6 @@ def speichern(hass_storage, eintraege, stand=None) -> None:
     }
 
 
-async def herzschlag_stilllegen(hass: HomeAssistant, mock: MockConfigEntry) -> None:
-    """Den Herzschlag-Takt fuer diesen Test ausschalten (Ticket #23).
-
-    Seit #23 taktet der Herzschlag wirklich -- seine Faelligkeit liegt
-    aber millisekundengenau neben der des Aktualisierers, und welche
-    zuerst feuert, ist nicht garantiert (beide Takte werden kurz
-    nacheinander bewaffnet). Tests, die eine feste Abruf-Reihenfolge
-    in der Attrappe aufzeichnen, legen ihn darum still. Der Takt
-    selbst hat seinen eigenen, deterministischen Test in
-    ``test_robustheit_23.py`` (``test_herzschlag_taktet_ohne_entity_
-    von_selbst_weiter``).
-    """
-    laufzeit = hass.data[DOMAIN][mock.entry_id]
-    await laufzeit.koordinator.async_shutdown()
-
-
 async def richten(hass: HomeAssistant, mock: MockConfigEntry) -> None:
     mock.add_to_hass(hass)
     assert await hass.config_entries.async_setup(mock.entry_id)
@@ -166,12 +153,15 @@ async def test_neues_release_erscheint_ohne_zutun(
         stand={STORAGE_KEY: {"installiert": "1.1.0", "vorabversionen": False}},
     )
     # Beim Vorlauf um den Takt feuert der Lager-Start
-    # zuerst (sein Termin liegt frueher), danach der Aktualisierer
-    # (der Herzschlag ist fuer diesen Test stillgelegt, s. o.).
-    # Der Lager-Lauf fragt die Zeile ueber die ID und durchsucht dann
-    # die Instanz (Suche, hacs.json, letzte Version); der Takt fragt
-    # wieder Stammdaten und Releases. Jede Runde zaehlt: drei Abrufe
-    # in der ersten, vier fuer das Lager, zwei in der zweiten Runde.
+    # zuerst (sein Termin liegt frueher), danach der Aktualisierer.
+    # Der Herzschlag bleibt zurueck: sein Takt liegt um
+    # HERZSCHLAG_VERSATZ_SEK versetzt hinter dem des Aktualisierers
+    # (Ticket #23) und ist beim Vorlauf um den Takt noch nicht
+    # faellig. Der Lager-Lauf fragt die Zeile ueber die ID und
+    # durchsucht dann die Instanz (Suche, hacs.json, letzte Version);
+    # der Takt fragt wieder Stammdaten und Releases. Jede Runde
+    # zaehlt: drei Abrufe in der ersten, vier fuer das Lager, zwei in
+    # der zweiten Runde.
     attrappe = sitzung_einpflanzen(
         [
             herzschlag(),
@@ -187,13 +177,10 @@ async def test_neues_release_erscheint_ohne_zutun(
             releases(release_objekt("v1.2.0")),  # Lager: letzte Version
             stammdaten(),
             releases(release_objekt("v1.3.0", "Frisch")),
-            herzschlag(),  # der Herzschlag selbst -- er taktet (Ticket #23)
         ]
     )
     mock = mock_eintrag()
     await richten(hass, mock)
-    await herzschlag_stilllegen(hass, mock)
-
     assert zustand(hass, "update").attributes["latest_version"] == "1.2.0"
 
     async_fire_time_changed(hass, dt_util.utcnow() + timedelta(hours=12))

@@ -34,7 +34,6 @@ from tests.attrappe import Aufzeichnung
 
 from .test_m5 import (
     eintrag_daten,
-    herzschlag_stilllegen,
     release_objekt,
     speichern,
     stammdaten,
@@ -491,7 +490,9 @@ async def test_voller_durchgang_ohne_yaml(
     # ersten Griff aus dem Lager -- ohne eigenen Abruf. Dafuer fragt
     # der Lager-Start beim Vorlauf um den Takt zuerst die Zeile ueber
     # die ID und durchsucht dann die Instanz (Suche, hacs.json,
-    # letzte Version), bevor der Takt des Aktualisierers dran ist.
+    # letzte Version), bevor der Takt des Aktualisierers dran ist --
+    # der Herzschlag bleibt zurueck: sein versetzter Takt (Ticket #23)
+    # ist beim Vorlauf um den Takt noch nicht faellig.
     attrappe = sitzung_einpflanzen(
         [
             herzschlag(),  # Herzschlag beim Richten
@@ -518,7 +519,6 @@ async def test_voller_durchgang_ohne_yaml(
     )
     mock = mock_eintrag()
     await richten(hass, mock)
-    await herzschlag_stilllegen(hass, mock)
     client = await hass_ws_client(hass)
 
     # -- Hinzufuegen ueber die Oberflaeche --------------------------
