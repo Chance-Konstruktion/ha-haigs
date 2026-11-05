@@ -99,22 +99,6 @@ def speichern(hass_storage, eintraege, stand=None) -> None:
     }
 
 
-async def herzschlag_stilllegen(hass: HomeAssistant, mock: MockConfigEntry) -> None:
-    """Den Herzschlag-Takt fuer diesen Test ausschalten (Ticket #23).
-
-    Seit #23 taktet der Herzschlag wirklich -- seine Faelligkeit liegt
-    aber millisekundengenau neben der des Aktualisierers, und welche
-    zuerst feuert, ist nicht garantiert (beide Takte werden kurz
-    nacheinander bewaffnet). Tests, die eine feste Abruf-Reihenfolge
-    in der Attrappe aufzeichnen, legen ihn darum still. Der Takt
-    selbst hat seinen eigenen, deterministischen Test in
-    ``test_robustheit_23.py`` (``test_herzschlag_taktet_ohne_entity_
-    von_selbst_weiter``).
-    """
-    laufzeit = hass.data[DOMAIN][mock.entry_id]
-    await laufzeit.koordinator.async_shutdown()
-
-
 async def richten(hass: HomeAssistant, mock: MockConfigEntry) -> None:
     mock.add_to_hass(hass)
     assert await hass.config_entries.async_setup(mock.entry_id)
@@ -192,8 +176,6 @@ async def test_neues_release_erscheint_ohne_zutun(
     )
     mock = mock_eintrag()
     await richten(hass, mock)
-    await herzschlag_stilllegen(hass, mock)
-
     assert zustand(hass, "update").attributes["latest_version"] == "1.2.0"
 
     async_fire_time_changed(hass, dt_util.utcnow() + timedelta(hours=12))

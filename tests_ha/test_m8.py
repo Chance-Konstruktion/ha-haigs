@@ -32,7 +32,6 @@ from .test_m5 import (
     STORAGE_KEY,
     eintrag_daten,
     herzschlag,
-    herzschlag_stilllegen,
     mock_eintrag,
     nicht_gefunden,
     release_objekt,
@@ -187,7 +186,6 @@ async def test_token_problem_wird_meldung_und_heilt(
     attrappe = sitzung_einpflanzen([herzschlag()])
     mock = mock_eintrag()
     await richten(hass, mock)
-    await herzschlag_stilllegen(hass, mock)
 
     laufzeit = laufzeit_von(hass)
     identitaet = RepositoryIdentity(
@@ -243,7 +241,6 @@ async def test_instanz_weg_behaelt_alte_daten(
     )
     mock = mock_eintrag()
     await richten(hass, mock)
-    await herzschlag_stilllegen(hass, mock)
     assert zustand(hass, "update").state == "on"
 
     laufzeit = laufzeit_von(hass)

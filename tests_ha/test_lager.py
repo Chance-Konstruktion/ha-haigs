@@ -29,7 +29,6 @@ from tests.attrappe import Aufzeichnung
 
 from .test_m5 import (
     eintrag_daten,
-    herzschlag_stilllegen,
     release_objekt,
     stammdaten,
 )
@@ -182,7 +181,6 @@ async def test_der_hintergrund_frucht_von_sich_aus(
     )
     mock = mock_eintrag()
     await richten(hass, mock)
-    await herzschlag_stilllegen(hass, mock)
     assert ereignisse == []  # noch lief nichts
 
     # Der Vorlauf feuert den Start-Lauf (vor dem Takt) und den Takt.
