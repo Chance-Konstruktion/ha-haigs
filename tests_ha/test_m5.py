@@ -3,7 +3,10 @@
 Alles offline: die Sitzungs-Attrappe spielt die GitLab-Antworten in
 Reihenfolge ab. Die Reihenfolge ist der Herzschlag zuerst (Richten des
 Eintrags), dann der erste Lauf der Stufe M5 (Richten der Plattformen), danach
-alles, was der einzelne Test anstoesst.
+alles, was der einzelne Test anstoesst. Bei Vorlaeufen um den Takt bleibt der
+Herzschlag-Folgetakt zurueck -- sein Takt liegt um HERZSCHLAG_VERSATZ_SEK
+versetzt hinter dem des Aktualisierers (Ticket #23) und ist dann noch nicht
+faellig.
 """
 
 from __future__ import annotations
@@ -150,12 +153,15 @@ async def test_neues_release_erscheint_ohne_zutun(
         stand={STORAGE_KEY: {"installiert": "1.1.0", "vorabversionen": False}},
     )
     # Beim Vorlauf um den Takt feuert der Lager-Start
-    # zuerst (sein Termin liegt frueher), danach der Aktualisierer
-    # (der Herzschlag ist fuer diesen Test stillgelegt, s. o.).
-    # Der Lager-Lauf fragt die Zeile ueber die ID und durchsucht dann
-    # die Instanz (Suche, hacs.json, letzte Version); der Takt fragt
-    # wieder Stammdaten und Releases. Jede Runde zaehlt: drei Abrufe
-    # in der ersten, vier fuer das Lager, zwei in der zweiten Runde.
+    # zuerst (sein Termin liegt frueher), danach der Aktualisierer.
+    # Der Herzschlag bleibt zurueck: sein Takt liegt um
+    # HERZSCHLAG_VERSATZ_SEK versetzt hinter dem des Aktualisierers
+    # (Ticket #23) und ist beim Vorlauf um den Takt noch nicht
+    # faellig. Der Lager-Lauf fragt die Zeile ueber die ID und
+    # durchsucht dann die Instanz (Suche, hacs.json, letzte Version);
+    # der Takt fragt wieder Stammdaten und Releases. Jede Runde
+    # zaehlt: drei Abrufe in der ersten, vier fuer das Lager, zwei in
+    # der zweiten Runde.
     attrappe = sitzung_einpflanzen(
         [
             herzschlag(),
@@ -171,7 +177,6 @@ async def test_neues_release_erscheint_ohne_zutun(
             releases(release_objekt("v1.2.0")),  # Lager: letzte Version
             stammdaten(),
             releases(release_objekt("v1.3.0", "Frisch")),
-            herzschlag(),  # der Herzschlag selbst -- er taktet (Ticket #23)
         ]
     )
     mock = mock_eintrag()

@@ -490,7 +490,9 @@ async def test_voller_durchgang_ohne_yaml(
     # ersten Griff aus dem Lager -- ohne eigenen Abruf. Dafuer fragt
     # der Lager-Start beim Vorlauf um den Takt zuerst die Zeile ueber
     # die ID und durchsucht dann die Instanz (Suche, hacs.json,
-    # letzte Version), bevor der Takt des Aktualisierers dran ist.
+    # letzte Version), bevor der Takt des Aktualisierers dran ist --
+    # der Herzschlag bleibt zurueck: sein versetzter Takt (Ticket #23)
+    # ist beim Vorlauf um den Takt noch nicht faellig.
     attrappe = sitzung_einpflanzen(
         [
             herzschlag(),  # Herzschlag beim Richten

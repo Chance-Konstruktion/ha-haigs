@@ -22,9 +22,7 @@ from pytest_homeassistant_custom_component.common import (
     async_fire_time_changed,
 )
 
-from custom_components.haigs.const import (
-    EREIGNIS_AKTUALISIERT,
-)
+from custom_components.haigs.const import EREIGNIS_AKTUALISIERT
 from tests.attrappe import Aufzeichnung
 
 from .test_m5 import (
@@ -184,6 +182,10 @@ async def test_der_hintergrund_frucht_von_sich_aus(
     assert ereignisse == []  # noch lief nichts
 
     # Der Vorlauf feuert den Start-Lauf (vor dem Takt) und den Takt.
+    # Der Herzschlag bleibt zurueck: sein Takt liegt um
+    # HERZSCHLAG_VERSATZ_SEK versetzt hinter dem des Aktualisierers
+    # (Ticket #23) und ist beim Vorlauf um den Takt noch nicht
+    # faellig.
     async_fire_time_changed(hass, dt_util.utcnow() + timedelta(hours=12))
     await hass.async_block_till_done()
 
@@ -196,13 +198,14 @@ async def test_der_hintergrund_frucht_von_sich_aus(
     assert len(attrappe.abrufe) == 9
 
     # Der NAECHSTE Vorlauf laeuft den Takt des Lagers erneut -- das Lager
-    # bleibt von selbst frisch, niemand drueckt einen Knopf. Der Takt
-    # des Aktualisierers feuert zuerst (er vollendet seinen Lauf vor
-    # dem Lager und bewaffnet sich deshalb zuerst), danach der Takt
-    # des Lagers: Zeile ueber die ID, dann die (leere) Suche. (Der
-    # Herzschlag ist fuer diesen Test stillgelegt, s. test_m5.)
+    # bleibt von selbst frisch, niemand drueckt einen Knopf. Nun sind
+    # alle drei Takte faellig: der Herzschlag (sein erster Folgetakt,
+    # um HERZSCHLAG_VERSATZ_SEK versetzt), dann der Takt des
+    # Aktualisierers, dann der Takt des Lagers: Zeile ueber die ID,
+    # dann die (leere) Suche.
     attrappe.aufzeichnungen.extend(
         [
+            Aufzeichnung(text="[]", kopfzeilen={}),  # Herzschlag: die Suche
             stammdaten(),  # Aktualisierer-Takt: Stammdaten ueber die ID
             releases(release_objekt("v1.2.0")),  # Aktualisierer-Takt: der Fund
             stammdaten(),  # Lager-Takt: die Zeile ueber die ID
@@ -213,7 +216,7 @@ async def test_der_hintergrund_frucht_von_sich_aus(
     await hass.async_block_till_done()
 
     assert len(ereignisse) == 2
-    assert len(attrappe.abrufe) == 13
+    assert len(attrappe.abrufe) == 14
     lager_frisch = hass_storage[LAGER_KEY]["data"]
     assert lager_frisch["aktualisiert_am"]
     assert lager_frisch["eintraege"][0]["installiert"] == "1.1.0"

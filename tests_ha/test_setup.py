@@ -14,6 +14,7 @@ from custom_components.haigs.const import (
     CONF_HOST,
     CONF_TOKEN,
     DOMAIN,
+    HERZSCHLAG_VERSATZ_SEK,
     STANDARD_ABSTAND_MINUTEN,
 )
 from tests.attrappe import Aufzeichnung, projekt
@@ -125,11 +126,15 @@ async def test_standardabstand_und_umstellung(
     mock = eintrag()
     await richten(hass, mock)
     koordinator = hass.data[DOMAIN][mock.entry_id].koordinator
-    assert koordinator.update_interval == timedelta(minutes=STANDARD_ABSTAND_MINUTEN)
+    assert koordinator.update_interval == timedelta(
+        minutes=STANDARD_ABSTAND_MINUTEN, seconds=HERZSCHLAG_VERSATZ_SEK
+    )
 
     hass.config_entries.async_update_entry(mock, options={CONF_ABSTAND_MINUTEN: 60})
     await hass.async_block_till_done()
-    assert koordinator.update_interval == timedelta(minutes=60)
+    assert koordinator.update_interval == timedelta(
+        minutes=60, seconds=HERZSCHLAG_VERSATZ_SEK
+    )
 
 
 async def test_abstand_aus_optionen_von_anfang_an(
@@ -139,7 +144,9 @@ async def test_abstand_aus_optionen_von_anfang_an(
     mock = eintrag(options={CONF_ABSTAND_MINUTEN: 45})
     await richten(hass, mock)
     koordinator = hass.data[DOMAIN][mock.entry_id].koordinator
-    assert koordinator.update_interval == timedelta(minutes=45)
+    assert koordinator.update_interval == timedelta(
+        minutes=45, seconds=HERZSCHLAG_VERSATZ_SEK
+    )
 
 
 async def test_eintrag_entfernt_sich(hass: HomeAssistant, sitzung_einpflanzen) -> None:

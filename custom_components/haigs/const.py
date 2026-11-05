@@ -64,6 +64,16 @@ EREIGNIS_AKTUALISIERT = DOMAIN + "_aktualisiert"
 #: andere anzustellen, bevor die Instanz durchsucht wird.
 LAGER_START_VERZOEGERUNG_SEK = 45
 
+#: Um wie viel der Herzschlag-Takt hinter dem Takt des Aktualisierers
+#: herhaengt (Sekunden, Ticket #23). Beide Koordinatoren werden beim
+#: Richten kurz nacheinander bewaffnet; Home Assistant streut jede
+#: Faellichkeit selbst um bis zu eine halbe Sekunde -- welcher Takt
+#: zuerst feuert, bleibt damit eine Zufallsfrage. Der Versatz trennt
+#: die Takte um ein Vielfaches davon: erst der Aktualisierer, dann
+#: der Herzschlag. Dieselbe Schule wie die Start-Verzoegerung des
+#: Lagers; fuer einen minuetlichen Takt bleibt der Verzug unsichtbar.
+HERZSCHLAG_VERSATZ_SEK = 45
+
 
 def host_normalisieren(host: str) -> str:
     """Bringt jede Menscheneingabe auf die Form ``gitlab.example.net``.

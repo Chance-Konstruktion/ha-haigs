@@ -208,8 +208,9 @@ async def test_token_problem_wird_meldung_und_heilt(
     # Runde (im M5-Test erprobt). Der Lager-Start feuert
     # zuerst -- Zeile ueber die ID, dann die leere Suche --, danach
     # fragt die gesunde Runde des Aktualisierers zuerst die Stammdaten
-    # und dann die Releases. (Der Herzschlag ist fuer diesen Test
-    # stillgelegt, s. test_m5.)
+    # und dann die Releases. Der Herzschlag bleibt zurueck: sein
+    # versetzter Takt (Ticket #23) ist beim Vorlauf um den Takt noch
+    # nicht faellig.
     attrappe.aufzeichnungen.extend(
         [
             stammdaten(),  # Lager: die Zeile ueber die ID
@@ -259,8 +260,8 @@ async def test_instanz_weg_behaelt_alte_daten(
     # Es geht wieder: alles kehrt zurueck, nichts ging verloren. Auch hier
     # der Takt-Vorlauf (Debounce), nicht die direkte Bitte. Der Lager-
     # Start feuert zuerst -- Zeile ueber die ID, leere
-    # Suche --, danach die gesunde Runde des Aktualisierers. (Der
-    # Herzschlag ist fuer diesen Test stillgelegt, s. test_m5.)
+    # Suche --, danach die gesunde Runde des Aktualisierers. Der
+    # Herzschlag bleibt zurueck (versetzter Takt, Ticket #23).
     attrappe.aufzeichnungen.extend(
         [
             stammdaten(),  # Lager: die Zeile ueber die ID
