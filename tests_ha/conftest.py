@@ -13,6 +13,8 @@ offline.
 
 from __future__ import annotations
 
+import shutil
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -25,6 +27,34 @@ from tests.attrappe import Aufzeichnung, SitzungsAttrappe
 @pytest.fixture(autouse=True)
 def _eigene_integration_freischalten(enable_custom_integrations: None) -> None:
     """Jeder Test dieser Bahn laedt die eigene Integration aus dem Repo."""
+    yield
+
+
+@pytest.fixture(autouse=True)
+def _zielordner_frisch(hass: HomeAssistant) -> None:
+    """Der Zielordner am Test-Harness ist ein Ueberrest, kein Bestand.
+
+    pytest_homeassistant_custom_component haelt EIN config_dir fuer
+    alle Tests dieses Prozesses fest -- was ein frueherer Test dort
+    installiert hat, trifft den naechsten. Seit Ticket #29 weist die
+    Erstinstallation einen gefuellten Zielordner ab (Marketplace-/
+    Handinstallations-Schutz). Hier ist der Inhalt aber kein fremder
+    Bestand, sondern Staub frueherer Laeufe; diese Bahn prueft die
+    Installations- und Deinstallationswege, nicht den Ordner-Streit --
+    dessen Zeugen stehen in tests/test_installation_naht.py auf
+    eigenem tmp_path. Darum raeumt jeder Test die Ueberreste zuerst
+    weg, wie eine frische Maschine: das Installations-Ziel
+    ``beispiel_integration``, den Nachbar-Ordner ``andere`` der
+    Deinstallations-Tests (er bleibt absichtlich stehen und wuerde
+    den naechsten Lauf per mkdir ohne exist_ok stuerzen) und den
+    Selbst-Installations-Ueberrest ``haigs`` (der eigene-Release-Test
+    installiert die laufende Integration in das config_dir und nimmt
+    sie nicht wieder mit).
+    """
+    ueberreste = Path(hass.config.config_dir) / "custom_components"
+    for name in ("beispiel_integration", "andere", "haigs"):
+        if (ueberreste / name).exists():
+            shutil.rmtree(ueberreste / name)
     yield
 
 
