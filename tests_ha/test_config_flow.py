@@ -1266,6 +1266,27 @@ async def test_reauth_heilt_den_eintrag(hass: HomeAssistant, sitzung_einpflanzen
     assert attrappe.abrufe[-1][2]["Authorization"] == "Bearer frisches-token"
 
 
+async def test_reauth_am_verschundenen_eintrag_benennt_den_zustand(
+    hass: HomeAssistant,
+) -> None:
+    """Ist der Eintrag des Reauth-Wegs verschwunden, steht der echte
+    Abort-Grund da -- nicht der Erfolgswortlaut (Fund pc-s, 05.11.:
+    der bereitliegende Schluessel eintrag_verschwunden wurde nie benutzt)."""
+    ergebnis = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={
+            "source": SOURCE_REAUTH,
+            "entry_id": "gibts-nicht-mehr",
+            "title_placeholders": {"name": "weg"},
+        },
+        data={},
+    )
+    await hass.async_block_till_done()
+
+    assert ergebnis["type"] is FlowResultType.ABORT
+    assert ergebnis["reason"] == "eintrag_verschwunden"
+
+
 async def test_reauth_mit_falschem_token_bleibt_im_dialog(
     hass: HomeAssistant, sitzung_einpflanzen
 ) -> None:

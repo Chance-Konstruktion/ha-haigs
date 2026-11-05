@@ -258,8 +258,8 @@ class HaigsFluss(config_entries.ConfigFlow, domain=DOMAIN):
         self._reauth_eintrag = self.hass.config_entries.async_get_entry(
             self.context["entry_id"]
         )
-        if self._reauth_eintrag is None:  # pragma: no cover -- HA reicht nur echte
-            return self.async_abort(reason="reauth_erfolgreich")
+        if self._reauth_eintrag is None:
+            return self.async_abort(reason="eintrag_verschwunden")
         return await self.async_step_reauth_confirm()
 
     async def async_step_reauth_confirm(
