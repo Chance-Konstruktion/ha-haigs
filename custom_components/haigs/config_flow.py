@@ -269,7 +269,17 @@ class HaigsFluss(config_entries.ConfigFlow, domain=DOMAIN):
         eintrag = self._reauth_eintrag
         assert eintrag is not None
         fehler: dict[str, str] = {}
-        platzhalter: dict[str, str] = {"host": eintrag.data[CONF_HOST]}
+        # super-z (#17, 17.10., Nachschau 05.11.): die Beschreibung des
+        # Schritts nennt {grund} (strings.json, de.json, en.json) -- ohne
+        # Wert an der ERSTEN Anzeige wirft das HA-Frontend (IntlMessage-
+        # Format) den MissingValueError und zeigt "Translation Error"
+        # statt des Texts. Hier steht der Klasse-Ausdruck fuer den einen
+        # Fall, in dem sich der Weg bietet (401/403, s. async_step_reauth);
+        # der echte Wortlaut folgt ab der ersten gescheiterten Runde.
+        platzhalter: dict[str, str] = {
+            "host": eintrag.data[CONF_HOST],
+            "grund": "401/403",
+        }
 
         if benutzereingabe is not None:
             token = (benutzereingabe.get(CONF_TOKEN) or "").strip() or None

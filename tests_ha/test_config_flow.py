@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from datetime import timedelta
 from pathlib import Path
 
@@ -1219,6 +1220,49 @@ async def test_reauth_zeigt_nur_das_token_feld(
     schema: vol.Schema = ergebnis["data_schema"]
     felder = {naehe.key if hasattr(naehe, "key") else naehe for naehe in schema.schema}
     assert felder == {CONF_TOKEN}, "der Reauth-Weg fragt nur das Token ab"
+
+
+async def test_reauth_erste_anzeige_liefert_alle_platzhalter(
+    hass: HomeAssistant, sitzung_einpflanzen
+) -> None:
+    """Die ERSTE Anzeige des reauth_confirm liefert jeden Platzhalter des Texts.
+
+    Fund (Nachschau 05.11., 21:46): die Beschreibung nennt {grund}
+    (strings.json, de.json, en.json), der Code lieferte beim ersten
+    Oeffnen nur {host} -- das HA-Frontend formatiert Titel und
+    Beschreibung ueber IntlMessageFormat und wirft bei fehlendem Wert
+    den MissingValueError; localize faengt ihn und rendert "Translation
+    Error" statt der Beschreibung. de.json und en.json haelt die Kern-
+    Pruefung (test_uebersetzungen) schluessel- und platzhaltergleich.
+    """
+    sitzung_einpflanzen([antwort(), antwort()])
+    ergebnis = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": SOURCE_USER}
+    )
+    ergebnis = await hass.config_entries.flow.async_configure(
+        ergebnis["flow_id"],
+        {CONF_HOST: "gitlab.example.net", CONF_PROVIDER: "gitlab", CONF_TOKEN: ""},
+    )
+    await hass.async_block_till_done()
+    assert ergebnis["type"] is FlowResultType.CREATE_ENTRY
+    mock = hass.config_entries.async_entries(DOMAIN)[0]
+
+    ergebnis = await reauth_starten(hass, mock)
+    assert ergebnis["type"] is FlowResultType.FORM
+    assert ergebnis["step_id"] == "reauth_confirm"
+
+    quelle = Path(__file__).resolve().parents[1] / "custom_components" / "haigs"
+    schritt = json.loads((quelle / "strings.json").read_text(encoding="utf-8"))
+    schritt = schritt["config"]["step"]["reauth_confirm"]
+    text = f"{schritt['title']} {schritt['description']}"
+    erwartet = set(re.findall(r"\{([a-z_]+)\}", text))
+    geliefert = set(ergebnis["description_placeholders"])
+    fehlen = erwartet - geliefert
+    assert not fehlen, (
+        f"der erste Bildschirm liefert {sorted(geliefert)}, Titel und Beschreibung "
+        f"brauchen {sorted(erwartet)} -- ohne den Wert rendert das HA-Frontend "
+        f"'Translation Error' statt des Texts: {fehlen}"
+    )
 
 
 async def test_reauth_heilt_den_eintrag(hass: HomeAssistant, sitzung_einpflanzen) -> None:
