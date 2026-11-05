@@ -42,14 +42,19 @@ def _zielordner_frisch(hass: HomeAssistant) -> None:
     Bestand, sondern Staub frueherer Laeufe; diese Bahn prueft die
     Installations- und Deinstallationswege, nicht den Ordner-Streit --
     dessen Zeugen stehen in tests/test_installation_naht.py auf
-    eigenem tmp_path. Darum raeumt jeder Test den Ueberrest zuerst
-    weg, wie eine frische Maschine.
+    eigenem tmp_path. Darum raeumt jeder Test die Ueberreste zuerst
+    weg, wie eine frische Maschine: das Installations-Ziel
+    ``beispiel_integration``, den Nachbar-Ordner ``andere`` der
+    Deinstallations-Tests (er bleibt absichtlich stehen und wuerde
+    den naechsten Lauf per mkdir ohne exist_ok stuerzen) und den
+    Selbst-Installations-Ueberrest ``haigs`` (der eigene-Release-Test
+    installiert die laufende Integration in das config_dir und nimmt
+    sie nicht wieder mit).
     """
-    ueberrest = (
-        Path(hass.config.config_dir) / "custom_components" / "beispiel_integration"
-    )
-    if ueberrest.exists():
-        shutil.rmtree(ueberrest)
+    ueberreste = Path(hass.config.config_dir) / "custom_components"
+    for name in ("beispiel_integration", "andere", "haigs"):
+        if (ueberreste / name).exists():
+            shutil.rmtree(ueberreste / name)
     yield
 
 
