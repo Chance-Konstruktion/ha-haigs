@@ -32,6 +32,7 @@ from haigs.core import entpacken
 from haigs.core.forge import Release
 from haigs.core.zielpfade import ist_zielpfad
 from haigs.installation import (
+    ZWISCHENLAGER_NAME,
     InstallationsFehler,
     _deinstalliere_sync,
     _installiere_sync,
@@ -993,3 +994,116 @@ class TestNamensgesetzImUpdate:
             _deinstalliere_sync("themes", tmp_path, dateien=("../wichtig.txt",))
 
         assert sicher.read_bytes() == b"bleib"
+
+
+# ------------------------------------ Fremder Zielordner und Umzug (#29)
+
+
+class TestFremderOrdner:
+    """Ticket #29 (HA 2026.11, Marketplace): der Zielordner gehoert
+    diesem Eintrag oder niemandem hier -- der Marketplace verwaltet
+    dieselben Ordner (custom_components/<domain>, www/community/<name>),
+    also wird abgelehnt statt ueberschrieben."""
+
+    def test_erstinstallation_auf_fremdem_ordner_wird_abgewiesen(self, tmp_path: Path):
+        archiv = _zip(
+            {
+                "beispiel-v1.0.0/custom_components/beispielint/__init__.py": b"# tanz",
+                "beispiel-v1.0.0/custom_components/beispielint/manifest.json": (
+                    _manifest("beispielint")
+                ),
+            }
+        )
+        fremd = tmp_path / "custom_components" / "beispielint"
+        fremd.mkdir(parents=True)
+        (fremd / "fremd.txt").write_bytes(b"nicht von hier")
+
+        with pytest.raises(InstallationsFehler, match="Marketplace"):
+            _installiere_sync(archiv, "integration", "beispielint", tmp_path)
+
+        # Nichts angeruehrt, nichts Halbes zurueckgelassen.
+        assert (fremd / "fremd.txt").read_bytes() == b"nicht von hier"
+        assert not (tmp_path / ZWISCHENLAGER_NAME).exists()
+
+    def test_update_auf_eigenem_bestand_tauscht(self, tmp_path: Path):
+        archiv_alt = _zip(
+            {
+                "beispiel-v1.0.0/custom_components/beispielint/__init__.py": b"# tanz",
+                "beispiel-v1.0.0/custom_components/beispielint/manifest.json": (
+                    _manifest("beispielint", "1.0.0")
+                ),
+            }
+        )
+        archiv_neu = _zip(
+            {
+                "beispiel-v2.0.0/custom_components/beispielint/__init__.py": b"# tanz2",
+                "beispiel-v2.0.0/custom_components/beispielint/manifest.json": (
+                    _manifest("beispielint", "2.0.0")
+                ),
+            }
+        )
+        _installiere_sync(archiv_alt, "integration", "beispielint", tmp_path)
+
+        weg = _installiere_sync(
+            archiv_neu, "integration", "beispielint", tmp_path, bestand=True
+        )
+
+        assert weg.pfad == PurePosixPath("custom_components/beispielint")
+        ziel = tmp_path / "custom_components" / "beispielint"
+        assert (ziel / "manifest.json").read_bytes() == _manifest("beispielint", "2.0.0")
+
+    def test_erstinstallation_auf_leerem_ueberrest_laeuft(self, tmp_path: Path):
+        """Ein leerer Ordner ist kein fremder Bestand -- er raeumt sich weg."""
+        archiv = _zip(
+            {
+                "beispiel-v1.0.0/custom_components/beispielint/__init__.py": b"# tanz",
+                "beispiel-v1.0.0/custom_components/beispielint/manifest.json": (
+                    _manifest("beispielint")
+                ),
+            }
+        )
+        (tmp_path / "custom_components" / "beispielint").mkdir(parents=True)
+
+        weg = _installiere_sync(archiv, "integration", "beispielint", tmp_path)
+
+        assert weg.pfad == PurePosixPath("custom_components/beispielint")
+        assert (tmp_path / "custom_components" / "beispielint" / "__init__.py").exists()
+
+    def test_fremder_plugin_ordner_wird_abgewiesen(self, tmp_path: Path):
+        """Derselbe Streit am Dashboard-Ziel www/community/<name>."""
+        archiv = _zip({"meinplugin/meinplugin.js": b"export function start;"})
+        fremd = tmp_path / "www" / "community" / "meinplugin"
+        fremd.mkdir(parents=True)
+        (fremd / "alt.js").write_bytes(b"alt")
+
+        with pytest.raises(InstallationsFehler, match="Marketplace"):
+            _installiere_sync(archiv, "plugin", "meinplugin", tmp_path)
+
+        assert (fremd / "alt.js").read_bytes() == b"alt"
+
+
+class TestTemplateUmzug:
+    """Ticket #29: Templates landen unter ``custom_templates/`` -- dort
+    liest Home Assistant sie; der alte ``templates/``-Weg bleibt als
+    Protokoll deinstallierbar."""
+
+    def test_template_landet_unter_custom_templates(self, tmp_path: Path):
+        archiv = _zip({"meine-v1.0.0/wohnung.jinja": b"{{ gruss }}"})
+
+        weg = _installiere_sync(archiv, "template", "meine_vorlage", tmp_path)
+
+        assert weg.pfad == PurePosixPath("custom_templates/meine_vorlage")
+        assert (
+            tmp_path / "custom_templates" / "meine_vorlage" / "wohnung.jinja"
+        ).read_bytes() == b"{{ gruss }}"
+        assert not (tmp_path / "templates").exists()
+
+    def test_legacy_templates_ordner_laesst_sich_entfernen(self, tmp_path: Path):
+        alt = tmp_path / "templates" / "meine_vorlage"
+        alt.mkdir(parents=True)
+        (alt / "wohnung.jinja").write_bytes(b"alt")
+
+        _deinstalliere_sync("templates/meine_vorlage", tmp_path)
+
+        assert not alt.exists()
+        assert (tmp_path / "templates").exists()  # die Wurzel bleibt

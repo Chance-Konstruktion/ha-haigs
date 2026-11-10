@@ -23,6 +23,7 @@ from pytest_homeassistant_custom_component.common import (
 from custom_components.haigs import HaigsKoordinator, async_unload_entry
 from custom_components.haigs.const import (
     DOMAIN,
+    HERZSCHLAG_VERSATZ_SEK,
     STANDARD_ABSTAND_MINUTEN,
 )
 from custom_components.haigs.core.gitlab_forge import GitLabForge
@@ -76,6 +77,46 @@ async def test_herzschlag_taktet_ohne_entity_von_selbst_weiter(
     await hass.async_block_till_done()
 
     assert len(attrappe.abrufe) == 2, "der Herzschlag muss von selbst weitertakten"
+
+
+async def test_herzschlag_takt_liegt_versetzt_hinter_dem_aktualisierer(
+    hass: HomeAssistant,
+) -> None:
+    """Der Herzschlag-Takt ist um HERZSCHLAG_VERSATZ_SEK versetzt (Ticket #23).
+
+    Der Aktualisierer wird beim Richten kurz nach dem Herzschlag-
+    Koordinator bewaffnet; ohne Versatz waeren beide Takte
+    millisekundengleich faellig, und welcher zuerst feuert, ist nicht
+    garantiert. Gemessen am Solokoordinator: zum Termin des
+    Aktualisierers (Abstand + 1 Sekunde) ist der Herzschlag noch nicht
+    faellig, kurz nach dem versetzten Termin feuert er.
+    """
+    attrappe = SitzungsAttrappe([herzschlag(), herzschlag()])
+    mock = mock_eintrag()
+    mock.add_to_hass(hass)
+    forge = GitLabForge(
+        AiohttpClient(attrappe, token_host="gitlab.example.net"),
+        "gitlab.example.net",
+    )
+    koordinator = HaigsKoordinator(hass, mock, forge)
+
+    await koordinator.async_refresh()
+    assert len(attrappe.abrufe) == 1
+    assert koordinator.update_interval == timedelta(
+        minutes=STANDARD_ABSTAND_MINUTEN, seconds=HERZSCHLAG_VERSATZ_SEK
+    )
+
+    # Zum Termin des Aktualisierers (eine Sekunde nach dessen Takt)
+    # ist der Herzschlag noch nicht faellig:
+    jetzt = dt_util.utcnow() + timedelta(minutes=STANDARD_ABSTAND_MINUTEN, seconds=1)
+    async_fire_time_changed(hass, jetzt)
+    await hass.async_block_till_done()
+    assert len(attrappe.abrufe) == 1, "der Versatz haelt den Herzschlag zurueck"
+
+    # Kurz nach dem versetzten Termin feuert er:
+    async_fire_time_changed(hass, jetzt + timedelta(seconds=HERZSCHLAG_VERSATZ_SEK + 2))
+    await hass.async_block_till_done()
+    assert len(attrappe.abrufe) == 2, "der versetzte Herzschlag taket weiter"
 
 
 # -- Punkt 2: ein einziger fehlerhafter Eintrag kostet nicht die Entity --

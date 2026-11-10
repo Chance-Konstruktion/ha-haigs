@@ -520,6 +520,7 @@ def _installiere_sync(
     konfiguration: Path,
     fruehere_dateien: tuple[str, ...] | list[str] | None = None,
     altbestand: bool = False,
+    bestand: bool = False,
 ) -> InstallationsErgebnis:
     """Der schreibende Teil -- laeuft im Vorfuehrer (Executor), nie im Kreis.
 
@@ -529,6 +530,15 @@ def _installiere_sync(
     0.6.3, deren Stand keine Dateiliste traegt -- dort erben die
     gleichnamigen Dateien des Archivs den Platz (siehe
     :func:`_installiere_flach`).
+
+    ``bestand`` (Ticket #29, HA 2026.11 Marketplace): dieser Eintrag
+    verwaltet bereits eine Installation (verzeichneter Weg oder
+    Version) -- nur dann darf der Zielordner getauscht werden. Eine
+    Erstinstallation auf einen vorhandenen, gefuellten Ordner wird
+    abgewiesen: der Marketplace laedt in dieselben Ordner
+    (``custom_components/<domain>``, ``www/community/<name>``), und
+    "Store im Store" heisst hier ablehnen statt ueberschreiben. Ein
+    leerer Ueberrest ist kein Bestand und raeumt sich weg.
     """
     plan = _sicherer_plan(archiv)
     namen = [eintrag.name for eintrag in plan if not eintrag.ist_verzeichnis]
@@ -558,6 +568,18 @@ def _installiere_sync(
         return InstallationsErgebnis(pfad=ziel_weg, dateien=dateien)
 
     try:
+        # Ticket #29 (HA 2026.11, Marketplace): der Zielordner gehoert
+        # entweder diesem Eintrag (verzeichneter Bestand) oder niemandem
+        # hier. Der Marketplace verwaltet dieselben Ordner -- gefuellte
+        # Ziele werden abgelehnt, nicht still getauscht. Der flache Weg
+        # oben prueft je Datei und bleibt, wie er ist.
+        if not bestand and ziel.exists() and any(ziel.iterdir()):
+            raise InstallationsFehler(
+                f"{str(ziel_weg)!r} existiert schon mit Inhalt und gehoert zu "
+                "keiner Installation dieses Eintrags -- moeglicherweise "
+                "verwaltet der Marketplace (Home Assistant 2026.11) oder eine "
+                "Handinstallation diesen Ordner; abgelehnt statt ueberschrieben"
+            )
         entpacken.installiere(archiv, zwischenlager, ziel, nur=zuordnung)
     except entpacken.EntpackFehler as fehlschlag:
         raise InstallationsFehler(str(fehlschlag)) from fehlschlag
@@ -795,6 +817,7 @@ async def installiere_version(
     tag: str,
     fruehere_dateien: tuple[str, ...] | list[str] | None = None,
     altbestand: bool = False,
+    bestand: bool = False,
 ) -> InstallationsErgebnis:
     """Bringt die Version an ihren Ort und meldet den Zielweg.
 
@@ -809,7 +832,10 @@ async def installiere_version(
     aufrufende Stelle sorgt dafuer, dass es in der Ablage landet, noch
     bevor die Version als installiert gilt. ``altbestand`` (Review
     zu !50, Befund 2) ermoeglicht das Update einer 0.6.3-Installation
-    ohne verzeichnete Dateiliste.
+    ohne verzeichnete Dateiliste. ``bestand`` (Ticket #29) sagt, dass
+    dieser Eintrag schon eine eigene Installation verwaltet -- ohne
+    ihn wird ein vorhandener, gefuellter Zielordner abgewiesen
+    (Marketplace/Handinstallation), nicht ueberschrieben.
     """
     pfad = eintrag.identitaet.full_name
     archiv, _herkunft = await beschaffe_archiv(forge, pfad, tag)
@@ -826,6 +852,7 @@ async def installiere_version(
         konfiguration,
         tuple(fruehere_dateien or ()),
         altbestand,
+        bestand,
     )
 
 

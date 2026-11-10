@@ -22,6 +22,7 @@ from custom_components.haigs.const import (
     CONF_PROVIDER,
     CONF_TOKEN,
     DOMAIN,
+    HERZSCHLAG_VERSATZ_SEK,
 )
 from custom_components.haigs.eintraege import (
     CONF_ADRESSE,
@@ -694,7 +695,9 @@ async def test_abstand_ueber_das_menue(hass: HomeAssistant, sitzung_einpflanzen)
 
     assert ergebnis["type"] is FlowResultType.CREATE_ENTRY
     koordinator = hass.data[DOMAIN][mock.entry_id].koordinator
-    assert koordinator.update_interval == timedelta(minutes=30)
+    assert koordinator.update_interval == timedelta(
+        minutes=30, seconds=HERZSCHLAG_VERSATZ_SEK
+    )
 
 
 async def test_entwicklermodus_ueber_das_menue(

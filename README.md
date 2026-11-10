@@ -12,8 +12,11 @@ A store for Home Assistant custom components that live on **GitLab**,
 **Gitea** or **Forgejo** ([Codeberg](https://codeberg.org)) instead of
 GitHub — add, discover and keep them up to date, self-hosted or public.
 
-HACS only knows GitHub. HAIGS is a separate integration that runs *alongside*
-HACS; it is not a fork and changes no HACS code.
+The Home Assistant Marketplace (since 2026.11 — formerly HACS) only knows
+GitHub. HAIGS is a separate integration that runs *alongside* it: the
+complement for GitLab, Gitea and Forgejo/Codeberg. It also keeps managing
+**AppDaemon** apps and **Python scripts**, which the Marketplace does not.
+It is not a fork and changes no Marketplace code.
 
 ## Features
 
@@ -33,7 +36,8 @@ HACS; it is not a fork and changes no HACS code.
 - **Developer mode** — per instance, install the latest commit of the default
   branch instead of a release.
 - **Optional official HACS catalog** — show the ~4000 HACS repositories in the
-  same store, so one sidebar entry is enough.
+  same store, so one sidebar entry is enough. The Marketplace shows the same
+  catalog; HAIGS keeps this as an option, off by default.
 - **Integration icons** from the repository's `brand/` folder, via Home
   Assistant's brands proxy.
 - **Clear next steps** after installing an integration: restart hint, setup
@@ -43,7 +47,17 @@ Details: [docs/features.md](docs/features.md) · Website: <https://chance-konstr
 
 ## Installation
 
-**Via HACS (recommended)**
+**Via the Marketplace (Home Assistant 2026.11 and newer)**
+
+The HACS installer stops at Home Assistant 2026.11 — the Marketplace is the
+built-in successor. Custom repositories need a GitHub connection (device
+sign-in, read-only); the Marketplace walks you through it.
+
+1. *Settings → Marketplace → ⋮ → Custom repositories → Add from link* →
+   `https://github.com/Chance-Konstruktion/ha-haigs`, type *Integration*.
+2. Download **HAIGS**, restart if asked, continue with step 3.
+
+**Via HACS (Home Assistant up to 2026.10)**
 
 [![Open your Home Assistant instance and open this repository in HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Chance-Konstruktion&repository=ha-haigs&category=integration)
 

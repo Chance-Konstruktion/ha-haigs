@@ -32,7 +32,6 @@ from .test_m5 import (
     STORAGE_KEY,
     eintrag_daten,
     herzschlag,
-    herzschlag_stilllegen,
     mock_eintrag,
     nicht_gefunden,
     release_objekt,
@@ -187,7 +186,6 @@ async def test_token_problem_wird_meldung_und_heilt(
     attrappe = sitzung_einpflanzen([herzschlag()])
     mock = mock_eintrag()
     await richten(hass, mock)
-    await herzschlag_stilllegen(hass, mock)
 
     laufzeit = laufzeit_von(hass)
     identitaet = RepositoryIdentity(
@@ -252,7 +250,6 @@ async def test_instanz_weg_behaelt_alte_daten(
     )
     mock = mock_eintrag()
     await richten(hass, mock)
-    await herzschlag_stilllegen(hass, mock)
     assert zustand(hass, "update").state == "on"
 
     laufzeit = laufzeit_von(hass)
@@ -271,8 +268,8 @@ async def test_instanz_weg_behaelt_alte_daten(
     # Es geht wieder: alles kehrt zurueck, nichts ging verloren. Auch hier
     # der Takt-Vorlauf (Debounce), nicht die direkte Bitte. Der Lager-
     # Start feuert zuerst -- Zeile ueber die ID, leere
-    # Suche --, danach die gesunde Runde des Aktualisierers. (Der
-    # Herzschlag ist fuer diesen Test stillgelegt, s. test_m5.)
+    # Suche --, danach die gesunde Runde des Aktualisierers. Der
+    # Herzschlag bleibt zurueck (versetzter Takt, Ticket #23).
     attrappe.aufzeichnungen.extend(
         [
             stammdaten(),  # Lager: die Zeile ueber die ID

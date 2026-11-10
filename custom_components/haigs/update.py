@@ -17,6 +17,7 @@ erscheint ohne Zutun in HA».
 from __future__ import annotations
 
 import logging
+from pathlib import PurePosixPath
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.update import UpdateEntity, UpdateEntityFeature
@@ -32,6 +33,7 @@ from .core.zielpfade import ist_flach
 from .installation import (
     HalbeInstallation,
     InstallationsFehler,
+    deinstalliere_version,
     installiere_version,
 )
 from .neustart import neustart_hinweis
@@ -274,6 +276,12 @@ class HaigsUpdateEntity(UpdateEntity):
         # Befund #19: flache Kategorien verzeichnen ihre Dateiliste --
         # der fruehere Stand entscheidet, was ein Update ersetzen darf.
         stand_alt = self._staende.stand(self._eintrag.storage_key)
+        # Ticket #29 (HA 2026.11, Marketplace): dieser Eintrag verwaltet
+        # nur seinen verzeichneten Bestand -- Version oder Weg. Eine
+        # Erstinstallation auf einen vorhandenen, gefuellten Zielordner
+        # (Marketplace, Handinstallation) wird abgewiesen, nicht
+        # ueberschrieben.
+        bestand = bool(stand_alt.installiert or stand_alt.pfad)
         # Review zu !50, Befund 2: ein Altbestand aus 0.6.3 traegt Version
         # und Wurzel, aber keine Dateiliste -- ohne Erben der Namen waere
         # das Update eine Sackgasse (Kollision an den eigenen Dateien).
@@ -290,6 +298,7 @@ class HaigsUpdateEntity(UpdateEntity):
                 fund.tag,
                 fruehere_dateien=stand_alt.dateien,
                 altbestand=altbestand,
+                bestand=bestand,
             )
         except InstallationsFehler as fehlschlag:
             # Review zu !50, Befund 1: ein Bruchstueck wird verzeichnet,
@@ -324,6 +333,28 @@ class HaigsUpdateEntity(UpdateEntity):
                 zielweg=pfad,
             )
         self._schreibe()
+        # Ticket #29: steht der alte Bestand unter einem anderen Weg --
+        # Templates vor 2026.11 unter ``templates/``, oder das Repo hat
+        # seine Domain gewechselt -- zieht die Installation um. Der neue
+        # Stand ist schon verzeichnet, erst danach weicht der alte
+        # Ordner; schlaegt das Entfernen fehl, bleibt er als totes
+        # Ueberbleibsel liegen -- die Warnung nennt ihn, das Protokoll
+        # weist auf den neuen Weg.
+        alter_weg = stand_alt.pfad
+        if alter_weg and PurePosixPath(alter_weg) != ergebnis.pfad:
+            try:
+                await deinstalliere_version(
+                    self.hass, alter_weg, dateien=stand_alt.dateien
+                )
+            except InstallationsFehler as fehl:
+                _LOGGER.warning(
+                    "Der alte Bestand unter %r liess sich nicht entfernen (%s) "
+                    "-- die neue Version steht unter %r; der alte Ordner kann "
+                    "von Hand entfernt werden",
+                    alter_weg,
+                    fehl,
+                    pfad,
+                )
         mit_dialog = (
             await lies_dialog_flag(self.hass, pfad)
             if self._eintrag_aktuell.kategorie == "integration"

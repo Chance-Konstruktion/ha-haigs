@@ -49,6 +49,7 @@ from .const import (
     CONF_TOKEN,
     CONF_VERIFY_SSL,
     DOMAIN,
+    HERZSCHLAG_VERSATZ_SEK,
     LAGER_START_VERZOEGERUNG_SEK,
     STANDARD_ABSTAND_MINUTEN,
     ablage_schluessel,
@@ -99,6 +100,19 @@ def _neustart_hinweise_aufraeumen(hass: HomeAssistant) -> None:
             issue_registry.async_delete_issue(hass, DOMAIN, kennung)
 
 
+def herzschlag_takt(minuten: int) -> timedelta:
+    """Der Takt des Herzschlags: der Abstand, versetzt (Ticket #23).
+
+    Der Aktualisierer wird beim Richten kurz nach dem Herzschlag-
+    Koordinator bewaffnet; ohne Versatz waeren beide Takte beinahe
+    gleich faellig (Home Assistant streut jede Faelligkeit um bis zu
+    eine halbe Sekunde), und welcher zuerst feuert, ist nicht
+    garantiert. Der Versatz staffelt sie -- der Aktualisierer zuerst,
+    der Herzschlag ``HERZSCHLAG_VERSATZ_SEK`` hinterher.
+    """
+    return timedelta(minutes=minuten, seconds=HERZSCHLAG_VERSATZ_SEK)
+
+
 class HaigsKoordinator(DataUpdateCoordinator[dict[str, int | str]]):
     """Herzschlag gegen die Instanz.
 
@@ -106,6 +120,10 @@ class HaigsKoordinator(DataUpdateCoordinator[dict[str, int | str]]):
     ``hacs``. Das beweist Sitzung, Token und API auf jedem Takt und
     haelt die Instanz warm -- M5 haengt an dieselbe Stelle die echten
     Update-Laeufe.
+
+    Der Folgetakt liegt versetzt hinter dem Takt des Aktualisierers
+    (``herzschlag_takt``), damit die beiden Bewaffnungen nicht
+    beinahe gleich faellig werden.
     """
 
     def __init__(self, hass: HomeAssistant, eintrag: ConfigEntry, forge: Forge) -> None:
@@ -117,7 +135,7 @@ class HaigsKoordinator(DataUpdateCoordinator[dict[str, int | str]]):
             _LOGGER,
             config_entry=eintrag,
             name=f"{DOMAIN}_{forge.host}",
-            update_interval=timedelta(minutes=minuten),
+            update_interval=herzschlag_takt(minuten),
         )
         self.forge = forge
         #: Der stille Zuhoerer, der den Takt haelt (s. _async_refresh_
@@ -327,7 +345,7 @@ async def _abstand_geaendert(hass: HomeAssistant, eintrag: ConfigEntry) -> None:
     if laufzeit is None:
         return
     minuten = int(eintrag.options.get(CONF_ABSTAND_MINUTEN) or STANDARD_ABSTAND_MINUTEN)
-    laufzeit.koordinator.update_interval = timedelta(minutes=minuten)
+    laufzeit.koordinator.update_interval = herzschlag_takt(minuten)
     if laufzeit.lager is not None:
         laufzeit.lager.update_interval = timedelta(minutes=minuten)
     _LOGGER.info("Abstand fuer %s auf %s Minuten gesetzt", laufzeit.forge.host, minuten)
