@@ -10,6 +10,13 @@
           "token": "Access token with read permission (optional)",
           "verify_ssl": "Verify TLS certificate"
         }
+      },
+      "reauth_confirm": {
+        "title": "Renew the access token for {host}",
+        "description": "The token of this instance is missing or no longer works ({grund}). Enter a token with read permission; host, provider, and TLS settings stay as they are.",
+        "data": {
+          "token": "Access token with read permission"
+        }
       }
     },
     "error": {
@@ -21,7 +28,9 @@
       "anbieter_unbekannt": "This provider does not exist"
     },
     "abort": {
-      "already_configured": "This instance is already set up"
+      "already_configured": "This instance is already set up",
+      "reauth_erfolgreich": "Token renewed; the entry was reloaded.",
+      "eintrag_verschwunden": "The entry to renew no longer exists"
     },
     "create_entry": {
       "verbunden": "Connected to {host} ({anbieter}) — {anzahl} projects carry the topic hacs"

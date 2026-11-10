@@ -203,23 +203,31 @@ async def test_token_problem_wird_meldung_und_heilt(
     # Der Ausfall bleibt ohne Folgen fuer die Daten: Entity da, Fund leer.
     assert zustand(hass, "update").state == "unavailable"
 
-    # Heilung: naechster Lauf gesund -> Meldung weg, Entity lebt. Der
-    # Vorlauf um den Takt umgeht den Debounce der soeben gescheiterten
-    # Runde (im M5-Test erprobt). Der Lager-Start feuert
-    # zuerst -- Zeile ueber die ID, dann die leere Suche --, danach
-    # fragt die gesunde Runde des Aktualisierers zuerst die Stammdaten
-    # und dann die Releases. Der Herzschlag bleibt zurueck: sein
-    # versetzter Takt (Ticket #23) ist beim Vorlauf um den Takt noch
-    # nicht faellig.
+    # Der Zutritt-Fehler bietet jetzt den Reauth-Weg an (#17, 17.10.) --
+    # HA taktet danach bewusst nicht mehr von selbst, sondern wartet auf
+    # die Erneuerung. Die Heilung: der Mensch erneuert das Token im
+    # Dialog (im Einzelnen belegt in test_config_flow), Home Assistant
+    # richtet den Eintrag neu, und der gesunde erste Lauf nimmt die
+    # Meldung mit.
+    from homeassistant.config_entries import SOURCE_REAUTH
+
+    laeufe = [
+        f
+        for f in hass.config_entries.flow.async_progress()
+        if f["handler"] == DOMAIN and f["context"].get("source") == SOURCE_REAUTH
+    ]
+    assert len(laeufe) == 1, "der Zutritt-Fehler muss den Reauth-Weg anbieten"
+    hass.config_entries.flow.async_abort(laeufe[0]["flow_id"])
+
     attrappe.aufzeichnungen.extend(
         [
-            stammdaten(),  # Lager: die Zeile ueber die ID
-            Aufzeichnung(text="[]", kopfzeilen={}),  # Lager: die Suche
-            stammdaten(),
+            Aufzeichnung(text="[]", kopfzeilen={}),  # Herzschlag des Neuladens
+            stammdaten(),  # M5: Stammdaten ueber die ID
             releases(release_objekt("v1.2.0", "Wieder da")),
+            Aufzeichnung(text="[]", kopfzeilen={}),  # Lager-Scan des Neuladens
         ]
     )
-    async_fire_time_changed(hass, dt_util.utcnow() + timedelta(hours=12))
+    assert await hass.config_entries.async_reload(mock.entry_id)
     await hass.async_block_till_done()
 
     assert register.async_get_issue(DOMAIN, "token_problem") is None

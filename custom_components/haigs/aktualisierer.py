@@ -27,6 +27,7 @@ from typing import TYPE_CHECKING
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers import issue_registry
 from homeassistant.helpers.issue_registry import IssueSeverity
 from homeassistant.helpers.update_coordinator import (
@@ -64,6 +65,16 @@ def _kennung(schluessel: str) -> str:
 
 #: Wortbruchstuecke, die auf ein Token-Problem deuten (M1-Klartexte).
 _TOKEN_HINWEISE = ("token", "berechtigung", "401", "403")
+
+
+def _ist_token_fehler(grund: str) -> bool:
+    """Trägt der Fehlertext ein Token-Problem (#17, 17.10.)?
+
+    Dieselben Hinweise wie :func:`HaigsAktualisierer._melde_token_problem`
+    -- der Zutritt ist der eine Fall, in dem der Eintrag sich selbst
+    heilen kann, statt nur eine Meldung zu zeigen.
+    """
+    return any(hinweis in grund.lower() for hinweis in _TOKEN_HINWEISE)
 
 
 class HaigsAktualisierer(DataUpdateCoordinator[dict[str, Fund]]):
@@ -132,6 +143,13 @@ class HaigsAktualisierer(DataUpdateCoordinator[dict[str, Fund]]):
             funde = await lauf(self.forge, auftraege)
         except ForgeFehler as fehler:
             self._melde_token_problem(str(fehler))
+            if _ist_token_fehler(str(fehler)):
+                # super-z (#17, 17.10.): ein abgelaufener Token heilt sich
+                # im Dialog (async_step_reauth) -- Home Assistant bietet
+                # ihn auf dem Eintrag an, sobald dieser Fehler fliegt.
+                # Die Reparatur-Meldung oben bleibt daneben stehen; der
+                # naechste erfolgreiche Lauf raeumt sie wie gehabt weg.
+                raise ConfigEntryAuthFailed(str(fehler)) from fehler
             raise UpdateFailed(str(fehler)) from fehler
         except Exception as fehler:
             raise UpdateFailed(f"unerwarteter Fehler: {fehler}") from fehler
@@ -142,8 +160,11 @@ class HaigsAktualisierer(DataUpdateCoordinator[dict[str, Fund]]):
                 "Update-Pruefung gescheitert fuer %s: %s", fund.schluessel, fund.fehler
             )
         if fehlerfunde and len(fehlerfunde) == len(funde):
-            self._melde_token_problem(fehlerfunde[0].fehler or "")
-            raise UpdateFailed(fehlerfunde[0].fehler or "alle Eintraege gescheitert")
+            grund = fehlerfunde[0].fehler or "alle Eintraege gescheitert"
+            self._melde_token_problem(grund)
+            if _ist_token_fehler(grund):
+                raise ConfigEntryAuthFailed(grund)
+            raise UpdateFailed(grund)
 
         await self._bestand_pflegen(stammdaten)
         self._reparaturen_ableiten(funde)

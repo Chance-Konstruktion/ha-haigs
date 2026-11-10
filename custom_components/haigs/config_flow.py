@@ -169,6 +169,17 @@ class HaigsFluss(config_entries.ConfigFlow, domain=DOMAIN):
             elif not host:
                 fehler["base"] = "host_leer"
             else:
+                # super-z (#17, 17.10.): die Warnung reist VOR der ersten
+                # unverschluesselten Reise -- bislang gab es sie erst im
+                # Geruest (async_setup_entry), wer nur ins Protokoll
+                # schaute, sah sie nach der Fahrt, nicht davor.
+                if schema != "https" and token:
+                    _LOGGER.warning(
+                        "%s: die Pruefverbindung laeuft ueber http:// -- das "
+                        "Token geht unverschluesselt ueber das Netz. Im "
+                        "eigenen LAN oft vertretbar, sonst https nutzen",
+                        host,
+                    )
                 try:
                     funde, erkannt = await verbindung_pruefen(
                         self.hass, host, token, anbieter, schema, zertifikat_pruefen
@@ -232,6 +243,83 @@ class HaigsFluss(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="user",
             data_schema=schema,
+            errors=fehler,
+            description_placeholders=platzhalter,
+        )
+
+    async def async_step_reauth(self, eintragsdaten: dict[str, Any]) -> FlowResult:
+        """Nachschärfen eines Eintrags mit abgelaufenem Token (#17, 17.10.).
+
+        Home Assistant startet diesen Weg, wenn der Lauf ``401/403``
+        meldet (``ConfigEntryAuthFailed``). Der Eintrag selbst bleibt
+        stehen -- nur das Token wird neu gefasst, nichts muss entfernt
+        und neu angelegt werden.
+        """
+        self._reauth_eintrag = self.hass.config_entries.async_get_entry(
+            self.context["entry_id"]
+        )
+        if self._reauth_eintrag is None:
+            return self.async_abort(reason="eintrag_verschwunden")
+        return await self.async_step_reauth_confirm()
+
+    async def async_step_reauth_confirm(
+        self, benutzereingabe: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Nur das Token -- Host, Anbieter und Schalter bleiben, wie sie sind."""
+        eintrag = self._reauth_eintrag
+        assert eintrag is not None
+        fehler: dict[str, str] = {}
+        # super-z (#17, 17.10., Nachschau 05.11.): die Beschreibung des
+        # Schritts nennt {grund} (strings.json, de.json, en.json) -- ohne
+        # Wert an der ERSTEN Anzeige wirft das HA-Frontend (IntlMessage-
+        # Format) den MissingValueError und zeigt "Translation Error"
+        # statt des Texts. Hier steht der Klasse-Ausdruck fuer den einen
+        # Fall, in dem sich der Weg bietet (401/403, s. async_step_reauth);
+        # der echte Wortlaut folgt ab der ersten gescheiterten Runde.
+        platzhalter: dict[str, str] = {
+            "host": eintrag.data[CONF_HOST],
+            "grund": "401/403",
+        }
+
+        if benutzereingabe is not None:
+            token = (benutzereingabe.get(CONF_TOKEN) or "").strip() or None
+            schema = eintrag.data.get(CONF_SCHEMA) or "https"
+            anbieter = eintrag.data.get(CONF_PROVIDER) or ANBIETER_AUTO
+            zertifikat_pruefen = bool(eintrag.data.get(CONF_VERIFY_SSL, True))
+            host = eintrag.data[CONF_HOST]
+            try:
+                await verbindung_pruefen(
+                    self.hass, host, token, anbieter, schema, zertifikat_pruefen
+                )
+            except ForgeFehler as fehlgeschlag:
+                fehler["base"] = (
+                    "token_reicht_nicht"
+                    if "Token fehlt oder reicht nicht" in str(fehlgeschlag)
+                    else "verbindung_fehlgeschlagen"
+                )
+                platzhalter["grund"] = str(fehlgeschlag)
+            except Exception as fehlgeschlag:
+                # Dieselbe Breite wie im user-Schritt: DNS, TLS oder
+                # Timeout sind fuer den Menschen ein Fall.
+                fehler["base"] = "host_nicht_erreichbar"
+                platzhalter["grund"] = f"{type(fehlgeschlag).__name__}"
+            else:
+                return self.async_update_reload_and_abort(
+                    eintrag,
+                    data={**eintrag.data, CONF_TOKEN: token or ""},
+                    reason="reauth_erfolgreich",
+                )
+
+        schema_form = vol.Schema(
+            {
+                vol.Required(CONF_TOKEN): TextSelector(
+                    TextSelectorConfig(type=TextSelectorType.PASSWORD)
+                )
+            }
+        )
+        return self.async_show_form(
+            step_id="reauth_confirm",
+            data_schema=schema_form,
             errors=fehler,
             description_placeholders=platzhalter,
         )
